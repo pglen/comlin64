@@ -15,14 +15,26 @@
 #include <unistd.h>
 #include <string.h>
 #include <stdlib.h>
+#include <stdbool.h>
 #include <signal.h>
 #include <sys/stat.h>
 
 int retalarm = 0, secleft = 5;
 
-char chh[12] = "";
-char* message = "To intercept current flow, press Enter in: ";
-char help[]   = "usage: keyget [-t timeout] [message]\n";
+char chstr[12] = "";
+
+char* message  = "To intercept current flow, press Enter in: ";
+char* message2 = "Enter to continue: ";
+char* message3 = "";
+int   nomessage = false;
+char  buff[1000];
+
+char help[]   = \
+    "Usage: keyget [-t timeout] [-m message] [-n] [msgargs]\n" \
+    "              -t   timeout in seconds, value of 0 for no timeout\n"
+    "              -n   no message output\n"
+    "              -m   use this message\n"
+    " Arguments following options are used as message\n";
 
 // -----------------------------------------------------------------------
 // Execute timeout routine
@@ -32,17 +44,18 @@ void timedout(int sig)
 {
     retalarm = 1;
 
-    printf("\b\b\b\b\b\b\b\b\b[%2d sec] ", secleft);
-    fflush(stdout);                             // System needs it
-
-    if(secleft == 0)
+    if(secleft != -1)
         {
-        // Done
-        printf("%s", "\n");  exit(1);
+        printf("\b\b\b\b\b\b\b\b\b[%2d sec] ", secleft);
+        fflush(stdout);                             // System needs it
+
+        if(secleft == 0)
+            {
+            // Done
+            printf("%s", "\n");  exit(1);
+            }
+        secleft--;
         }
-
-    secleft--;
-
     // Re - issue timer alarm
     signal(SIGALRM, timedout);
     alarm(1);
@@ -57,28 +70,33 @@ void ctrl_c(int sig)
 
 // -----------------------------------------------------------------------
 
-
 int main(int argc, char *argv[])
 
 {
     int ret = 0; char ch;
 
     // Parse options
-    while ((ch = getopt(argc, argv, "t:m:")) != -1)
+    while ((ch = getopt(argc, argv, "t:m:nh?")) != -1)
       switch (ch) {
         case 't':
             secleft  = atoi(optarg);
+            if(secleft == 0)
+                secleft = -1;
             break;
 
         // Compatibility for old scripts, last arg overrides
         case 'm':
-            message  = strdup(optarg);
+            message3  = strdup(optarg);
+            break;
+
+        case 'n':
+            nomessage = true;
             break;
 
         case 'h':  case '?':
         default:
             fprintf(stderr, "%s", help);
-            exit(1);
+            exit(0);
             break;
         }
 
@@ -87,12 +105,34 @@ int main(int argc, char *argv[])
 
     // If message passed, use it
     if (*argv != NULL) {
-           message = *argv;
+        buff[0] = '\0';
+        while(true)
+            {
+            if (*argv == NULL)
+                break;
+            //printf("strx = %s ", *argv);
+            strcat(buff, *argv);
+            strcat(buff, " ");
+            argv += 1;
+            }
+        message = buff;
+        }
+    else if(message3[0])
+        {
+        message = message3;
+        }
+    else
+        {
+        if (secleft == -1)
+            message = message2;
         }
 
-    printf("%s", message);              // Show message
-    printf("          ");               // Placeholder for seconds message
-
+    if (! nomessage)
+        {
+        printf("%s", message);              // Show message
+        if (secleft != -1)
+            printf("          ");           // Placeholder for seconds message
+        }
     //signal(SIGINT, SIG_IGN);           // Disable ctrl-c
     //signal(SIGINT, ctrl_c);              //
     //signal(SIGQUIT, ctrl_c);             //
@@ -100,7 +140,7 @@ int main(int argc, char *argv[])
     signal(SIGALRM, timedout);
     alarm((unsigned int)1);             // Start alarms
 
-    fgets(&chh[0], 12, stdin);          // Get String
+    fgets(&chstr[0], sizeof(chstr), stdin);          // Get String
 
     exit (0);
 }

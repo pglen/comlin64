@@ -1,8 +1,14 @@
 #!/bin/bash
 
+KEYGET=./apps/keyget/keyget
+if [ ! -f $KEYGET ] ; then
+    echo "Must have scripts built first (keyget)"
+    exit 1;
+fi
+
 echo
 echo -n "Remove the Jump Drive (if inserted), and then press a key ... "
-getkey >/dev/null 2>&1
+$KEYGET -t 0 >/dev/null 2>&1
 echo OK
 echo
 
@@ -10,8 +16,8 @@ mount > aa
 
 echo "Insert the NEW Jump Drive  (USB drive) now."
 echo -n "Wait for the automount to settle (if any), and then press a key ... "
-getkey >/dev/null
-echo    
+$KEYGET >/dev/null
+echo
 echo "OK, testing for new mount ..."
 sleep 2
 
@@ -24,7 +30,7 @@ DD=`diff aa bb`
 
 EE=`echo $DD | awk  '{ print $3 };' | sed  s/[0-9]// `
 
-if [ "" != "$EE" ] ; then 
+if [ "" != "$EE" ] ; then
 	echo Detected USB drive in $EE
     echo "You may use the 'df' command to check for correctness"
 	# Create configuration entry

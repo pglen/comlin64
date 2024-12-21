@@ -1,6 +1,6 @@
-#   COMLIN64 Community Linux Boot-able USB
+#   ComLin64 Community Linux Boot-able USB
 
-## This is the successor of the comlin project for 64 bit computers.
+## This is the successor of the ComLin64 project for 64 bit computers.
 
 ### Code in motion, nothing usable.
 
@@ -11,9 +11,9 @@ Preface
     *   The Community Linux project aims to provide a simple Linux distribution
         for the masses.
     *   It is a fully functional GUI right from a jump drive within the first
-        couple of minutes of power up.
+        minute of power up.
     *   It is installation-less, and it looks and feels like a real hard drive
-        installation.  (See video - keyword 'ComLin')
+        installation.  (See video - keyword 'ComLin6464')
      _________________________________________________________________
 
 Goals
@@ -32,27 +32,27 @@ Goals
 
 System requirements:
 
-    ComLin Linux will work on most PC platforms. With more than 3000+
-    drivers   available, ComLin  covers almost all possible  platform
+    ComLin64 Linux will work on most 64 bit PC platforms. With more than
+    3000 drivers   available, ComLin64  covers almost all possible  platform
     combination(s).
 
 Recommended Minimum System requirements:
 
-    While ComLin Linux will work on the most basic hardware. For responsive
-    operation we recommend at least 512 MB of RAM (or more), 1.6 GHz
-    processor (or faster) and a 16 Gig USB drive
+    While ComLin64 Linux will work on the most basic hardware. For responsive
+    operation we recommend at least 2Gig MB of RAM, 1.6 GHz
+    processor (or faster) and a 32 Gig USB drive
     (also called Jump Drive, a Thumb Drive or a Flash Drive).
 
-ComLin System Creation requirements:
+ComLin64 System Creation requirements:
 
-    1.) A host Linux system to create the jump drive with. (we used CentOS 6.3)
-        Alternatively, one can create a new ComLin system from a ComLin
+    1.) A host Linux system to create the jump drive with. (we used Ubuntu 22.x)
+        Alternatively, one can create a new ComLin64 system from a ComLin64
         boot drive.
     2.) Jump drive with at least 16 GB capacity. (we used a Verbatim 16GB)
        Smaller jump drive can be used by reducing the freature list, however,
        the 16GB option will have ALL the features of a real hard drive
        installation.
-    3.) The creation scripts and COMLIN system image.
+    3.) The creation scripts and ComLin64 system image.
         (downloaded from Sourceforge)
     4.) The syslinux utility / package
         (usually in distros)
@@ -68,7 +68,7 @@ Quick Start:
     The Makefile contains brief instructions on different
     stages of the process.
     A stock kernel and system is provided for easy system creation.
-    ComLinux can also be created from most any running system, but that is
+    ComLin64ux can also be created from most any running system, but that is
     task reserved for expert sysadmins. (too many things to configure)
 
 Detecting the Jump Drive:
@@ -98,7 +98,7 @@ Care and feeding:
 Runlevel-Less operation
 
     To boot faster, and exclude unneeded baggage present on a full system,
-    ComLin Linux operates without the distinction of runlevels. The system
+    ComLin64 Linux operates without the distinction of runlevels. The system
     instead, cycles through a set of shell scripts.
     To aid troubleshooting, checkpoints are introduced, and one can press
     the ENTER key to temporarily drop to a shell prompt. Exiting the temporary
@@ -106,12 +106,12 @@ Runlevel-Less operation
 
 Installation-Less operation
 
-    ComLin Linux should operate on most every hardware combination supported
+    ComLin64 Linux should operate on most every hardware combination supported
     by Linux. As of this writing, there are more then 3000+ different hardware
-    drivers / items supported. ComLin Linux detects hardware by reading the
+    drivers / items supported. ComLin64 Linux detects hardware by reading the
     system buses, and loading the drivers on the fly. Thanks to modern
     hardware, the identification / driver loading is fast. The system boots
-    about the same speed as a regular hard drive boot. ComLin works right
+    about the same speed as a regular hard drive boot. ComLin64 works right
     out of the box without installation.
 
 Special added Utilities
@@ -138,7 +138,7 @@ Security Measures:
 
 Data Security and Privacy Measures:
 
-    ComLin has an encrypted subsystem, that is controllable from the padlock
+    ComLin64 has an encrypted subsystem, that is controllable from the padlock
     icon on the top panel. Click on the padlock icon, and select the
     encrypted folder you wish to activate. You will be prompted for a
     password, and the folder will become accessible. You may copy/save
@@ -150,7 +150,7 @@ Data Security and Privacy Measures:
      _________________________________________________________________
 
 
-Description of the COMLIN Linux boot procedure
+Description of the ComLin64 Linux boot procedure
 
     o The system loads the MBR of the USB drive
     o MBR loads the boot sector of the USB drive, containing syslinux
@@ -161,7 +161,7 @@ Description of the COMLIN Linux boot procedure
 The OLD initrd process (pre V.1, obsolete):
 
     1. first the script /linuxrc is executed
-    2. linuxrc searches for a drive with the file /comlin
+    2. linuxrc searches for a drive with the file /ComLin64
     3. linuxrc mounts the  drive under /mnt/system
     4. linuxrc changes the root device with pivot_root to /mnt/system
     5. linuxrc starts the normal boot process by invoking /sh/startup.sh
