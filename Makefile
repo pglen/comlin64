@@ -240,6 +240,11 @@ b:	bigcycle
 
 a:	doall
 
+git:
+	git add .
+	git commit -m "Auto Checkin"
+	git push
+
 # End of Makefile
 
 
