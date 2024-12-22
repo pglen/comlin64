@@ -8,7 +8,9 @@
  *
  *  Revisions:
  *
- *             Added Ctrl-C to shortcut uninterrupted flow
+ *      ?                Added Ctrl-C to shortcut uninterrupted flow
+ *      Sat 21.Dec.2024  Added message option and comline append
+ *      Sun 22.Dec.2024  Added yesno, caught overflow situation
 */
 
 #include <stdio.h>
@@ -19,25 +21,42 @@
 #include <signal.h>
 #include <sys/stat.h>
 
-int retalarm = 0, secleft = 5;
+int     retalarm = 0, secleft = 5;
+int     nomessage = false, yesno = false;
+int     yesdef = 0;
+int     forceyn = false;
 
-char chstr[12] = "";
+char    chstr[12] = "";
+char    buff[512];
+char    buff2[128];
 
-char* message  = "To intercept current flow, press Enter in: ";
-char* message2 = "Enter to continue: ";
-char* message3 = "";
-int   nomessage = false;
-char  buff[1000];
+char*   msgtmp = "";
 
-char help[]   = \
-    "Usage: keyget [-t timeout] [-m message] [-n] [msgargs]\n" \
-    "              -t   timeout in seconds, value of 0 for no timeout\n"
-    "              -n   no message output\n"
-    "              -m   use this message\n"
-    " Arguments following options are used as message\n";
+char*   message  = "To intercept current flow, press Enter in: ";
+char*   message2 = "Press Enter to continue: ";
+char*   message3 = "Press Y or N (default is %s): ";
+char*   message4 = "Press Y or N: ";
+
+char *help   = \
+    "Usage: keyget [-t timeout] [-m message] [-y default] [-f] [-n] [msgargs]\n" \
+    "           -t   sec     - timeout in secs, 0 for no timeout, default: 5 \n"
+    "           -m   message - use this as console message\n"
+    "           -y   defval  - yes / no mode, default: 0=no 1=yes\n"
+    "           -f           - force yes or no (captivate)\n"
+    "           -n           - disable default message output\n"
+    "Arguments following options are appended to the console message.\n";
 
 // -----------------------------------------------------------------------
 // Execute timeout routine
+
+char *yesno_str(int val)
+
+{
+    if(val)
+        return("Yes");
+    else
+        return("No");
+}
 
 void timedout(int sig)
 
@@ -64,8 +83,10 @@ void timedout(int sig)
 void ctrl_c(int sig)
 
 {
-    printf("Ctrl-C pressed\n");
-    exit (0);
+    printf("\nCtrl-C pressed, press Y/N. Try again: ");
+    fflush(stdout);
+
+    //exit (0);
 }
 
 // -----------------------------------------------------------------------
@@ -76,7 +97,7 @@ int main(int argc, char *argv[])
     int ret = 0; char ch;
 
     // Parse options
-    while ((ch = getopt(argc, argv, "t:m:nh?")) != -1)
+    while ((ch = getopt(argc, argv, "t:m:nh?y:f")) != -1)
       switch (ch) {
         case 't':
             secleft  = atoi(optarg);
@@ -86,11 +107,20 @@ int main(int argc, char *argv[])
 
         // Compatibility for old scripts, last arg overrides
         case 'm':
-            message3  = strdup(optarg);
+            msgtmp  = strdup(optarg);
             break;
 
         case 'n':
             nomessage = true;
+            break;
+
+        case 'f':
+            forceyn = true;
+            break;
+
+        case 'y':
+            yesno = true;
+            yesdef = atoi(optarg);
             break;
 
         case 'h':  case '?':
@@ -106,43 +136,93 @@ int main(int argc, char *argv[])
     // If message passed, use it
     if (*argv != NULL) {
         buff[0] = '\0';
+        if(msgtmp[0])
+            if (strlen(msgtmp) < sizeof(buff) )
+                {
+                strcat(buff, msgtmp);
+                strcat(buff, " ");
+                }
         while(true)
             {
             if (*argv == NULL)
                 break;
             //printf("strx = %s ", *argv);
-            strcat(buff, *argv);
-            strcat(buff, " ");
+            if (strlen(buff) + strlen(*argv) < sizeof(buff))
+                {
+                strcat(buff, *argv);
+                strcat(buff, " ");
+                }
+            else
+                {
+                printf("Buffer overflow, exiting.\n");
+                exit(1);
+                break;
+                }
             argv += 1;
             }
         message = buff;
         }
-    else if(message3[0])
+    else if(msgtmp[0])
         {
-        message = message3;
+        message = msgtmp;
         }
     else
         {
-        if (secleft == -1)
+        // Fill in defaults
+        if(yesno)
+            {
+            if(forceyn)
+                sprintf(buff2, "%s", message4);
+            else
+                sprintf(buff2, message3, yesno_str(yesdef));
+            message = buff2;
+            }
+        else if (secleft == -1)
             message = message2;
         }
-
-    if (! nomessage)
+    if (!nomessage)
         {
         printf("%s", message);              // Show message
-        if (secleft != -1)
+
+        if (secleft != -1 && yesno == 0)
             printf("          ");           // Placeholder for seconds message
         }
-    //signal(SIGINT, SIG_IGN);           // Disable ctrl-c
-    //signal(SIGINT, ctrl_c);              //
-    //signal(SIGQUIT, ctrl_c);             //
 
-    signal(SIGALRM, timedout);
-    alarm((unsigned int)1);             // Start alarms
+    //signal(SIGINT, SIG_IGN);              // Disable ctrl-c
 
-    fgets(&chstr[0], sizeof(chstr), stdin);          // Get String
+    if(forceyn && yesno)
+        signal(SIGINT, ctrl_c);
 
-    exit (0);
+    if (secleft != -1 && yesno == 0)
+        {
+        signal(SIGALRM, timedout);
+        alarm((unsigned int)1);             // Start alarms
+        }
+
+    if(yesno)
+        {
+        while(1)
+            {
+            fgets(&chstr[0], sizeof(chstr), stdin);          // Get String
+            //printf("got: '%s'", chstr);
+
+            if(strstr(chstr, "y") || strstr(chstr, "Y"))
+                exit(1);
+            else if(strstr(chstr, "n") || strstr(chstr, "N"))
+                exit(0);
+            else
+                if(forceyn)
+                    printf("No Y/N selection, try again: ");
+                else
+                    exit(yesdef);
+            }
+        exit(0);
+        }
+    else
+        {
+        fgets(&chstr[0], sizeof(chstr), stdin);          // Get String
+        exit (0);
+        }
 }
 
 

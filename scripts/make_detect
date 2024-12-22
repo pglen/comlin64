@@ -1,11 +1,5 @@
 #!/bin/bash
 
-KEYGET=./apps/keyget/keyget
-if [ ! -f $KEYGET ] ; then
-    echo "Must have scripts built first (keyget)"
-    exit 1;
-fi
-
 echo
 echo -n "Remove the Jump Drive (if inserted), and then press a key ... "
 $KEYGET -t 0 >/dev/null 2>&1
@@ -39,3 +33,6 @@ else
 	echo "No Drive detected, please try again"
 fi
 
+rm -f aa bb
+
+# EOF

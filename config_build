@@ -5,9 +5,15 @@
 
 # Check if we started from comlin script root
 
-if [ ! -f ./comlinver2.txt ] ; then
+if [ ! -f ./comlinver.txt ] ; then
     	echo "Must start from comlin script root"
     	exit 1;
+fi
+
+KEYGET=./apps/keyget/keyget
+if [ ! -f $KEYGET ] ; then
+    echo "Must have apps / scripts built first (missing keyget)"
+    exit 1;
 fi
 
 # root directory of the USB-set
@@ -47,6 +53,9 @@ DMOUNT=/mnt/guest
 
 # where is the rescue system located
 ROOTFS="system"
+
+# where is the rescue system located
+ROOTISO="iso"
 
 # where is the initrd located
 INITRDFS="initrdfs"

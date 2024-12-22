@@ -119,7 +119,7 @@ apps:
 
 prompt:
 	@./scripts/prompt.sh " fdisk / format "
-	@echo "Prompt succeeded ..."
+	@#echo "Prompt succeeded ..."
 
 detect:
 	sudo ./scripts/make_detect
@@ -170,6 +170,7 @@ doall: prompt new remnt copyusb putkern syslin cpscripts uremnt
 	@echo "Done doall"
 
 # Callable from scripts, will not prompt
+
 doall2: new2 remnt copyusb putkern syslin cpscripts uremnt
 	@echo "Done doall"
 
@@ -214,6 +215,11 @@ umount:
 cpscripts:
 	@sudo ./scripts/make_cpscripts
 
+iso:
+	@sudo ./scripts/make_iso
+
+# ------------------------------------------------------------------------
+
 backup:
 	@sudo ./backup.sh
 
@@ -221,7 +227,6 @@ pack:
 	@sudo ./pack.sh
 
 clean:
-	make -C apps clean
 	@sudo ./clean.sh
 
 getimg:
