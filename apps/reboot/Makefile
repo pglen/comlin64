@@ -5,10 +5,9 @@
 
 all: linux_reboot linux_poweroff
 
-
 linux_reboot: linux_reboot.c
 	gcc linux_reboot.c -o linux_reboot
 
 linux_poweroff: linux_poweroff.c
 	gcc linux_poweroff.c -o linux_poweroff
-    
+

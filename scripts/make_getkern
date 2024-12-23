@@ -7,19 +7,28 @@ echo
 echo "-------------------------------------"
 echo " Getting new kernel from SYS SRC dir "
 echo "--------------------------------------"
-echo 
+echo
 
-# Copy kernel files from runtime 
+# Copy kernel files from runtime
 # Enable this if you do not have sources and disable the source part below.
 
-#cp -v /vmlinuz _kernel/vmlinuz
-#cp -v /boot/System.map*  _kernel/System.map
+echo -n "Getting kernel maps ... "
+cp /boot/System.map*  $KERNELDIR
+echo OK
 
-echo -n "Getting kernel and kernel map ... "
+echo -n "Getting kernel  ... "
+cp  /boot/vmlinuz $KERNELDIR
+echo OK
+
+NEWKERNEL=/media/peterglen/LinHD/kernel/linux-6.12.6/arch/x86/boot/bzImage
+if [ -f  $NEWKERNEL ] ; then
+    cp $NEWKERNEL $KERNELDIR/vmlinuz6
+fi
 
 # Copy kernel files from source
-sudo cp  /lib/modules/`uname -r`/build/arch/x86/boot/bzImage _kernel/vmlinuz
-sudo cp  /lib/modules/`uname -r`/build/System.map _kernel
+#sudo cp  /lib/modules/`uname -r`/build/arch/x86/boot/bzImage _kernel/vmlinuz
+#sudo cp  /lib/modules/`uname -r`/build/System.map _kernel
 
-echo OK
+sudo chown $USER $KERNELDIR
+echo Done
 

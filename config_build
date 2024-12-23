@@ -3,7 +3,7 @@
 # Customize these options for comlin build.
 # Copyright by Peter Glen. See open source license for details.
 
-# Check if we started from comlin script root
+# Check if we started from comlin script from comlin root
 
 if [ ! -f ./comlinver.txt ] ; then
     	echo "Must start from comlin script root"
@@ -16,6 +16,8 @@ if [ ! -f $KEYGET ] ; then
     exit 1;
 fi
 
+APPDIR=./apps/
+
 # root directory of the USB-set
 BASE=`pwd`
 
@@ -24,6 +26,7 @@ BASE=`pwd`
 
 # Skip check if instructed
 if [ "$1" != "nocheck" ] ; then
+
     if [ ! -f ./config_drive ] ; then
     	echo "USB drive not configured. Run 'make detect' first"
     	exit 1;
@@ -32,15 +35,27 @@ if [ "$1" != "nocheck" ] ; then
     # This is the USB drive root for partitioning
     . ./config_drive
 
-    if [ $RDDEV == "" ] ; then
+    if [ "$RDDEV" = "" ] ; then
     	echo "USB drive not configured."
     	exit 1;
     fi
 fi
 
+
 # Where our USB data lives
 CURRUSB=../comlin64-usb-000
 LITEUSB=../comlin64-lite-000
+CURRMODS=../comlin64-mod-000
+
+mkdir -p $CURRUSB
+mkdir -p $LITEUSB
+mkdir -p $CURRMODS
+
+# The original location of the new kernel
+NEWKERNELDIR=.
+
+# Where boot related stuff is
+BOOT=_boot
 
 # This is the USB boot part
 DDEV=${RDDEV}1
@@ -49,20 +64,20 @@ DDEV=${RDDEV}1
 DDEV2=${RDDEV}2
 
 # Here it is mounted
-DMOUNT=/mnt/guest
+COMLINMOUNT=/mnt/comlin64
+mkdir -p $COMLINMOUNT
 
-# where is the rescue system located
-ROOTFS="system"
+# Where is the rescue system located
+ROOTFS="_system"
 
-# where is the rescue system located
-ROOTISO="iso"
+# Where is the new system ISO is located
+ROOTISOFILE="../comlin64.iso"
 
-# where is the initrd located
+# Where is the initrd located
 INITRDFS="initrdfs"
 
-# The directory where the kernel you want to use is located
-
-KERNEL="_kernel"
+# The directory Where the kernel you want to use is located
+KERNELDIR="_kernel"
 
 # Script directory
 SCRIPTS="scripts"
@@ -131,12 +146,12 @@ checkMnt()
 # syslinux, lilo or grub the size of your kernel image
 # and the compressed initrd should not exceed 2.88MB.
 # lilo/syslinux/grub may or may not run on systems
-# where isolinux does not work
+# Where isolinux does not work
 
 #BOOTLOADER="isolinux"
 
 # The size of the initial ramdisk in kbytes
-RAMSIZE="14000"
+RAMDISKSIZE="25000"
 
 # Must be multiple of 0x8000
 #RAMSIZE=$((400*0x8000))

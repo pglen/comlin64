@@ -1,66 +1,85 @@
 #!/bin/sh
 
-# Custom Dracut for Community Linux
-#
-# Notes:
-#  Use ext4 and set commit to a minute for flash drive life presevation
-#  or .. Use ext3 if you want to allow journaling  (constant disk activity)
-#  or .. Use ext2 you do not want to allow journaling 
+# Custom INIT for Community Linux
 
-# Set this to the desired FS type. See notes above.
-MYFST=ext4
+. shlib/functions.sh
+. shlib/dracut-lib.sh
 
 export PATH=/sbin:/bin:/usr/sbin:/usr/bin
 export TERM=linux
 NEWROOT="/sysroot"
 
+# Patch missing stuff
+#mknod /dev/sr0 b 11 0
+
 trap "emergency_shell Signal caught!" 0
 
-RDDEBUG=""
+# Notes:
+#  Use ext4 and set commit to a minute for flash drive life presevation
+#  or .. Use ext3 if you want to allow journaling  (constant disk activity)
+#  or .. Use ext2 you do not want to allow journaling
+#
 
-# Include libraries
-. /lib/dracut-lib.sh
-. /lib/functions.sh
+#  Set this to the desired FS type. See notes above.
+MYFST=ext4
 
-# Create minimal set
-mknod -m 0666 /dev/null c 1 3
-mkdir -p /proc >/dev/null 2>&1
-mkdir -p /sys  >/dev/null 2>&1
+#echo "COMLIN initrd init"
+
+[ -e /dev/console ] || ln -s /dev/tty0 /dev/console
+
+# TEST CRAP
+#ls -l /dev
 
 # Mount some important things
 mount -t proc -o nosuid,noexec,nodev proc /proc >/dev/null 2>&1
 mount -t sysfs -o nosuid,noexec,nodev sysfs /sys >/dev/null 2>&1
 
-if [ ! -c /dev/ptmx ]; then
-    # Try to mount devtmpfs
-    if ! mount -t devtmpfs -o mode=0755,nosuid devtmpfs /dev >/dev/null 2>&1; then
-        # If it failed fall back to normal tmpfs
-        mount -t tmpfs -omode=0755,nosuid tmpfs /dev >/dev/null 2>&1 
-        # Make some basic devices first, let udev handle the rest
-        mknod -m 0666 /dev/null c 1 3
-        mknod -m 0666 /dev/ptmx c 5 2
-        mknod -m 0600 /dev/console c 5 1
-        mknod -m 0660 /dev/kmsg c 1 11
-    fi
+# Mount CDROM
+#mkdir /mnt/cdrom
+#mount /dev/sr0 /mnt/cdrom
+
+# This was needed so the TSC calibration completes ARGGGHH
+sleep 1
+
+keyget -t 3 "Entering InitRamFS, presee Enter to drop to shell"
+if [ $? -eq 0 ] ; then
+    echo Dropping to pre scan shell ..
+    # Set session ID and execute bash
+    setsid -c -w /bin/bash
 fi
+
+#if [ ! -c /dev/ptmx ]; then
+#    # Try to mount devtmpfs
+#    if ! mount -t devtmpfs -o mode=0755,nosuid devtmpfs /dev >/dev/null 2>&1; then
+#        # If it failed fall back to normal tmpfs
+#        mount -t tmpfs -omode=0755,nosuid tmpfs /dev >/dev/null 2>&1
+#        # Make some basic devices first, let udev handle the rest
+#        mknod -m 0666 /dev/null c 1 3
+#        mknod -m 0666 /dev/ptmx c 5 2
+#        mknod -m 0600 /dev/console c 5 1
+#        mknod -m 0660 /dev/kmsg c 1 11
+#    fi
+#fi
+#
 
 ln -s /proc/self/fd /dev/fd >/dev/null 2>&1
 
-if getarg rdinitdebug; then
-    getarg quiet && DRACUT_QUIET="yes"
-    mkfifo /dev/initlog.pipe
-    /sbin/loginit $DRACUT_QUIET </dev/initlog.pipe >/dev/console 2>&1 &
-    exec >/dev/initlog.pipe 2>&1
-else
-    exec 0<>/dev/console 1<>/dev/console 2<>/dev/console
-fi
+#if getarg rdinitdebug; then
+#    getarg quiet && DRACUT_QUIET="yes"
+#    mkfifo /dev/initlog.pipe
+#    /sbin/loginit $DRACUT_QUIET </dev/initlog.pipe >/dev/console 2>&1 &
+#    exec >/dev/initlog.pipe 2>&1
+#else
+#    exec 0<>/dev/console 1<>/dev/console 2<>/dev/console
+#fi
+#
+#setdebug
 
-setdebug
-
-mkdir -p /dev/shm
 mkdir -p /dev/pts
 mount -t devpts -o gid=5,mode=620 devpts /dev/pts >/dev/null 2>&1
-mount -t tmpfs -o mode=1777,nosuid,nodev tmpfs /dev/shm >/dev/null 
+
+mkdir -p /dev/shm
+mount -t tmpfs -o mode=1777,nosuid,nodev tmpfs /dev/shm >/dev/null
 
 UDEVVERSION=$(udevadm --version)
 
@@ -127,7 +146,7 @@ while :; do
     if [ -f /initqueue/work ]; then
         rm /initqueue/work
     fi
-        
+
     for job in /initqueue/*.sh; do
     [ -e "$job" ] || break
         job=$job . $job
@@ -157,7 +176,7 @@ while :; do
         # skip, if cdrom medium was already found
             strstr "$(udevadm info --query=env --path=${cdrom##/sys})" \
             ID_CDROM_MEDIA && continue
-            echo change > "$cdrom/uevent"        
+            echo change > "$cdrom/uevent"
     done
 
     if [ $main_loop -gt $(($RDRETRY/2)) ]; then
@@ -170,7 +189,7 @@ while :; do
 
     # We do not need to suffer thru this ...
     break
-    
+
     #main_loop=$(($main_loop+1))
     #[ $main_loop -gt $RDRETRY ] \
     #    && { flock -s 9 ; emergency_shell "No root device \"$root\" found"; } 9>/.console_lock
@@ -194,42 +213,44 @@ getarg 'rdbreak=mount' && emergency_shell -n mount "Break mount"
 i=0
 while :; do
 
+    echo "Attempting Mount"
+
     #[ -d "$NEWROOT/proc" ] && break;
     #for f in /mount/*.sh; do
     #   [ -f "$f" ] && . "$f"
     #   [ -d "$NEWROOT/proc" ] && break;
     #done
+    #sleep 1
 
-    sleep 1
-    
     # If no root, search for it, else accept command line
     if [ -z "$root" ] ; then
-        mountUSB
-    else  
-        DEVICE=$root 
+        mountANY
+    else
+        DEVICE=$root
     fi
-    
-    # No USB ROOT FS found, tell the user
+
+    # No ROOT FS found, tell the user
     if test -z $DEVICE ; then
        echo "Cannot find a valid system image - dropping to shell."
-       echo "Exiting this shell rescans drives for valid system image."
-       sh -l -i
+       echo "Exiting this shell re-scans drives for valid system image."
+       setsid -c -w /bin/bash
     else
         # Finally, mount our FS into dracut's newroot
-        mount -t $MYFST -o commit=60 $DEVICE $NEWROOT    
+        #mount -t $MYFST -o commit=60 $DEVICE $NEWROOT
+        mount $DEVICE $NEWROOT
         break
     fi
     i=$(($i+1))
-    
+
     # Give up after $i tries
     [ $i -gt 20 ] \
         && { flock -s 9 ; emergency_shell "Can't mount root filesystem"; } 9>/.console_lock
 done
 
 echo "Mounted root filesystem on " $DEVICE
-    
+
 #{
-#    while read dev mp rest; do [ "$mp" = "$NEWROOT" ] && echo $dev; done < /proc/mounts 
+#    while read dev mp rest; do [ "$mp" = "$NEWROOT" ] && echo $dev; done < /proc/mounts
 #} | vinfo
 
 #dosh
@@ -258,7 +279,7 @@ getarg rdbreak && emergency_shell -n switch_root "Break before switch_root"
 udevadm control --stop-exec-queue
 
 HARD=""
-while pidof udevd >/dev/null 2>&1; do 
+while pidof udevd >/dev/null 2>&1; do
     for pid in $(pidof udevd); do
         kill $HARD $pid >/dev/null 2>&1
     done
@@ -283,7 +304,7 @@ if getarg init= >/dev/null ; then
     set $CLINE
     shift
     for x in "$@"; do
-        for s in $ignoreargs; do       
+        for s in $ignoreargs; do
             [ "${x%%=*}" = $s ] && continue 2
         done
         initargs="$initargs $x"
@@ -309,14 +330,14 @@ fi
 
 info "Switching root"
 
-wait_for_loginit
+#wait_for_loginit
 
 keyget -t 3 "About to switch root, Press Enter within 3 seconds to drop to shell"
 if [ $? -eq 0 ] ; then
-    echo		
-    echo "Dropping to Sell"
-    dosh
-    echo	    
+    echo
+    echo "Dropping to Shell"
+    setsid -c -w /bin/bash
+    echo
 fi
 
 if [ -f /etc/capsdrop ]; then
@@ -335,6 +356,5 @@ else
     emergency_shell
     }
 fi
-# vim:ts=8:sw=4:sts=4:et
 
-
+# EOF

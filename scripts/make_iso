@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 ##########################################################################
 ##                                                                      ##
 ## Make the install ISO                                                 ##
@@ -17,22 +17,36 @@ echo "----------------------------------"
 echo "        Making ISO image          "
 echo "----------------------------------"
 echo
-echo
 
-# if we use a compressed ISO9660 image we need the -z switch
-if [ "$COMPRESSEDFS" = "yes" ]; then
-    Z="-z"
-fi
-
-# create the file RESCUECD to identify the rescue cd
-touch $ROOTISO/comlin64.iso            || fail
-
-# create the cd, either burn it or create just the image
-#if [ $ISOIMAGEONLY = "yes" ]; then
-#	mkisofs $Z -R -b boot/boot.img $ROOTFS > rescuecd.iso || fail
-#else
-#	mkisofs $Z -R -b boot/boot.img $ROOTFS |
-#	cdrecord -eject $SCSIBLANK dev=$SCSIDEV speed=$SCSISPEED - || fail
+## if we use a compressed ISO9660 image we need the -z switch
+#if [ "$COMPRESSEDFS" = "yes" ]; then
+#    Z="-z"
 #fi
 
+mkdir -p $ROOTFS
+mkdir -p $ROOTFS/boot
+
+#rm -rf $ROOTFS/boot/*
+#cp $SCRIPTS/misc/files/memtest86.bin $ROOTFS
+
+echo -n "Copying filesystem ... "
+#rsync -ahu --progress ../comlin-usb-000/* $ROOTFS
+cp -a $LITEUSB/* $ROOTFS
+echo OK
+
+echo -n "Copying boot items ... "
+cp -r $KERNELDIR/* $ROOTFS/boot
+cp -r $BOOT/* $ROOTFS/boot
+echo OK
+
+touch  $ROOTFS/COMBOOT
+
+#chown -R $USER $ROOTFS
+
+echo -n "Making ISO ... $ROOTISOFILE"
+mkisofs -input-charset utf-8 -R -b boot/grub/stage2_eltorito -no-emul-boot  \
+         -boot-load-size 4 -boot-info-table -o $ROOTISOFILE \
+         -quiet $ROOTFS  || fail
 echo
+stat -c "ISO written, %s bytes." $ROOTISOFILE
+echo Done

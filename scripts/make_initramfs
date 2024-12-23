@@ -1,31 +1,37 @@
- #!/bin/sh
+ #!/bin/bash
+
+# No checking for USB ...
 
 . ./config_build nocheck
 . "$SCRIPTS"/misc/lib/lib_fail
 
-# No checking for USB ...
-
-TARG=initramfs
-RES=$TMPDIR/initramfs
+TARGDIR=initramfs
+RAMFSRES=$KERNELDIR/initramfs
 
 echo
 echo "-------------------------------------"
-echo " Making initramfs from '$TARG'  "
+echo " Making initramfs from '$TARGDIR'  "
 echo "-------------------------------------"
-echo 
+echo
+
+# Gather apps into initramfs
+
+cp $APPDIR/keyget/keyget $TARGDIR/bin
+cp $APPDIR/reboot/linux_reboot $TARGDIR/bin
+cp $APPDIR/reboot/linux_poweroff $TARGDIR/bin
 
 # Make initramfs from custom booter. The initrd is phased out
 # so we are making a custom one for auto bootdrive search
 
-if [ ! -d $TARG ]; then
-    echo "No itramfs files"
+if [ ! -d $TARGDIR ]; then
+    echo "No initramfs files yet."
     exit
 fi
 
-chown -R root.root $TARG
+#chown -R root.root $TARGDIR
 
-(cd $TARG; find . | cpio -o -H newc | gzip) > $RES
-echo
+echo -n "Assemble cpio archive ... "
+(cd $TARGDIR; find . | cpio -o -H newc | gzip) > $RAMFSRES
+echo "Geneated:" $RAMFSRES
 
-
-
+# EOF

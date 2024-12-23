@@ -1,0 +1,8 @@
+# Testcases for keyget
+
+[
+    [ "Testing keyget", "", "", True],
+    [ "Keyget", "./apps/keyget/keyget", "", True],
+]
+
+# EOF

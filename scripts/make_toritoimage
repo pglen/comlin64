@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 ###############################################################################
 ##                                                                           ##
 ##                            make_toritoimage                               ##
@@ -10,7 +10,7 @@
 ## The Floppy image should then be a fully functional el torito boot image.  ##                                                                  ##
 ## The recipe to integrate grub into the set is heavily based on             ##
 ## information provided to me by Petr Konecny <pekon@informatics.muni.cz>.   ##
-##                                                                           ##	  
+##                                                                           ##
 ## This program is free software; you can redistribute it and/or modify      ##
 ## it under the terms of the GNU General Public License as published by      ##
 ## the Free Software Foundation; either version 2 of the License, or         ##
@@ -19,14 +19,26 @@
 ###############################################################################
 
 . config_build
-. "$SCRIPTS"/misc/lib/lib_fail
+
+#. "$SCRIPTS"/misc/lib/lib_fail
+
+fail() {
+    echo "Failed " $1 $2
+}
 
 echo "----------------------------------"
-echo "    creating boot floppy image    " 
+echo "    creating boot floppy image    "
 echo "               grub               "
 echo "----------------------------------"
-echo 
 echo
+echo
+
+if [ ! -f $KERNEL/vmlinuz ] ; then
+    echo "Please execute 'make getkern' first."
+    exit 1
+fi
+
+FLOPPYSIZE=288
 
 # this is here to override the FLOPPYSIZE parameter at runtime without
 # the need of changing the config file.
@@ -39,31 +51,41 @@ fi
 cp "$SCRIPTS"/misc/files/grub_"$FLOPPYSIZE".img.gz $TMPDIR/grubfs.gz || fail
 gunzip -f $TMPDIR/grubfs.gz || fail
 
-losetup /dev/loop4 $TMPDIR/grubfs || fail
-mount /dev/loop4 $MOUNTPOINT || fail
-    
-if [ "$CRAMFS" = "yes" ]; then
-	cat "$SCRIPTS"/misc/files/grub_menu.lst          \
-		| sed "s|RAMSIZE|$RAMSIZE|;s|CRAMFS|cramfs|" \
-		> $MOUNTPOINT/grub/menu.lst
-else
-	cat "$SCRIPTS"/misc/files/grub_menu.lst    \
-		| sed "s|RAMSIZE|$RAMSIZE|;s|CRAMFS||" \
-		> $MOUNTPOINT/grub/menu.lst
-fi
+#LODEV=$(losetup -f)
+TMPFILE=$TMPDIR/tmpfile
+dd if=/dev/zero of=$TMPFILE count=10000
+
+#sudo losetup $LODEV $TMPDIR/grubfs || fail losetup
+#sudo losetup $LODEV $TMPFILE || fail
+
+#sudo mount -o loop $TMPDIR/grubfs $MOUNTPOINT || fail
+sudo mount -o loop $TMPFILE $MOUNTPOINT || fail
+
+#if [ "$CRAMFS" = "yes" ]; then
+#	cat "$SCRIPTS"/misc/files/grub_menu.lst          \
+#		| sed "s|RAMSIZE|$RAMSIZE|;s|CRAMFS|cramfs|" \
+#		> $MOUNTPOINT/grub/menu.lst
+#else
+#	cat "$SCRIPTS"/misc/files/grub_menu.lst    \
+#		| sed "s|RAMSIZE|$RAMSIZE|;s|CRAMFS||" \
+#		> $MOUNTPOINT/grub/menu.lst
+#fi
+#
 
 # copy kernel onto grubfs image
-cp "$KERNEL"/vmlinuz $MOUNTPOINT || fail
+cp "$KERNEL"/vmlinuz $MOUNTPOINT || fail copy
 
 # copy memtest86 image onto grubfs image
-cp "$SCRIPTS"/misc/files/memtest86.bin $MOUNTPOINT/memtest.86 || fail
+cp "$SCRIPTS"/misc/files/memtest86.bin $MOUNTPOINT/memtest.86 || fail memtest
 
 # move compressed initrdfs onto lilofs image
-mv $TMPDIR/initrdfs.gz $MOUNTPOINT || fail
-umount $MOUNTPOINT
+mv $TMPDIR/initrdfs.gz $MOUNTPOINT || fail move
 
-losetup -d /dev/loop4
-    
+#sudo umount $MOUNTPOINT
+#sudo losetup -d $LODEV
+
+#rm -f $TMPFILE
 # move grubfs image to BURN_THIS/boot/boot.img
-mv $TMPDIR/grubfs $ROOTFS/boot/boot.img
+#mv $TMPDIR/grubfs $ROOTFS/boot/boot.img
 
+# EOF

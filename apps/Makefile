@@ -8,6 +8,7 @@ help:
 
 apps:
 	make -C keyget keyget
+	make -C reboot
 
 clean:
 	make -C keyget clean

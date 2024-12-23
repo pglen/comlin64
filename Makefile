@@ -20,7 +20,7 @@
 #  IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 #  WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-.PHONY: apps clean
+.PHONY: apps clean initramfs
 
 all:
 	@echo "Type 'make help' for a list of targets"
@@ -58,7 +58,7 @@ help2:
 	@echo "	 	make getusb2     -- update from USB content back to project"
 	@echo "	 	make copy        -- to mirror current system to USB (advanced)"
 	@echo "	 	make initrd      -- to make a new initrd (obsolete)"
-	@echo "	 	make initfs      -- to make a new initramfs"
+	@echo "	 	make initramfs      -- to make a new initramfs"
 	@echo "	 	make putmods     -- Copy modules from build dir to USB"
 	@echo "	 	make refresh     -- Refresh kernel (System->Build_dir->USB)"
 	@echo
@@ -133,11 +133,17 @@ new2:
 	sudo ./scripts/make_part go
 	sudo ./scripts/make_fs go
 
-initrd:
-	@sudo ./scripts/make_initrd do
+#initrd:
+#	@sudo ./scripts/make_initrd do
 
-initfs:
+initramfs:
 	@sudo ./scripts/make_initramfs
+
+bootimage:
+	@sudo ./scripts/make_toritoimage
+
+cdboot:
+	@sudo ./scripts/make_cdboot
 
 getusb:
 	@sudo ./scripts/make_getusb
@@ -157,8 +163,14 @@ syslin:
 cleanusb:
 	@sudo ./scripts/make_cleanusb
 
+cleanusbsock:
+	@sudo ./scripts/make_cleanusbsock
+
 copyusb:
 	@sudo ./scripts/make_copyusb
+
+getlite:
+	@sudo ./scripts/make_getlite
 
 cycle: putkern syslin cpscripts umount
 	@echo "Done Cycle"
@@ -184,19 +196,19 @@ uremnt:
 
 getkern:
 	@echo Getting new kernel
-	sudo ./scripts/make_getkern
+	@sudo ./scripts/make_getkern
 
 getkern2:
 	@echo Getting new kernel
-	sudo ./scripts/make_getkern2
+	@sudo ./scripts/make_getkern2
 
 getmods:
 	@echo Getting new modules
-	sudo ./scripts/make_getmods
+	@sudo ./scripts/make_getmods
 
 getmods2:
 	@echo Getting new modules to USB build dir
-	sudo ./scripts/make_getmods2
+	@sudo ./scripts/make_getmods2
 
 putmods:
 	@echo Putting new modules
@@ -216,6 +228,7 @@ cpscripts:
 	@sudo ./scripts/make_cpscripts
 
 iso:
+	@#echo Making ISO
 	@sudo ./scripts/make_iso
 
 # ------------------------------------------------------------------------

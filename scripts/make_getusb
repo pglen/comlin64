@@ -1,33 +1,31 @@
 #!/bin/sh
 ##------------------------------------------------------------------------
-##                              
+##
 ## Copies USB drive to USB image
-##                                                                      
-## This program is free software; you can redistribute it and/or modify 
-## it under the terms of the GNU General Public License as published by 
-## the Free Software Foundation; either version 2 of the License, or    
-## (at your option) any later version.                                  
-##                                                                      
+##
+## This program is free software; you can redistribute it and/or modify
+## it under the terms of the GNU General Public License as published by
+## the Free Software Foundation; either version 2 of the License, or
+## (at your option) any later version.
+##
 ##------------------------------------------------------------------------
 
 . ./config_build
-
 . "$SCRIPTS"/misc/lib/lib_fail
 
 TARG=/media/COMBOOT
-MCOMBOOT=/media/COMBOOT
 
 echo
 echo "----------------------------------"
 echo " Copying USB drive to USB image "
 echo " May need sudo pass ..."
 echo "----------------------------------"
-echo 
+echo
 
 # Is the drive here?
 GREPX=`mount | grep $DDEV`
 
-if [ x"$GREPX" == x"" ] ; then 
+if [ x"$GREPX" == x"" ] ; then
     echo "Mount (insert) $DDEV first."
    	exit
 fi
@@ -35,12 +33,12 @@ fi
 # Is the second drive here?
 GREPX=`mount | grep $DDEV2`
 
-if [ x"$GREPX" == x"" ] ; then 
+if [ x"$GREPX" == x"" ] ; then
     echo "Mount (insert) $DDEV2 first."
    	exit
 fi
 
-#if [ ! -d _work ] ; then 
+#if [ ! -d _work ] ; then
 #  echo  "Must start from project root (comlin-xxx)"
 #  exit
 #fi

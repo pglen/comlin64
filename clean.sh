@@ -9,7 +9,10 @@ PROJ=`basename $HERE`
 # Do some cleaning
 echo "Cleaning .."
 
-rm -rf _work
+rm -rf _work/*
+rm -rf _kernel/*
+rm -rf _system/*
+
 make -C apps clean
 
 echo Done.
