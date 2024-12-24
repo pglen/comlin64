@@ -1,5 +1,5 @@
 # ------------------------------------------------------------------------
-# Custom Dracut library. Modifications by Peter Glen.
+# Custom Comlin library. Modifications by Peter Glen.
 # I attempted to preserve as much of the original as it was practical.
 # Added some func. desc.
 
@@ -103,17 +103,19 @@ source_conf() {
 
 die() {
 
-    echo "<1>dracut: Dropping to temp shell before reboot";
+    echo "<1>Comlin: Dropping to temp shell before reboot";
     #sh -l -i
+
     setsid -c -w /bin/bash
+
     {
-        echo "<1>dracut: FATAL: $@";
-        echo "<1>dracut: Refusing to continue";
+        echo "<1>Comlin: FATAL: $@";
+        echo "<1>Comlin: Refusing to continue";
     } > /dev/kmsg
 
     {
-        echo "warn dracut: FATAL: \"$@\"";
-        echo "warn dracut: Refusing to continue";
+        echo "warn Comlin: FATAL: \"$@\"";
+        echo "warn Comlin: Refusing to continue";
 	echo "exit 1"
     } >> /emergency/01-die.sh
 
@@ -124,10 +126,10 @@ die() {
 # ------------------------------------------------------------------------
 
 check_quiet() {
-    if [ -z "$DRACUT_QUIET" ]; then
-	DRACUT_QUIET="yes"
-	getarg rdinfo && DRACUT_QUIET="no"
-	getarg quiet || DRACUT_QUIET="yes"
+    if [ -z "$Comlin_QUIET" ]; then
+	Comlin_QUIET="yes"
+	getarg rdinfo && Comlin_QUIET="no"
+	getarg quiet || Comlin_QUIET="yes"
     fi
 }
 
@@ -135,18 +137,18 @@ check_quiet() {
 
 warn() {
     check_quiet
-    echo "<4>dracut Warning: $@" > /dev/kmsg
-    [ "$DRACUT_QUIET" != "yes" ] && \
-    	echo "dracut Warning: $@" >&2
+    echo "<4>Comlin Warning: $@" > /dev/kmsg
+    [ "$Comlin_QUIET" != "yes" ] && \
+    	echo "Comlin Warning: $@" >&2
 }
 
 # ------------------------------------------------------------------------
 
 info() {
     check_quiet
-    echo "<6>dracut: $@" > /dev/kmsg
-    [ "$DRACUT_QUIET" != "yes" ] && \
-	echo "dracut: $@"
+    echo "<6>Comlin: $@" > /dev/kmsg
+    [ "$Comlin_QUIET" != "yes" ] && \
+	echo "Comlin: $@"
 }
 
 # ------------------------------------------------------------------------

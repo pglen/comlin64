@@ -11,11 +11,6 @@ if [ ! -f ./comlinver.txt ] ; then
 fi
 
 KEYGET=./apps/keyget/keyget
-if [ ! -f $KEYGET ] ; then
-    echo "Must have apps / scripts built first (missing keyget)"
-    exit 1;
-fi
-
 APPDIR=./apps/
 
 # root directory of the USB-set

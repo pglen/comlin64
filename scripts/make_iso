@@ -29,10 +29,29 @@ mkdir -p $ROOTFS/boot
 #rm -rf $ROOTFS/boot/*
 #cp $SCRIPTS/misc/files/memtest86.bin $ROOTFS
 
+# See if conditions are met
+
+if [ ! -f $KEYGET ] ; then
+    echo "Must have apps / scripts built first (missing keyget)"
+    exit 1
+fi
+if [ ! -f $KERNELDIR/vmlinuz ] ; then
+    echo "Execute 'make getkern' first."
+    exit 1
+fi
+
+if [ ! -f $KERNELDIR/initramfs ] ; then
+    echo "Execute 'make initramfs' first."
+    exit 1
+fi
+
 echo -n "Copying filesystem ... "
-#rsync -ahu --progress ../comlin-usb-000/* $ROOTFS
-cp -a $LITEUSB/* $ROOTFS
+#rsync -ahu --progress $LITEUSB/* $ROOTFS
+cp -au $LITEUSB/* $ROOTFS
 echo OK
+
+# Pivot root needs this
+mkdir -p $ROOTFS/var/oldroot
 
 echo -n "Copying boot items ... "
 cp -r $KERNELDIR/* $ROOTFS/boot

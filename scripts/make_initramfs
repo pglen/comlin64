@@ -14,6 +14,33 @@ echo " Making initramfs from '$TARGDIR'  "
 echo "-------------------------------------"
 echo
 
+if [ ! -f $KEYGET ] ; then
+    echo "Please exceute 'make apps' first."
+    exit 1;
+fi
+
+if [ ! -d $TARGDIR ]; then
+    echo "No initramfs files yet."
+    exit 1
+fi
+
+# Syntax check init
+bash -n ./initramfs/init; ERR=$?
+if [ "$ERR" != "0" ] ; then
+    echo "Syntax error in init"
+    exit 1
+fi
+bash -n ./initramfs/shlib/comlin.sh; ERR=$?
+if [ "$ERR" != "0" ] ; then
+    echo "Syntax error in comlin.sh"
+    exit 1
+fi
+bash -n ./initramfs/shlib/functions.sh; ERR=$?
+if [ "$ERR" != "0" ] ; then
+    echo "Syntax error in functions.sh"
+    exit 1
+fi
+
 # Gather apps into initramfs
 
 cp $APPDIR/keyget/keyget $TARGDIR/bin
@@ -23,14 +50,7 @@ cp $APPDIR/reboot/linux_poweroff $TARGDIR/bin
 # Make initramfs from custom booter. The initrd is phased out
 # so we are making a custom one for auto bootdrive search
 
-if [ ! -d $TARGDIR ]; then
-    echo "No initramfs files yet."
-    exit
-fi
-
-#chown -R root.root $TARGDIR
-
-echo -n "Assemble cpio archive ... "
+echo -n "Assembling cpio archive ... "
 (cd $TARGDIR; find . | cpio -o -H newc | gzip) > $RAMFSRES
 echo "Geneated:" $RAMFSRES
 
