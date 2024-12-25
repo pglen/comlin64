@@ -1,0 +1,45 @@
+#!/bin/bash
+
+# Custom MAIN INIT for Community Linux
+
+#echo "Main INIT executed"
+
+# Silence async messages on terminal
+setterm --msg off
+
+# Remove what is left of the old root
+# This method frees the resources without effecting other processes
+rm -r /var/oldroot/*  >/dev/null 2>&1
+
+# And no more traces
+umount /var/oldroot >/dev/null 2>&1
+
+# We create a bed for data, copy old content
+mount -t tmpfs -o mode=1777,nosuid,nodev tmpfs /tmp >/dev/null 2>&1
+mkdir -p /tmp/var
+cp -a /var/* /tmp/var
+mount -t tmpfs -o mode=1777,nosuid,nodev tmpfs /var >/dev/null 2>&1
+mkdir /var/log              # Required for X
+cp -a /tmp/var/* /var
+
+examine() {
+    #echo "examine:" path: $1 file: $2 event: $3
+    echo Changed: $1$2
+    cat $1$2
+}
+
+#  Monitor /etc/initrc
+#inotifywait -q -r -m -e modify /etc/initrc |
+#while read file_path file_event file_name; do
+#   #echo ${file_path} ${file_name} event: ${file_event}
+#   examine ${file_path} ${file_name} event: ${file_event}
+#done
+
+# It is a shell for now
+export PS1="Comlin Init:\w$ "
+while :; do
+   setsid -c -w /bin/bash
+   echo "Spawning new shell ... "
+done
+
+# EOF

@@ -10,7 +10,6 @@
 #define	LINUX_REBOOT_MAGIC2A	85072278
 #define	LINUX_REBOOT_MAGIC2B	369367448
 
-
 /*
  * Commands accepted by the _reboot() system call.
  *

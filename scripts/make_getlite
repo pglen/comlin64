@@ -24,10 +24,10 @@ echo " May need sudo pass ..."
 echo "----------------------------------"
 echo
 
-#if [ ! -d _work ] ; then
-#  echo  "Must start from project root (comlin-xxx)"
-#  exit
-#fi
+if [ ! -d _work ] ; then
+  echo  "Must start from project root (comlin-xxx)"
+  exit
+fi
 
 #echo "Copying minimal system to $LITEUSB ... (may take a while)"
 echo -n "Copying lite to $LITEUSB ... "
@@ -52,6 +52,8 @@ for iii in $FILES; do
 done
 
 #mke2fs tune2fs
+cp $INITDIR/init $LITEUSB/sbin
+chmod a+x $LITEUSB/sbin/init
 
 #echo "You may want to disable power save for the duration of the copy."
 

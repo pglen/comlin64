@@ -3,10 +3,12 @@
 # Customize these options for comlin build.
 # Copyright by Peter Glen. See open source license for details.
 
-# Check if we started from comlin script from comlin root
+# Version number for this effort
+COMLINVERFILE=comlinver.txt
 
-if [ ! -f ./comlinver.txt ] ; then
-    	echo "Must start from comlin script root"
+# Check if we started from comlin script from comlin root
+if [ ! -f $COMLINVERFILE ] ; then
+    	echo "Must start from the comlin64 script root."
     	exit 1;
 fi
 
@@ -101,6 +103,8 @@ SCSISPEED="52"
 SCSIBLANK="blank=fast"
 
 ### some more options to go
+
+INITDIR=init
 
 # Defaults for USB target, override if the /mnt/COMXX is mounted
 

@@ -23,27 +23,28 @@ echo
 #    Z="-z"
 #fi
 
-mkdir -p $ROOTFS
-mkdir -p $ROOTFS/boot
-
-#rm -rf $ROOTFS/boot/*
-#cp $SCRIPTS/misc/files/memtest86.bin $ROOTFS
-
 # See if conditions are met
 
 if [ ! -f $KEYGET ] ; then
-    echo "Must have apps / scripts built first (missing keyget)"
+    #echo "Must have apps / scripts built first (missing keyget)"
+    echo "Execute 'make apps' first."
     exit 1
 fi
 if [ ! -f $KERNELDIR/vmlinuz ] ; then
     echo "Execute 'make getkern' first."
     exit 1
 fi
-
 if [ ! -f $KERNELDIR/initramfs ] ; then
     echo "Execute 'make initramfs' first."
     exit 1
 fi
+if [ ! -f ./_boot/boot/grub/grub.conf ] ; then
+    echo "Execute 'make getboot' first."
+    exit 1
+fi
+
+mkdir -p $ROOTFS
+mkdir -p $ROOTFS/boot
 
 echo -n "Copying filesystem ... "
 #rsync -ahu --progress $LITEUSB/* $ROOTFS
@@ -54,18 +55,22 @@ echo OK
 mkdir -p $ROOTFS/var/oldroot
 
 echo -n "Copying boot items ... "
-cp -r $KERNELDIR/* $ROOTFS/boot
-cp -r $BOOT/* $ROOTFS/boot
+cp -r $BOOT/* $ROOTFS/
 echo OK
 
-touch  $ROOTFS/COMBOOT
+echo -n "Copying kernel items ... "
+cp -r $KERNELDIR/* $ROOTFS/boot
+echo OK
+
+cp $COMLINVERFILE $ROOTFS/etc/COMLINUX_VERSION
 
 #chown -R $USER $ROOTFS
 
-echo -n "Making ISO ... $ROOTISOFILE"
+echo -n "Making $ROOTISOFILE ... "
 mkisofs -input-charset utf-8 -R -b boot/grub/stage2_eltorito -no-emul-boot  \
          -boot-load-size 4 -boot-info-table -o $ROOTISOFILE \
          -quiet $ROOTFS  || fail
-echo
+echo OK
 stat -c "ISO written, %s bytes." $ROOTISOFILE
-echo Done
+
+# EOF

@@ -1,12 +1,8 @@
 #
-# Make a Community Linux jump drive
+# Make a Community Linux ISO and jump drive
 # Distributed under Community Linux Public License Version 1.0
 #
 # Notes:
-#
-#  This project assumes CentOS 6.3 file layout. It is a common
-#  system layout (Fedora, RedHat and derivates), but in some cases
-#  the paths may need be adjusted.
 #
 #  Dangerous scripts. Make sure you are not partitionaing drives that
 #  are in use, or drives that contain valuable data. Some rudimantary
@@ -29,6 +25,7 @@ help:
 	@echo
 	@echo "Making a bootable jump drive. **(see Warning)"
 	@echo
+	@echo "	 	make makeiso    -- Make ISO and all dependents"
 	@echo "	 	make detect     -- Configure which drive is your jump drive"
 	@echo "	 	make new        -- & Fdisk / Format new usb"
 	@echo "	 	make copyusb    -- & @ Copy LINUX files to USB drive "
@@ -57,7 +54,6 @@ help2:
 	@echo "	 	make getusblite  -- get USB lite content back to project"
 	@echo "	 	make getusb2     -- update from USB content back to project"
 	@echo "	 	make copy        -- to mirror current system to USB (advanced)"
-	@echo "	 	make initrd      -- to make a new initrd (obsolete)"
 	@echo "	 	make initramfs      -- to make a new initramfs"
 	@echo "	 	make putmods     -- Copy modules from build dir to USB"
 	@echo "	 	make refresh     -- Refresh kernel (System->Build_dir->USB)"
@@ -133,9 +129,6 @@ new2:
 	sudo ./scripts/make_part go
 	sudo ./scripts/make_fs go
 
-#initrd:
-#	@sudo ./scripts/make_initrd do
-
 initramfs:
 	@sudo ./scripts/make_initramfs
 
@@ -181,6 +174,10 @@ bigcycle: copyusb putkern syslin cpscripts umount
 doall: prompt new remnt copyusb putkern syslin cpscripts uremnt
 	@echo "Done doall"
 
+# This is the 64 bit make all
+buildiso: apps getapps getkern getboot getlite initramfs
+	make iso
+
 # Callable from scripts, will not prompt
 
 doall2: new2 remnt copyusb putkern syslin cpscripts uremnt
@@ -195,40 +192,38 @@ uremnt:
 	./scripts/make_uremount
 
 getkern:
-	@echo Getting new kernel
 	@sudo ./scripts/make_getkern
 
+getboot:
+	@sudo ./scripts/make_getboot
+
 getkern2:
-	@echo Getting new kernel
 	@sudo ./scripts/make_getkern2
 
+getapps:
+	@sudo ./scripts/make_getapps
+
 getmods:
-	@echo Getting new modules
 	@sudo ./scripts/make_getmods
 
 getmods2:
-	@echo Getting new modules to USB build dir
 	@sudo ./scripts/make_getmods2
 
 putmods:
-	@echo Putting new modules
 	@sudo ./scripts/make_putmods
 
 putkern:
-	@echo Putting new kernel
 	@sudo ./scripts/make_putkern go
 
 refresh:	getkern getmods putmods putkern
 
 umount:
-	@sudo ./scripts/make_umount
 	@echo "Wait for USB drive inactivity. Then you may remove drive."
 
 cpscripts:
 	@sudo ./scripts/make_cpscripts
 
 iso:
-	@#echo Making ISO
 	@sudo ./scripts/make_iso
 
 # ------------------------------------------------------------------------

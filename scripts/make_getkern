@@ -18,12 +18,17 @@ echo OK
 
 echo -n "Getting kernel  ... "
 cp  /boot/vmlinuz $KERNELDIR
-echo OK
 
-NEWKERNEL=/media/peterglen/LinHD/kernel/linux-6.12.6/arch/x86/boot/bzImage
+#NEWKERNEL=/media/peterglen/LinHD/kernel/linux-6.12.6/arch/x86/boot/bzImage
+
+#echo -n "Getting NEW kernel  ... "
+NEWKERNEL=../kernel/linux-6.12.6/arch/x86/boot/bzImage
+KVER=$(echo $NEWKERNEL | awk -F/ '{ print $3 }' | awk -F- '{print $2}')
 if [ -f  $NEWKERNEL ] ; then
-    cp $NEWKERNEL $KERNELDIR/vmlinuz6
+    cp $NEWKERNEL $KERNELDIR/vmlinuz-$KVER
 fi
+#echo got ver \'$KVER\' OK
+echo OK
 
 # Copy kernel files from source
 #sudo cp  /lib/modules/`uname -r`/build/arch/x86/boot/bzImage _kernel/vmlinuz

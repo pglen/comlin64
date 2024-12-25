@@ -12,6 +12,7 @@ echo "Cleaning .."
 rm -rf _work/*
 rm -rf _kernel/*
 rm -rf _system/*
+rm -rf _boot/*
 
 make -C apps clean
 

@@ -23,7 +23,7 @@ mountANY() {
         sleep 0.01       # Needs to breathe
         DEVX="/dev/$ii"
         mount $DEVX /mnt/guest  >/dev/null 2>&1
-        if test -f /mnt/guest/COMBOOT; then
+        if test -f /mnt/guest/etc/COMLINUX_VERSION; then
             #echo "Found COMLIN system at "/dev/$ii"
             umount $DEVX >/dev/null 2>&1
             DEVICE=$DEVX
@@ -37,15 +37,14 @@ mountANY() {
 
 # ------------------------------------------------------------------------
 
-dosh()
-{
-    export PS1="Tmp Shell\${PWD}# "
-    #[ -e /.profile ] || echo "exec 0<>/dev/console 1<>/dev/console 2<>/dev/console" > /.profile
-    #sh -i -l
-    setsid -c -w /bin/bash
-
-}
-
+#dosh()
+#{
+#    export PS1="Tmp Shell\${PWD}# "
+#    #[ -e /.profile ] || echo "exec 0<>/dev/console 1<>/dev/console 2<>/dev/console" > /.profile
+#    #sh -i -l
+#    setsid -c -w /bin/bash
+#}
+#
 # ------------------------------------------------------------------------
 
 wait_for_loginit()

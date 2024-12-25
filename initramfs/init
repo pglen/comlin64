@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# Custom INIT for Community Linux
+# Custom INIT for Community Linux INITRD
 
 # History:
 #           Tue 24.Dec.2024         Reworked 64 bit
@@ -41,10 +41,9 @@ mount -t sysfs -o nosuid,noexec,nodev sysfs /sys >/dev/null 2>&1
 
 # Silence async messages on terminal
 setterm --msg off
-#--msglevel 0
 
 # This was needed so the TSC calibration completes ARGGGHH
-sleep 1
+#sleep 1
 
 #keyget -t 3 "Entering InitRamFS init, press Enter to drop to shell"
 #if [ $? -eq 0 ] ; then
@@ -80,11 +79,10 @@ ln -s /proc/self/fd /dev/fd >/dev/null 2>&1
 #
 #setdebug
 
-mkdir -p /dev/pts
+#mkdir -p /dev/pts
 mount -t devpts -o gid=5,mode=620 devpts /dev/pts >/dev/null 2>&1
-
-mkdir -p /dev/shm
-mount -t tmpfs -o mode=1777,nosuid,nodev tmpfs /dev/shm >/dev/null 2>&1
+#mkdir -p /dev/shm
+#mount -t tmpfs -o mode=1777,nosuid,nodev tmpfs /dev/shm >/dev/null 2>&1
 
 UDEVVERSION=$(udevadm --version)
 
@@ -251,7 +249,7 @@ while :; do
         && { flock -s 9 ; emergency_shell "Can't mount root filesystem"; } 9>/.console_lock
 done
 
-echo "Mounted $DEVICE filesystem on $NEWROOT"
+#echo "Mounted $DEVICE filesystem on $NEWROOT"
 
 # Make sure standard items exist
 #[ -e /dev/console ] || ln -s /dev/tty0 /dev/console
@@ -378,26 +376,34 @@ wait_for_loginit
 #    }
 #fi
 
-#umount /proc /sys /dev/pts /dev/shm
 mkdir $OLDROOT
-#unshare -m
 mount --bind / $NEWROOT/$OLDROOT
 #setsid -c -w /bin/bash
 
-# Mount some important things
+
+# This (pivot_root) was a disaster. Would not let go of the resources.
+# Maybe it does not need to, as it is not much.
+# However, the old root is preserved under /var/oldroot so
+# have at it as you wish. And share.
+
+#pivot_root . $OLDROOT
+
+# Mount some (important) things on new root
 mount -t proc -o nosuid,noexec,nodev proc $NEWROOT/proc >/dev/null 2>&1
 mount -t sysfs -o nosuid,noexec,nodev sysfs $NEWROOT/sys >/dev/null 2>&1
 mount -t devpts -o gid=5,mode=620 devpts $NEWROOT/dev/pts >/dev/null 2>&1
-mount -t tmpfs -o mode=1777,nosuid,nodev tmpfs $NEWROOT/dev/shm >/dev/null 2>&1
+#mount -t tmpfs -o mode=1777,nosuid,nodev tmpfs $NEWROOT/dev/shm >/dev/null 2>&1
+
+# This way, the old FS does not have any danglies
+umount /proc /dev/pts /sys
 
 cd $NEWROOT
-#pivot_root . $OLDROOT
+chroot . "/sbin/init"
 
-chroot . "/bin/bash"
-
-#sh -c "umount /old_root; exec /sbin/init" <dev/console >dev/console 2>&1
+# If anything went wrong ...
 
 while :; do
+   PS1="ERR_SHELL"
    setsid -c -w /bin/bash
    echo "Spawning new shell ... "
 done
