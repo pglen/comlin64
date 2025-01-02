@@ -1,0 +1,35 @@
+#!/bin/bash
+##########################################################################
+##                                                                      ##
+## Make the install ISO                                                 ##
+##                                                                      ##
+## This program is free software; you can redistribute it and/or modify ##
+## it under the terms of the GNU General Public License as published by ##
+## the Free Software Foundation; either version 2 of the License, or    ##
+## (at your option) any later version.                                  ##
+##                                                                      ##
+##########################################################################
+
+.  config_build
+. "$SCRIPTS"/misc/lib/lib_fail
+
+echo -n "Checking scripts ... "
+
+for FF in initramfs/lib/shlib/*.sh ; do
+    #echo checking $FF
+    bash -n $FF; ERR=$?
+    if [ "$ERR" != "0" ] ; then
+        echo "Syntax error in $FF"
+        exit 1
+    fi
+done
+
+bash -n initramfs/init; ERR=$?
+if [ "$ERR" != "0" ] ; then
+    echo "Syntax error in $FF"
+    exit 1
+fi
+
+echo done.
+
+# EOF

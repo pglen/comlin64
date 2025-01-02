@@ -1,0 +1,83 @@
+#!/bin/bash
+##########################################################################
+##                                                                      ##
+## Make the install ISO                                                 ##
+##                                                                      ##
+## This program is free software; you can redistribute it and/or modify ##
+## it under the terms of the GNU General Public License as published by ##
+## the Free Software Foundation; either version 2 of the License, or    ##
+## (at your option) any later version.                                  ##
+##                                                                      ##
+##########################################################################
+
+. config_build
+. "$SCRIPTS"/misc/lib/lib_fail
+
+echo "Preparing ISO image ;"
+
+# See if conditions are met
+
+if [ ! -f $KEYGET ] ; then
+    #echo "Must have apps / scripts built first (missing keyget)"
+    echo "Execute 'make apps' first."
+    exit 1
+fi
+
+if [ ! -f $KERNELDIR/$KERNELBIN ] ; then
+    echo "Execute 'make getkern' first."
+    exit 1
+fi
+
+if [ ! -f $KERNELDIR/initramfs ] ; then
+    echo "Execute 'make initramfs' first."
+    exit 1
+fi
+
+# Remove incidentals (created during testing)
+rm -f $LITEUSB/root/.bash_history
+rm -f $LITEUSB/tmp/*
+
+echo -n "Copying filesystem ... "
+cp -au $LITEUSB/* $ROOTFS
+echo OK
+
+echo -n "Copying modules ... "
+cp -au $MODULEDIR/* $ROOTFS/lib/modules
+echo OK
+
+echo -n "Copying boot items ... "
+cp -a $BOOTDIR/* $ROOTFS/boot
+echo OK
+
+echo -n "Copying kernel items ... "
+cp -a $KERNELDIR/* $ROOTFS/boot
+echo OK
+
+echo -n "Copying shell utilities ... "
+cp -a $SHLIB $ROOTFS/lib
+echo OK
+
+echo -n "Copying real inits ... "
+cp -au $INITDIR/* $ROOTFS/sbin
+echo OK
+
+echo -n "Copying dev files ... "
+mkdir -p $ROOTFS/dev
+cp -a $DEVDIR/* $ROOTFS/dev
+echo OK
+
+#echo -n "Patching tmp permissions ... "
+chmod a+rwxt $ROOTFS/tmp
+#echo OK
+
+#echo -n "Patch ICEauthority ... "
+touch $ROOTFS/root/$ICEA
+#echo OK
+
+# Pivot (or equivalent) needs this
+mkdir -p $ROOTFS/var/oldroot
+
+# Our ID file
+cp $COMLINVERFILE $ROOTFS/etc/COMLINUX_VERSION
+
+# EOF

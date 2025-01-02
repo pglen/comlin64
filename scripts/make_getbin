@@ -1,0 +1,23 @@
+#!/bin/bash
+
+. ./config_build
+. "$SCRIPTS"/misc/lib/lib_fail
+
+# The recommended files
+
+BINFILES="ls cp mv mkdir rm sh bash dash ssh rsh passwd login setsid"
+
+SBINFILES="fdisk fsck fsck.* getty halt  \
+            ifconfig init mkfs mkfs.* mkswap reboot route  \
+            swapon swapoff agetty"
+
+for fff in $BINFILES ;  do
+    #echo $fff
+    cp -p /bin/$fff $LITEUSB/bin
+done
+
+for fff in $SBINFILES ;  do
+    #echo $fff
+    cp -p /sbin/$fff $LITEUSB/sbin
+done
+
