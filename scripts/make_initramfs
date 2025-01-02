@@ -1,57 +1,54 @@
  #!/bin/bash
 
-# No checking for USB ...
-
 . ./config_build nocheck
 . "$SCRIPTS"/misc/lib/lib_fail
 
-TARGDIR=initramfs
-RAMFSRES=$KERNELDIR/initramfs
-
-echo
-echo "-------------------------------------"
-echo " Making initramfs from '$TARGDIR'  "
-echo "-------------------------------------"
-echo
+echo -n "Making initramfs ... "
 
 if [ ! -f $KEYGET ] ; then
     echo "Please exceute 'make apps' first."
     exit 1;
 fi
 
-if [ ! -d $TARGDIR ]; then
+if [ ! -d $INITRAMFSDIR ]; then
     echo "No initramfs files yet."
     exit 1
 fi
 
 # Syntax check init
-bash -n ./initramfs/init; ERR=$?
+bash -n $INITRAMFSDIR/init; ERR=$?
 if [ "$ERR" != "0" ] ; then
     echo "Syntax error in init"
     exit 1
 fi
-bash -n ./initramfs/shlib/comlin.sh; ERR=$?
+bash -n $INITRAMFSDIR/lib/shlib/comlin.sh; ERR=$?
 if [ "$ERR" != "0" ] ; then
     echo "Syntax error in comlin.sh"
-    exit 1
-fi
-bash -n ./initramfs/shlib/functions.sh; ERR=$?
-if [ "$ERR" != "0" ] ; then
-    echo "Syntax error in functions.sh"
     exit 1
 fi
 
 # Gather apps into initramfs
 
-cp $APPDIR/keyget/keyget $TARGDIR/bin
-cp $APPDIR/reboot/linux_reboot $TARGDIR/bin
-cp $APPDIR/reboot/linux_poweroff $TARGDIR/bin
+cp $APPDIR/keyget/keyget $INITRAMFSDIR/bin
+cp $APPDIR/reboot/linux_reboot $INITRAMFSDIR/bin
+cp $APPDIR/reboot/linux_poweroff $INITRAMFSDIR/bin
+
+# Create a root owned copy
+RTMP=$TMPDIR/initramfs
+mkdir -p $RTMP
+rm -rf $RTMP/*
+cp -a $INITRAMFSDIR/* $RTMP
+chown -R root.root $RTMP
 
 # Make initramfs from custom booter. The initrd is phased out
 # so we are making a custom one for auto bootdrive search
 
-echo -n "Assembling cpio archive ... "
-(cd $TARGDIR; find . | cpio -o -H newc | gzip) > $RAMFSRES
-echo "Geneated:" $RAMFSRES
+#echo -n "Assembling cpio archive ... "
+(cd $RTMP; find . | cpio -o -H newc | gzip) > $INITRAMFSRES
+
+# Clean
+rm -rf $RTMP/*
+
+#echo "Geneated:" $INITRAMFSRES
 
 # EOF

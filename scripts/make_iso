@@ -16,61 +16,43 @@
 echo "----------------------------------"
 echo "        Making ISO image          "
 echo "----------------------------------"
-echo
 
-## if we use a compressed ISO9660 image we need the -z switch
-#if [ "$COMPRESSEDFS" = "yes" ]; then
-#    Z="-z"
-#fi
-
-# See if conditions are met
+# See if conditions are met (checks are also in prepiso)
 
 if [ ! -f $KEYGET ] ; then
-    #echo "Must have apps / scripts built first (missing keyget)"
     echo "Execute 'make apps' first."
     exit 1
 fi
-if [ ! -f $KERNELDIR/vmlinuz ] ; then
+
+if [ ! -f $KERNELDIR/$KERNELBIN ] ; then
     echo "Execute 'make getkern' first."
     exit 1
 fi
+
 if [ ! -f $KERNELDIR/initramfs ] ; then
     echo "Execute 'make initramfs' first."
     exit 1
 fi
-if [ ! -f ./_boot/boot/grub/grub.conf ] ; then
+
+if [ ! -f ./boot/grub/grub.conf ] ; then
     echo "Execute 'make getboot' first."
     exit 1
 fi
 
-mkdir -p $ROOTFS
-mkdir -p $ROOTFS/boot
+rm -f $ROOTISOFILE $ROOTISOFILE.part
+touch $ROOTISOFILE.part
+scripts/progress.sh $ROOTISOFILE.part &
 
-echo -n "Copying filesystem ... "
-#rsync -ahu --progress $LITEUSB/* $ROOTFS
-cp -au $LITEUSB/* $ROOTFS
-echo OK
-
-# Pivot root needs this
-mkdir -p $ROOTFS/var/oldroot
-
-echo -n "Copying boot items ... "
-cp -r $BOOT/* $ROOTFS/
-echo OK
-
-echo -n "Copying kernel items ... "
-cp -r $KERNELDIR/* $ROOTFS/boot
-echo OK
-
-cp $COMLINVERFILE $ROOTFS/etc/COMLINUX_VERSION
-
-#chown -R $USER $ROOTFS
-
-echo -n "Making $ROOTISOFILE ... "
+echo -n "Making $ROOTISOFILE ($ROOTISOFILE.part) ... "
 mkisofs -input-charset utf-8 -R -b boot/grub/stage2_eltorito -no-emul-boot  \
-         -boot-load-size 4 -boot-info-table -o $ROOTISOFILE \
+         -boot-load-size 4 -boot-info-table -o $ROOTISOFILE.part \
          -quiet $ROOTFS  || fail
+echo
 echo OK
-stat -c "ISO written, %s bytes." $ROOTISOFILE
+
+mv $ROOTISOFILE.part $ROOTISOFILE
+
+SSS=$(stat -c  "%s" $ROOTISOFILE)
+echo "ISO written, $(($SSS/1000000)) MBytes."
 
 # EOF

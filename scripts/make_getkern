@@ -5,35 +5,26 @@
 
 echo
 echo "-------------------------------------"
-echo " Getting new kernel from SYS SRC dir "
+echo " Getting new kernel from SRC dir "
 echo "--------------------------------------"
 echo
 
 # Copy kernel files from runtime
 # Enable this if you do not have sources and disable the source part below.
 
-echo -n "Getting kernel maps ... "
-cp /boot/System.map*  $KERNELDIR
-echo OK
+#echo -n "Getting kernel maps ... "
+#cp /boot/System.map*  $KERNELDIR
+#echo OK
+#echo -n "Getting kernel  ... "
 
-echo -n "Getting kernel  ... "
-cp  /boot/vmlinuz $KERNELDIR
-
-#NEWKERNEL=/media/peterglen/LinHD/kernel/linux-6.12.6/arch/x86/boot/bzImage
-
-#echo -n "Getting NEW kernel  ... "
-NEWKERNEL=../kernel/linux-6.12.6/arch/x86/boot/bzImage
-KVER=$(echo $NEWKERNEL | awk -F/ '{ print $3 }' | awk -F- '{print $2}')
-if [ -f  $NEWKERNEL ] ; then
-    cp $NEWKERNEL $KERNELDIR/vmlinuz-$KVER
+if [ ! -f  $NEWKERNEL ] ; then
+    echo "No kernel in $NEWKERNEL"
+    exit 1
 fi
-#echo got ver \'$KVER\' OK
+echo -n "Getting NEW kernel  ... "
+cp $NEWKERNEL $KERNELDIR || fail
 echo OK
 
-# Copy kernel files from source
-#sudo cp  /lib/modules/`uname -r`/build/arch/x86/boot/bzImage _kernel/vmlinuz
-#sudo cp  /lib/modules/`uname -r`/build/System.map _kernel
+sudo chown -R $USER $KERNELDIR
 
-sudo chown $USER $KERNELDIR
-echo Done
-
+# EOF

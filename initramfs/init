@@ -3,116 +3,48 @@
 # Custom INIT for Community Linux INITRD
 
 # History:
-#           Tue 24.Dec.2024         Reworked 64 bit
+#           Tue 24.Dec.2024     Reworked 64 bit
+#           Sun 29.Dec.2024     Mount CD simplified
 
 export PATH=/sbin:/bin:/usr/sbin:/usr/bin
 export TERM=linux
+export USER=root
+export HOME=/root
 
-NEWROOT="/sysroot"
-OLDROOT="/var/oldroot"
-
-. shlib/functions.sh
-. shlib/comlin.sh
-
-# Patch missing stuff
-#mknod /dev/sr0 b 11 0
+. /lib/shlib/comlin.sh
 
 trap "emergency_shell Signal caught!" 0
 
-# Notes:
-#  Use ext4 and set commit to a minute for flash drive life presevation
-#  or .. Use ext3 if you want to allow journaling  (constant disk activity)
-#  or .. Use ext2 you do not want to allow journaling
-#
+# Silence async messages on terminal
+setterm --msg off
 
-#  Set this to the desired FS type. See notes above.
-MYFST=ext4
+# Make sure standard items exist
+#[ -e /dev/console ] || ln -s /dev/tty0 /dev/console
 
-#echo "COMLIN initrd init"
+# New startegy; alloc space, patch it;  use overlayfs
+
+CDROOT="/cdroot"
+NEWROOT="/sysroot"
+TMPROOT=/tmp
 
 [ -e /dev/console ] || ln -s /dev/tty0 /dev/console
-
-# TEST CRAP
-#ls -l /dev
 
 # Mount some important things
 mount -t proc -o nosuid,noexec,nodev proc /proc >/dev/null 2>&1
 mount -t sysfs -o nosuid,noexec,nodev sysfs /sys >/dev/null 2>&1
 
-# Silence async messages on terminal
-setterm --msg off
-
-# This was needed so the TSC calibration completes ARGGGHH
-#sleep 1
-
-#keyget -t 3 "Entering InitRamFS init, press Enter to drop to shell"
-#if [ $? -eq 0 ] ; then
-#    echo Dropping to pre scan shell ..
-#    # Set session ID and execute bash
-#    setsid -c -w /bin/bash
-#fi
-
-#if [ ! -c /dev/ptmx ]; then
-#    # Try to mount devtmpfs
-#    if ! mount -t devtmpfs -o mode=0755,nosuid devtmpfs /dev >/dev/null 2>&1; then
-#        # If it failed fall back to normal tmpfs
-#        mount -t tmpfs -omode=0755,nosuid tmpfs /dev >/dev/null 2>&1
-#        # Make some basic devices first, let udev handle the rest
-#        mknod -m 0666 /dev/null c 1 3
-#        mknod -m 0666 /dev/ptmx c 5 2
-#        mknod -m 0600 /dev/console c 5 1
-#        mknod -m 0660 /dev/kmsg c 1 11
-#    fi
-#fi
-#
-
 ln -s /proc/self/fd /dev/fd >/dev/null 2>&1
 
-#if getarg rdinitdebug; then
-#    getarg quiet && DRACUT_QUIET="yes"
-#    mkfifo /dev/initlog.pipe
-#    /sbin/loginit $DRACUT_QUIET </dev/initlog.pipe >/dev/console 2>&1 &
-#    exec >/dev/initlog.pipe 2>&1
-#else
-#    exec 0<>/dev/console 1<>/dev/console 2<>/dev/console
-#fi
-#
-#setdebug
-
-#mkdir -p /dev/pts
-mount -t devpts -o gid=5,mode=620 devpts /dev/pts >/dev/null 2>&1
-#mkdir -p /dev/shm
-#mount -t tmpfs -o mode=1777,nosuid,nodev tmpfs /dev/shm >/dev/null 2>&1
-
-UDEVVERSION=$(udevadm --version)
-
-source_conf /etc/conf.d
+#source_conf /etc/conf.d
 
 # Run scriptlets to parse the command line
 getarg 'rdbreak=cmdline' && emergency_shell -n cmdline "Break before cmdline"
 #source_all cmdline
 
-# As we are searching for root, no checking
-#[ -z "$root" ] && die "No or empty root= argument"
-#[ -z "$rootok" ] && die "Don't know how to handle 'root=$root'"
-
-# Network root scripts may need updated root= options,
-# so deposit them where they can see them (udev purges the env)
-#{
-#    echo "root='$root'"
-#    echo "rflags='$rflags'"
-#    echo "fstype='$fstype'"
-#    echo "netroot='$netroot'"
-#    echo "NEWROOT='$NEWROOT'"
-#} > /tmp/root.info
-#
-
-# pre-udev scripts run before udev starts, and are run only once.
-getarg 'rdbreak=pre-udev' && emergency_shell -n pre-udev "Break before pre-udev"
-#source_all pre-udev
+UDEVVERSION=$(udevadm --version)
 
 # start up udev and trigger cold plugs
-udevd --daemon --resolve-names=never
+#udevd --daemon #--resolve-names=never
 
 UDEV_LOG_PRIO_ARG=--log-priority
 UDEV_QUEUE_EMPTY="udevadm settle --timeout=0"
@@ -129,7 +61,7 @@ getarg 'rdbreak=pre-trigger' && emergency_shell -n pre-trigger "Break before pre
 #source_all pre-trigger
 
 # Then the rest
-udevadm trigger --action=add $udevtriggeropts  >/dev/null 2>&1
+#udevadm trigger --action=add $udevtriggeropts  >/dev/null 2>&1
 
 getarg 'rdbreak=initqueue' && emergency_shell -n initqueue "Break before initqueue"
 
@@ -142,45 +74,9 @@ main_loop=0
 export main_loop
 while :; do
 
-    check_finished && break
-    udevsettle
-    check_finished && break
-
-    #if [ -f /initqueue/work ]; then
-    #    rm /initqueue/work
-    #fi
-
-    #for job in /initqueue/*.sh; do
-    #[ -e "$job" ] || break
-    #    job=$job . $job
-    #    check_finished && break 2
-    #done
-
-    #$UDEV_QUEUE_EMPTY >/dev/null 2>&1 || continue
-    #modprobe scsi_wait_scan && rmmod scsi_wait_scan
-    #$UDEV_QUEUE_EMPTY >/dev/null 2>&1 || continue
-
-    #for job in /initqueue-settled/*.sh; do
-    #    [ -e "$job" ] || break
-    #    job=$job . $job
-    #    check_finished && break 2
-    #done
-    #
-    #$UDEV_QUEUE_EMPTY >/dev/null 2>&1 || continue
-    #
-    # no more udev jobs and queues empty.
-    #sleep 0.5
-
-    # dirty hack for some cdrom drives,
-    # which report no medium for quiet
-    # some time.
-    #for cdrom in /sys/block/sr*; do
-    #    [ -e "$cdrom" ] || continue
-    #    # skip, if cdrom medium was already found
-    #        strstr "$(udevadm info --query=env --path=${cdrom##/sys})" \
-    #        ID_CDROM_MEDIA && continue
-    #        echo change > "$cdrom/uevent"
-    #done
+    #check_finished && break
+    #udevsettle
+    #check_finished && break
 
     if [ $main_loop -gt $(($RDRETRY/2)) ]; then
     for job in /initqueue-timeout/*.sh; do
@@ -192,23 +88,14 @@ while :; do
 
     # We do not need to suffer thru this ...
     break
-
-    #main_loop=$(($main_loop+1))
-    #[ $main_loop -gt $RDRETRY ] \
-    #    && { flock -s 9 ; emergency_shell "No root device \"$root\" found"; } 9>/.console_lock
 done
 
 unset job
-unset queuetriggered
 unset main_loop
 unset RDRETRY
 
 # Pre-mount happens before we try to mount the root filesystem
-
 getarg 'rdbreak=pre-mount' && emergency_shell -n pre-mount "Break pre-mount"
-#source_all pre-mount
-
-getarg 'rdbreak=mount' && emergency_shell -n mount "Break mount"
 
 # Mount scripts actually try to mount the root filesystem, and may
 # be sourced any number of times. As soon as one suceeds, no more are sourced.
@@ -226,81 +113,55 @@ while :; do
 
     # If no root, search for it, else accept command line
     if [ -z "$root" ] ; then
-        mountANY
+        mountANY $CDROOT
     else
         DEVICE=$root
     fi
 
     # No ROOT FS found, tell the user
     if test -z $DEVICE ; then
-       echo "Cannot find a valid system image - dropping to shell."
-       echo "Exiting this shell re-scans drives for valid system image."
-       setsid -c -w /bin/bash
+        echo "Cannot find a valid system image - dropping to shell."
+        echo "Exiting this shell re-scans drives for valid system image."
+        emergency_shell  "No CD drive found"
     else
-        # Finally, mount our FS into dracut's newroot
-        #mount -t $MYFST -o commit=60 $DEVICE $NEWROOT
-        mount $DEVICE $NEWROOT
+        # Done here
         break
     fi
     i=$(($i+1))
-
-    # Give up after $i tries
+    # Give up after many tries
     [ $i -gt 20 ] \
-        && { flock -s 9 ; emergency_shell "Can't mount root filesystem"; } 9>/.console_lock
+        && { flock -s 9 ; emergency_shell "Can't mount root filesystem"; } \
+            9>/.console_lock
 done
 
-#echo "Mounted $DEVICE filesystem on $NEWROOT"
-
-# Make sure standard items exist
-#[ -e /dev/console ] || ln -s /dev/tty0 /dev/console
-
-# Mount some important things
-#mount -t proc -o nosuid,noexec,nodev proc /proc >/dev/null 2>&1
-#mount -t sysfs -o nosuid,noexec,nodev sysfs /sys >/dev/null 2>&1
-#ln -s /proc/self/fd /dev/fd >/dev/null 2>&1
-#mkdir -p /dev/pts
-#mount -t devpts -o gid=5,mode=620 devpts /dev/pts >/dev/null 2>&1
-#mkdir -p /dev/shm
-#mount -t tmpfs -o mode=1777,nosuid,nodev tmpfs /dev/shm >/dev/null
-#{
-#    while read dev mp rest; do [ "$mp" = "$NEWROOT" ] && echo $dev; done < /proc/mounts
-#} | vinfo
-
-# Pre pivot scripts are sourced just before we switch over to the new root.
-
-getarg 'rdbreak=pre-pivot' && emergency_shell -n pre-pivot "Break pre-pivot"
-#source_all pre-pivot
-
-#echo post pre-pivot source
+#echo "Mounted $DEVICE filesystem on $CDROOT"
 
 # By the time we get here, the root filesystem should be mounted.
 # Try to find init.
 
-for ii in "$(getarg init=)" /sbin/init /etc/init /init /bin/sh; do
-    #echo "Search $NEWROOT$ii"
-    [ -f "$NEWROOT$ii" -a -x "$NEWROOT$ii" ] && { INIT="$ii"; break; }
+for ii in "$(getarg init=)"/sbin/preinit /sbin/init /init /etc/init /bin/sh; do
+    #echo "Search $CDROOT$ii"
+    [ -f "$CDROOT$ii" -a -x "$CDROOT$ii" ] && { INIT="$ii"; break; }
 done
 
 #echo "POST init search: $INIT"
 
 [ "$INIT" ] || {
     echo "Cannot find init!"
-    echo "Please check to make sure you passed a valid root filesystem!"
-    emergency_shell
+    #echo "Please check to make sure you passed a valid root filesystem!"
+    emergency_shell -n check_init "initramfs No Init "
 }
 
-getarg rdbreak && emergency_shell -n switch_root "Break before switch_root"
-
 # Stop udev queue before killing it
-udevadm control --stop-exec-queue
-
-HARD=""
-while pidof udevd >/dev/null 2>&1; do
-    for pid in $(pidof udevd); do
-        kill $HARD $pid >/dev/null 2>&1
-    done
-    HARD="-9"
-done
+#udevadm control --stop-exec-queue
+#
+#HARD=""
+#while pidof udevd >/dev/null 2>&1; do
+#    for pid in $(pidof udevd); do
+#        kill $HARD $pid >/dev/null 2>&1
+#    done
+#    HARD="-9"
+#done
 
 # Clean up the environment
 #for i in $(export -p); do
@@ -310,47 +171,8 @@ done
 #    [ "$i" = "root" -o "$i" = "PATH" -o "$i" = "HOME" -o "$i" = "TERM" ] || unset $i
 #done
 
-initargs=""
-
-#echo before read cmdline
-#read CLINE </proc/cmdline
-#if getarg init= >/dev/null ; then
-#    ignoreargs="console BOOT_IMAGE"
-#    # only pass arguments after init= to the init
-#    CLINE=${CLINE#*init=}
-#    set $CLINE
-#    shift
-#    for x in "$@"; do
-#        for s in $ignoreargs; do
-#            [ "${x%%=*}" = $s ] && continue 2
-#        done
-#        initargs="$initargs $x"
-#    done
-#    unset CLINE
-#else
-#    set $CLINE
-#    shift
-#    for x in "$@"; do
-#        case "$x" in
-#            [0-9]|s|S|single|emergency|auto )
-#                initargs="$initargs $x"
-#            ;;
-#        esac
-#    done
-#fi
-
-#echo after read cmdline
-
-# Debug: Copy state
-#if getarg rdcopystate; then
-#    [ -d /dev/.initramfs/ ] || mkdir /dev/.initramfs/
-#    cp /tmp/* /dev/.initramfs/ >/dev/null 2>&1
-#fi
-
-info "Switching root"
-
-wait_for_loginit
-
+#info "Creating overlay"
+#wait_for_loginit
 #keyget -t 3 "About to switch root, Press Enter within 3 seconds to drop to shell"
 #if [ $? -eq 0 ] ; then
 #    echo
@@ -358,53 +180,50 @@ wait_for_loginit
 #    setsid -c -w /bin/bash
 #    echo
 #fi
+#mount -t tmpfs -o mode=1777,nosuid,nodev tmpfs $TMPROOT  >/dev/null 2>&1
+#mount -t tmpfs -o mode=1777,nosuid,nodev tmpfs $NEWROOT  >/dev/null 2>&1
 
-#if [ -f /etc/capsdrop ]; then
-#    . /etc/capsdrop
-#    info "Calling $INIT with capabilities $CAPS_INIT_DROP dropped."
-#    exec capsh --drop="$CAPS_INIT_DROP" -- -c "exec switch_root \"$NEWROOT\" \"$INIT\" $initargs" || {
-#    warn "Command:"
-#    warn capsh --drop=$CAPS_INIT_DROP -- -c "'"exec switch_root "$NEWROOT" "$INIT" $initargs"'"
-#    warn "failed."
-#    emergency_shell
-#    }
-#else
-#    exec switch_root "$NEWROOT" "$INIT" $initargs || {
-#    warn "Something went very badly wrong in the initramfs.  Please "
-#    warn "file a bug against ."
-#    emergency_shell
-#    }
-#fi
+mount -t tmpfs -o tmpfs $TMPROOT  >/dev/null 2>&1
+mount -t tmpfs -o tmpfs $NEWROOT  >/dev/null 2>&1
 
-mkdir $OLDROOT
-mount --bind / $NEWROOT/$OLDROOT
-#setsid -c -w /bin/bash
+mkdir -p $TMPROOT/work
+mkdir -p $TMPROOT/fs
 
+#export PS1="rdinit before overlay " ; setsid -c -w /bin/bash
+
+#OLDROOT="$NEWROOT/var/oldroot"
+#mkdir -p $OLDROOT
+
+OLDROOT="$CDROOT/var/oldroot"
+mount --bind / $OLDROOT
+
+#export PS1="rdinit after oldroot " ; setsid -c -w /bin/bash
+
+mount -t overlay  overlay  \
+        -olowerdir=$CDROOT,upperdir=$TMPROOT/fs,workdir=$TMPROOT/work \
+        $NEWROOT
+
+#export PS1="rdinit after overlay " ; setsid -c -w /bin/bash
 
 # This (pivot_root) was a disaster. Would not let go of the resources.
 # Maybe it does not need to, as it is not much.
 # However, the old root is preserved under /var/oldroot so
 # have at it as you wish. And share.
-
 #pivot_root . $OLDROOT
 
-# Mount some (important) things on new root
-mount -t proc -o nosuid,noexec,nodev proc $NEWROOT/proc >/dev/null 2>&1
-mount -t sysfs -o nosuid,noexec,nodev sysfs $NEWROOT/sys >/dev/null 2>&1
-mount -t devpts -o gid=5,mode=620 devpts $NEWROOT/dev/pts >/dev/null 2>&1
-#mount -t tmpfs -o mode=1777,nosuid,nodev tmpfs $NEWROOT/dev/shm >/dev/null 2>&1
-
 # This way, the old FS does not have any danglies
-umount /proc /dev/pts /sys
+umount /proc /sys >/dev/null 2>&1
+
+#info "Switching root"
+getarg rdbreak && emergency_shell -n switch_root "Break before switch_root"
 
 cd $NEWROOT
-chroot . "/sbin/init"
+chroot . "/sbin/preinit"
 
 # If anything went wrong ...
 
 while :; do
-   PS1="ERR_SHELL"
-   setsid -c -w /bin/bash
+   export PS1="rdinit err " ; setsid -c -w /bin/bash
    echo "Spawning new shell ... "
 done
 

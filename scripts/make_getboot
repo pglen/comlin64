@@ -1,7 +1,7 @@
 #!/bin/sh
 ##------------------------------------------------------------------------
 ##
-## Copies USB drive to USB image
+## Copy boot images
 ##
 ## This program is free software; you can redistribute it and/or modify
 ## it under the terms of the GNU General Public License as published by
@@ -11,18 +11,15 @@
 ##------------------------------------------------------------------------
 
 . ./config_build
-
 . "$SCRIPTS"/misc/lib/lib_fail
 
-echo
 echo "----------------------------------"
 echo " Copying boot items               "
 echo "----------------------------------"
-echo
 
-mkdir -p _boot/boot
-sudo cp -a ./boot/* _boot/boot
+mkdir -p $BOOTDIR
+    #sudo cp -a ./boot/* _boot/boot
 
 echo Done.
-sync
 
+# EOF

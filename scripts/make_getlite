@@ -17,12 +17,9 @@
 TARG=/media/COMBOOT
 MCOMBOOT=/media/COMBOOT
 
-echo
-echo "----------------------------------"
-echo " Copying Minimal files            "
-echo " May need sudo pass ..."
-echo "----------------------------------"
-echo
+#echo "----------------------------------"
+#echo " Copying Minimal files            "
+#echo "----------------------------------"
 
 if [ ! -d _work ] ; then
   echo  "Must start from project root (comlin-xxx)"
@@ -43,8 +40,7 @@ for ii in $DIRS; do
     mkdir -p $LITEUSB/$ii
 done
 
-FILES="sh cp mv gunzip gzip umount mount cat dd \
-rmdir tar"
+FILES="sh cp mv gunzip gzip umount mount cat dd rmdir tar"
 
 # Some minimal files
 for iii in $FILES; do
@@ -52,7 +48,7 @@ for iii in $FILES; do
 done
 
 #mke2fs tune2fs
-cp $INITDIR/init $LITEUSB/sbin
+cp $INITDIR/* $LITEUSB/sbin
 chmod a+x $LITEUSB/sbin/init
 
 #echo "You may want to disable power save for the duration of the copy."

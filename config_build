@@ -3,6 +3,9 @@
 # Customize these options for comlin build.
 # Copyright by Peter Glen. See open source license for details.
 
+# History
+# Thu 02.Jan.2025   reshuffled for github friendly operation
+
 # Version number for this effort
 COMLINVERFILE=comlinver.txt
 
@@ -48,11 +51,22 @@ mkdir -p $CURRUSB
 mkdir -p $LITEUSB
 mkdir -p $CURRMODS
 
+# The directory Where the kernel you want to use is located
+KERNELDIR="../kernel"
+
+# Configure where the kernel is
+#NEWKERNEL=../kernel/linux-6.12.6/arch/x86/boot/bzImage
+#NEWKERNEL=/media/peterglen/LinHD/kernel/linux-6.12.6/arch/x86/boot/bzImage
+KERNELBIN=vmlinuz-6.8.0-50-generic
+NEWKERNEL=/boot/$KERNELBIN
+
 # The original location of the new kernel
 NEWKERNELDIR=.
 
+DEVDIR=../dev-files
+
 # Where boot related stuff is
-BOOT=_boot
+BOOTDIR=boot
 
 # This is the USB boot part
 DDEV=${RDDEV}1
@@ -64,6 +78,9 @@ DDEV2=${RDDEV}2
 COMLINMOUNT=/mnt/comlin64
 mkdir -p $COMLINMOUNT
 
+# Where are the system shell utils
+SHLIB="shlib"
+
 # Where is the rescue system located
 ROOTFS="_system"
 
@@ -72,9 +89,6 @@ ROOTISOFILE="../comlin64.iso"
 
 # Where is the initrd located
 INITRDFS="initrdfs"
-
-# The directory Where the kernel you want to use is located
-KERNELDIR="_kernel"
 
 # Script directory
 SCRIPTS="scripts"
@@ -105,6 +119,9 @@ SCSIBLANK="blank=fast"
 ### some more options to go
 
 INITDIR=init
+
+INITRAMFSDIR=initramfs
+INITRAMFSRES=$KERNELDIR/initramfs
 
 # Defaults for USB target, override if the /mnt/COMXX is mounted
 
@@ -159,18 +176,7 @@ RAMDISKSIZE="25000"
 # you will find the image in $BASE/rescuecd.iso
 
 ISOIMAGEONLY="yes"
-
 #ISOIMAGEONLY="no"
-
-# if you want to use a compressed ISO9660 image say yes here. It
-# will double the available space on your cd.
-# if you plan to load the rescuecd into ram then i highly suggest
-# using a compressed is9660 fs because it will reduce the
-# total needed RAM by the factor 2.
-# Be sure to read doc/README.compressedfs before setting this
-# switch to yes.
-
-COMPRESSEDFS="no"
 
 # if you want to use a compressed cramfs image say yes here. It
 # will double the available space on your cd. cramfs will
@@ -201,19 +207,7 @@ CRAMFS="no"
 
 #FLOPPYSIZE="288"
 
-# The Debian repository mirror configuration
-# (contributed by Sebastien J. Gross <sjg@debian.org>)
+# These are added to the final image
+MODULEDIR=../comlin64-mod-000
 
-# which ftp server we should use. Acutally, you should select the closest mirror
-# from your location. Have a look at http://www.debian.org/misc/README.mirrors
-# for further information on Debian mirrors locations.
-#DEBIAN_MIRROR="ftp.de.debian.org"
-
-# Which distribution we should use.
-#DEBIAN_DISTRIB="woody"
-
-# which modules should we use.
-#DEBIAN_COMPONENTS="main contrib non-free"
-
-
-
+# EOF

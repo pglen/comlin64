@@ -111,7 +111,7 @@ help4:
 	@echo
 
 apps:
-	make -C apps apps
+	make -s -C apps apps
 
 prompt:
 	@./scripts/prompt.sh " fdisk / format "
@@ -131,6 +131,9 @@ new2:
 
 initramfs:
 	@sudo ./scripts/make_initramfs
+
+checkscripts:
+	@sudo ./scripts/make_check_scripts
 
 bootimage:
 	@sudo ./scripts/make_toritoimage
@@ -175,10 +178,15 @@ doall: prompt new remnt copyusb putkern syslin cpscripts uremnt
 	@echo "Done doall"
 
 # This is the 64 bit make all
-buildiso: apps getapps getkern getboot getlite initramfs
-	make iso
+buildiso: getapps checkscripts initramfs prepiso
+	@make iso
+	@#play /usr/share/sounds/freedesktop/stereo/bell.oga >/dev/null 2>&1
+	@play /usr/share/sounds/Oxygen-Sys-App-Message.ogg >/dev/null 2>&1
 
-# Callable from scripts, will not prompt
+playif:
+	@play /usr/share/sounds/Oxygen-Sys-App-Message.ogg >/dev/null 2>&1
+
+# Callable from scripts, will not prompt (obsolete)
 
 doall2: new2 remnt copyusb putkern syslin cpscripts uremnt
 	@echo "Done doall"
@@ -200,7 +208,7 @@ getboot:
 getkern2:
 	@sudo ./scripts/make_getkern2
 
-getapps:
+getapps: apps
 	@sudo ./scripts/make_getapps
 
 getmods:
@@ -226,6 +234,9 @@ cpscripts:
 iso:
 	@sudo ./scripts/make_iso
 
+prepiso:
+	@sudo ./scripts/make_prepiso
+
 # ------------------------------------------------------------------------
 
 backup:
@@ -235,6 +246,7 @@ pack:
 	@sudo ./pack.sh
 
 clean:
+	make -C apps clean
 	@sudo ./clean.sh
 
 getimg:
