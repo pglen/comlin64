@@ -1,8 +1,8 @@
 #   ComLin64 Community Linux Boot-able USB
 
-## This is the successor of the ComLin64 project for 64 bit computers.
+## This is the successor of the ComLin32 project, but for 64 bit computers.
 
-### Code in motion, nothing usable.
+### Code in motion, nothing much usable.
 
 !! UNTESTED -- USE IT WITH CARE!!
 
@@ -10,10 +10,10 @@ Preface
 
     *   The Community Linux project aims to provide a simple Linux distribution
         for the masses.
-    *   It is a fully functional GUI right from a jump drive within the first
+    *   It is a fully functional GUI right from the CD/Thumb drive within the first
         minute of power up.
     *   It is installation-less, and it looks and feels like a real hard drive
-        installation.  (See video - keyword 'ComLin6464')
+        installation.  (See video - keyword 'ComLin64')
      _________________________________________________________________
 
 Goals
@@ -33,14 +33,14 @@ Goals
 System requirements:
 
     ComLin64 Linux will work on most 64 bit PC platforms. With more than
-    3000 drivers   available, ComLin64  covers almost all possible  platform
-    combination(s).
+    3000 drivers  available, ComLin64  covers almost all possible  platform
+    combinations.
 
 Recommended Minimum System requirements:
 
     While ComLin64 Linux will work on the most basic hardware. For responsive
-    operation we recommend at least 2Gig MB of RAM, 1.6 GHz
-    processor (or faster) and a 32 Gig USB drive
+    operation we recommend at least 2 Gig of RAM, 1.6 GHz
+    processor (or faster) and a 16/32 Gig USB drive
     (also called Jump Drive, a Thumb Drive or a Flash Drive).
 
 ComLin64 System Creation requirements:
@@ -53,14 +53,10 @@ ComLin64 System Creation requirements:
        the 16GB option will have ALL the features of a real hard drive
        installation.
     3.) The creation scripts and ComLin64 system image.
-        (downloaded from Sourceforge)
-    4.) The syslinux utility / package
-        (usually in distros)
-    5.) user with sudo  capability
-        (usually in distros)
+        (downloadable from Github)
 
      Alternatively, you can order a ready made jump drive from the author.
-    (Email address can be found on the Sourceforge Project page)
+    (Email address can be found on the GitHub Project page)
 
 Quick Start:
 
@@ -153,23 +149,12 @@ Data Security and Privacy Measures:
 Description of the ComLin64 Linux boot procedure
 
     o The system loads the MBR of the USB drive
-    o MBR loads the boot sector of the USB drive, containing syslinux
-    o Syslinux loads the kernel and initrd
+    o MBR loads the boot sector of the USB drive, containing GRUB
+    o GRUB loads the kernel and initrd
     o The kernel jumps to initrd, and initrd loads real root from usb
     o The real root walks thru a set of scripts to bring up the system.
 
-The OLD initrd process (pre V.1, obsolete):
-
-    1. first the script /linuxrc is executed
-    2. linuxrc searches for a drive with the file /ComLin64
-    3. linuxrc mounts the  drive under /mnt/system
-    4. linuxrc changes the root device with pivot_root to /mnt/system
-    5. linuxrc starts the normal boot process by invoking /sh/startup.sh
-    6. startup.sh spawns a new terminal with startup2.sh
-    7. The S-* scripts are executed
-    8. The last S-* script starts X, and blocks
-
-The NEW initrd process:
+The NEW initramfs process:
 
     1. init is executed, and starts startup.sh
     2. startup.sh spawns a new terminal with startupx.sh
@@ -186,6 +171,11 @@ The shutdown process:
     5. Control is transferred to linuxdown.sh
      _________________________________________________________________
 
+Current Progress:
+
+    Thu 02.Jan.2025  Boots into XFCE in under 15 seconds
+
+
 Credits
 
     Credits go to all of you who contributed to dependent and / or similar
@@ -200,4 +190,4 @@ Credits
     This project is funded by donations. Please consider donating
     on PayPal to the account of peterglen99@gmail.com.
 
-
+// EOF
