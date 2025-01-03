@@ -35,11 +35,20 @@ fi
 
 # Remove incidentals (created during testing)
 rm -f $LITEUSB/root/.bash_history
-rm -f $LITEUSB/tmp/*
 
-echo -n "Copying filesystem ... "
-cp -au $LITEUSB/* $ROOTFS
-echo OK
+echo "Copying filesystem ... "
+#cp -au $LITEUSB/* $ROOTFS
+
+EXC=$(basename $LITEUSB)
+
+rsync -au   --info=progress2 \
+            --exclude=/proc/* \
+            --exclude=/dev/* \
+            --exclude=/sys/* \
+            --exclude=/tmp/* \
+            --exclude=/run/* \
+            $LITEUSB/* $ROOTFS
+echo Done
 
 echo -n "Copying modules ... "
 cp -au $MODULEDIR/* $ROOTFS/lib/modules
@@ -68,10 +77,12 @@ echo OK
 
 #echo -n "Patching tmp permissions ... "
 chmod a+rwxt $ROOTFS/tmp
+#rm -rf $ROOTFS/tmp/*
+#rm -rf $ROOTFS/tmp/.*
 #echo OK
 
 #echo -n "Patch ICEauthority ... "
-touch $ROOTFS/root/$ICEA
+echo "" > $ROOTFS/root/ICEauthority
 #echo OK
 
 # Pivot (or equivalent) needs this

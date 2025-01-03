@@ -41,15 +41,15 @@ if [ "$1" != "nocheck" ] ; then
     fi
 fi
 
+# Where our USB LITE MOD data lives
 
-# Where our USB data lives
 CURRUSB=../comlin64-usb-000
 LITEUSB=../comlin64-lite-000
-CURRMODS=../comlin64-mod-000
+MODULEDIR=../comlin64-mod-000
 
 mkdir -p $CURRUSB
 mkdir -p $LITEUSB
-mkdir -p $CURRMODS
+mkdir -p $MODULEDIR
 
 # The directory Where the kernel you want to use is located
 KERNELDIR="../kernel"
@@ -206,8 +206,5 @@ CRAMFS="no"
 # any floppy images).
 
 #FLOPPYSIZE="288"
-
-# These are added to the final image
-MODULEDIR=../comlin64-mod-000
 
 # EOF

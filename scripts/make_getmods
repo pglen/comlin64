@@ -16,7 +16,7 @@ echo
 echo -n "Getting Modules from " `uname -r` " ... "
 
 # Copy modules from runtime
-sudo cp -a /lib/modules/`uname -r`/* $CURRMODS
+sudo cp -a /lib/modules/`uname -r`/* $MODULEDIR
 
 # Get PCI file from older kernel
 #if [ -d /lib/modules/3.14.14 ] ; then
