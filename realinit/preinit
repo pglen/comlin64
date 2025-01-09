@@ -1,0 +1,116 @@
+#!/bin/bash
+
+# Custom MAIN PRE INIT for Community Linux
+
+export PATH="/sbin:/bin:/usr/sbin:/usr/bin"
+
+# Silence async messages on terminal
+setterm --msg off
+
+# Add new items  (shell lib, libreoffice)
+export PATH=$PATH:/lib/shlib
+export PATH=$PATH:/opt/libreoffice24.8/program
+
+# Patch basic environment vars
+export TERM=linux
+
+# Our lib
+. /lib/shlib/initlib.sh
+
+hostname localhost
+
+#echo "Main INIT executed"
+#tmpshell "start of file"
+
+# Mount some (important) things on new root
+mount -t proc -o nosuid,noexec,nodev proc $NEWROOT/proc >/dev/null 2>&1
+mount -t sysfs -o nosuid,noexec,nodev sysfs $NEWROOT/sys >/dev/null 2>&1
+mount -t devpts -o gid=5,mode=620 devpts $NEWROOT/dev/pts >/dev/null 2>&1
+
+# Remove what is left of the old root
+# This method frees the resources without effecting other processes
+#rm -r /var/oldroot/*  >/dev/null 2>&1
+# And no more traces
+#umount /var/oldroot >/dev/null 2>&1
+
+export HOME=/root
+export USER=root
+
+cd $HOME
+
+mkdir -p /run/dbus
+dbus-daemon --system
+
+XDG_CONFIG_DIRS=/etc/xdg/xdg-xfce:/etc/xdg:/etc/xdg
+XDG_CURRENT_DESKTOP=XFCE
+XDG_DATA_DIRS=/usr/share/xfce4:/usr/share/xfce:/usr/share/gnome:/usr/local/share:/usr/share:/var/lib/snapd/desktop:/usr/share
+XDG_GREETER_DATA_DIR=/var/lib/lightdm-data/peterglen
+XDG_MENU_PREFIX=xfce-
+XDG_RUNTIME_DIR=/run/user/1000
+XDG_SEAT=seat0
+XDG_SEAT_PATH=/org/freedesktop/DisplayManager/Seat0
+XDG_SESSION_CLASS=user
+XDG_SESSION_DESKTOP=xfce
+XDG_SESSION_ID=c2
+XDG_SESSION_PATH=/org/freedesktop/DisplayManager/Session0
+XDG_SESSION_TYPE=x11
+XDG_VTNR=7
+
+export PS1="ComLin \w# "
+
+/lib/shlib/loadmods.sh
+
+# Start logging
+rsyslogd >/dev/null 2>&1
+
+# Start some daemons
+#udevd --daemon >/dev/null 2>&1
+
+# UP loopback network connection
+ifconfig lo up 127.0.0.1
+
+# Virtual terminals and a serial port
+/lib/shlib/startvts.sh
+
+export XAUTHORITY=/root/.Xauthority
+export ICEAUTHORITY=/root/.ICEauthority
+
+keyget -t 3 "About to start GUI. Press Enter within 3 seconds to drop to shell"
+if [ $? -eq 0 ] ; then
+    echo "Dropping to pre GUI Shell"
+    export PS1="pre-GUI shell #"
+    setsid -c -w /bin/bash
+    echo
+fi
+
+while : ; do
+
+    tmpshell "before XFCE loop iteration $ "
+    #echo Starting XFCE on ...
+    #agetty -n -l "/lib/shlib/start_xfce.sh" 38400 tty7 linux &
+    startxfce4 >.xfce_out 2>.xfce_err
+
+    # Kill it, see what comes back
+    #sleep 8
+    #killall Xorg
+    chvt 1
+    tmpshell "after XFCE loop iteration $ "
+done
+
+# Testing ....
+
+#  Monitor /etc/initrc -- fake initd
+#inotifywait -q -r -m -e modify /etc/initrc |
+#while read file_path file_event file_name; do
+#   #echo ${file_path} ${file_name} event: ${file_event}
+#   examine ${file_path} ${file_name} event: ${file_event}
+#done
+
+# Start a shell for recovery / diagnosis
+export PS1="Comlin Pre-Init fallback:\w$ "
+while : ; do
+   setsid -c -w /bin/bash
+   echo "Spawning new shell ... ($$)"
+done
+
+# EOF

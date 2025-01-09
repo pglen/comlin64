@@ -6,6 +6,9 @@
 # History
 # Thu 02.Jan.2025   reshuffled for github friendly operation
 
+# Note: some varibles left over from comlin32 and initrd
+# Ignore them.
+
 # Version number for this effort
 COMLINVERFILE=comlinver.txt
 
@@ -41,15 +44,19 @@ if [ "$1" != "nocheck" ] ; then
     fi
 fi
 
+MODULEDIR=../comlin64-mod-000
+mkdir -p $MODULEDIR
+
 # Where our USB LITE MOD data lives
 
-CURRUSB=../comlin64-usb-000
+FULLUSB=../comlin64-usb-000
 LITEUSB=../comlin64-lite-000
-MODULEDIR=../comlin64-mod-000
 
-mkdir -p $CURRUSB
 mkdir -p $LITEUSB
-mkdir -p $MODULEDIR
+mkdir -p $FULLUSB
+
+# SET this variable for current edition
+CURRUSB=$LITEUSB
 
 # The directory Where the kernel you want to use is located
 KERNELDIR="../kernel"
@@ -118,7 +125,7 @@ SCSIBLANK="blank=fast"
 
 ### some more options to go
 
-INITDIR=init
+INITDIR=realinit
 
 INITRAMFSDIR=initramfs
 INITRAMFSRES=$KERNELDIR/initramfs

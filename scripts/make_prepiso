@@ -34,12 +34,13 @@ if [ ! -f $KERNELDIR/initramfs ] ; then
 fi
 
 # Remove incidentals (created during testing)
-rm -f $LITEUSB/root/.bash_history
+rm -f $CURRUSB/root/.bash_history
+rm -f $CURRUSB/user/.bash_history
 
-echo "Copying filesystem ... "
-#cp -au $LITEUSB/* $ROOTFS
+echo "Copying (updating) filesystem ... "
+#cp -au $CURRUSB/* $ROOTFS
 
-EXC=$(basename $LITEUSB)
+EXC=$(basename $CURRUSB)
 
 rsync -au   --info=progress2 \
             --exclude=/proc/* \
@@ -47,8 +48,8 @@ rsync -au   --info=progress2 \
             --exclude=/sys/* \
             --exclude=/tmp/* \
             --exclude=/run/* \
-            $LITEUSB/* $ROOTFS
-echo Done
+            $CURRUSB/* $ROOTFS
+#echo Done
 
 echo -n "Copying modules ... "
 cp -au $MODULEDIR/* $ROOTFS/lib/modules
@@ -66,7 +67,7 @@ echo -n "Copying shell utilities ... "
 cp -a $SHLIB $ROOTFS/lib
 echo OK
 
-echo -n "Copying real inits ... "
+echo -n "Copying sbin inits ... "
 cp -au $INITDIR/* $ROOTFS/sbin
 echo OK
 
@@ -77,8 +78,8 @@ echo OK
 
 #echo -n "Patching tmp permissions ... "
 chmod a+rwxt $ROOTFS/tmp
-#rm -rf $ROOTFS/tmp/*
-#rm -rf $ROOTFS/tmp/.*
+rm -rf $ROOTFS/tmp/*
+rm -rf $ROOTFS/tmp/.*
 #echo OK
 
 #echo -n "Patch ICEauthority ... "

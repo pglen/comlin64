@@ -37,7 +37,9 @@ cp $APPDIR/reboot/linux_poweroff $INITRAMFSDIR/bin
 RTMP=$TMPDIR/initramfs
 mkdir -p $RTMP
 rm -rf $RTMP/*
+
 cp -a $INITRAMFSDIR/* $RTMP
+
 chown -R root.root $RTMP
 
 # Make initramfs from custom booter. The initrd is phased out

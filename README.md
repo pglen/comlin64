@@ -173,8 +173,8 @@ The shutdown process:
 
 Current Progress:
 
-    Thu 02.Jan.2025  Boots into XFCE in under 15 seconds
-
+    Thu 02.Jan.2025  Boots under VBOX into XFCE in under 15 seconds
+    Tue 07.Jan.2025  Some correction, pango font display
 
 Credits
 
