@@ -96,4 +96,6 @@ mkdir -p $ROOTFS/var/oldroot
 # Our ID file
 cp $COMLINVERFILE $ROOTFS/etc/COMLINUX_VERSION
 
+echo Done prepping ISO.
+
 # EOF

@@ -1,28 +1,48 @@
                                FEATURES
-                               
- ComLin contains all the features of a full Linux installation. Text editors,
+
+ COMLIN64 contains all the features of a full Linux installation. Text editors,
 Web Browsers, Compilers, Email Clients, Graphical authoring Tools, Security
-tools and utilities. In fact, ComLin can be used to publish a new version of
-ComLin.
-                                
+tools and utilities. In fact, COMLIN64 can be used to publish a new version of
+COMLIN64.
+
 Runlevel-Less operation
 
     To boot faster, and exclude unneeded baggage present on a full system,
-    ComLin Linux operates without the distinction of runlevels. The system
+    COMLIN64 Linux operates without the distinction of runlevels. The system
     instead, cycles through a set of shell scripts.
-    To aid troubleshooting, checkpoints are introduced, and one can press
-    the ENTER key to temporarily drop to a shell prompt. Exiting the temporary
-    shell will continue the boot process from the point of interruption.
+    To aid troubleshooting, checkpoints can be introduced onn the kernel
+    command line from GRUB. One may add the following:
+
+        initbreak=start    "At the start of (pre)init $ "
+        initbreak=devices  "Before installing devices $ "
+        initbreak=network  "Before starting network $ "
+        initbreak=sound    "Before starting sound $ "
+        initbreak=pre-gui  "Before starting GUI $ "
+        initbreak=post-gui "After XFCE loop iteration $ "
+
+    To troubleshoot the booting process, one may use initramfs break points.
+
+        ramfs=cmdline       "Break before cmdline"
+        ramfs=initqueue     "Break before initqueue"
+        ramfs=pre-mount     "Break pre-mount"
+        ramfs=pre-overlay   "Break before overlay"
+        ramfs=pre-chroot    "Break before switch_root"
+
+    In grub, press 'e' for edit, and when done press 'b' for boot.
 
 Installation-Less operation
 
-    ComLin Linux should operate on most every hardware combination supported
+    COMLIN64 Linux should operate on most every hardware combination supported
     by Linux. As of this writing, there are more then 3000+ different hardware
-    drivers / items supported. ComLin Linux detects hardware by reading the
+    drivers / items supported. COMLIN64 Linux detects hardware by reading the
     system buses, and loading the drivers on the fly. Thanks to modern
     hardware, the identification / driver loading is fast. The system boots
-    about the same speed or faster as a regular hard drive boot. ComLin works 
+    about the same speed or faster as a regular hard drive boot. COMLIN64 works
     right out of the box without installation on most every PC.
+
+COMLIN64 origins:
+
+    Comlin is originated from unbuntu 22.04.
 
 Special added Utilities
 
@@ -46,14 +66,17 @@ Security Measures:
     second verifyer. (chicken and egg conundrum) Hence the redirection to
     get a sum file (or sum file sum) from different (not tempered) source.
 
+
+OBSOLETE:
+
 Data Security and Privacy Measures:
 
-    ComLin has an encrypted subsystem, that is controllable from the padlock
-    icon on the top panel. Click on the padlock icon, and select the
+    COMLIN64 is equipped with and encrypted subsystem. It is controllable from
+    the padlock icon on the top panel. Click on the padlock icon, and select the
     encrypted folder you wish to activate. You will be prompted for a
     password, and the folder will become accessible. You may copy/save
     any file in the encrypted folder,  it will be automatically encrypted.
     The initial password is '1234' for the stock encrypted folder,
     make sure you change it before deployment.
 
-    
+# EOF

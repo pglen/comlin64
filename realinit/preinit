@@ -47,40 +47,23 @@ export USER=root
 
 cd $HOME
 
-mkdir -p /run/dbus
-dbus-daemon --system
+SUL=startuplog
+mkdir -p $SUL
 
-# All these are redundant (kept for reference)
-#XDG_CONFIG_DIRS=/etc/xdg/xdg-xfce:/etc/xdg:/etc/xdg
-#XDG_CURRENT_DESKTOP=XFCE
-#XDG_DATA_DIRS=/usr/share/xfce4:/usr/share/xfce:/usr/share/gnome:/usr/local/share:/usr/share:/var/lib/snapd/desktop:/usr/share
-#XDG_GREETER_DATA_DIR=/var/lib/lightdm-data/peterglen
-#XDG_MENU_PREFIX=xfce-
-#XDG_SEAT=seat0
-#XDG_SEAT_PATH=/org/freedesktop/DisplayManager/Seat0
-#XDG_SESSION_CLASS=user
-#XDG_SESSION_DESKTOP=xfce
-#XDG_SESSION_ID=c2
-#XDG_SESSION_PATH=/org/freedesktop/DisplayManager/Session0
-#XDG_SESSION_TYPE=x11
-#XDG_VTNR=7
-#XDG_RUNTIME_DIR=/run/user/$UID
+mkdir -p /run/dbus
+dbus-daemon --system >$SUL/dbus_out  2>$SUL/dbus_err
 
 export PS1="ComLin \w# "
 /lib/shlib/loadmods.sh
 
 # Start logging
-rsyslogd >/dev/null 2>&1
+rsyslogd >$SUL/syslog_out  2>$SUL/syslog_err
 
 # UP loopback network connection
 ifconfig lo up 127.0.0.1
 
 # Virtual terminals and a serial port
 /lib/shlib/startvts.sh
-
-# Xorg needs these
-export XAUTHORITY=/root/.Xauthority
-export ICEAUTHORITY=/root/.ICEauthority
 
 # Left the template in; in case you want to re enable it
 #keyget -t 3 "About to install devices. Press Enter within 3 seconds to drop to shell"
@@ -91,32 +74,40 @@ export ICEAUTHORITY=/root/.ICEauthority
 #    echo
 #fi
 
+# Create blanks for append
+echo "" > $SUL/dev_out; echo "" > $SUL/dev_err
+
 # Install devices from PCI bus; ignore vbox additions for now
 getargx 'initbreak=devices' && tmpshell "Before installing devices $ "
 echo "Installing devices ..."
 lspci -v | grep "Kernel modules" | awk -F ":" '{ print($2); }' \
-| grep -v modules | grep -v vbox | xargs -i modprobe {}
+    | grep -v modules | grep -v vbox | xargs -i modprobe {} \
+        >>$SUL/dev_out 2>>$SUL/dev_err
 
 echo "Starting network ..."
 getargx 'initbreak=network' && tmpshell "Before starting network $ "
-dhclient&
+dhclient >$SUL/net_out 2>$SUL/net_err &
 
 #echo "Starting sound system ..."
 #getargx 'initbreak=sound' && tmpshell "Before starting sound $ "
 #touch .config/pulse/cookie
 #touch /var/run/pulse/.pulse-cookie
-pulseaudio --start &
+pulseaudio --start >$SUL/pulse_out 2>$SUL/pulse_err
 
 # After all configured, let it write some
 sync
 
-echo Starting GUI ...
+# Xorg needs these
+export XAUTHORITY=/root/.Xauthority
+export ICEAUTHORITY=/root/.ICEauthority
+
 getargx 'initbreak=pre-gui' && tmpshell "Before starting GUI $ "
+#echo Starting GUI ...
 
 while : ; do
 
     #agetty -n -l "/lib/shlib/start_xfce.sh" 38400 tty7 linux &
-    startxfce4 >.xfce_out 2>.xfce_err
+    startxfce4 >$SUL/xfce_out 2>$SUL/xfce_err
 
     # TEST: kill it, see what comes back
     #sleep 8; killall Xorg
@@ -128,7 +119,7 @@ done
 
 # Testing ....
 
-#  Monitor /etc/initrc -- fake initd
+#  Monitor /etc/initrc -- fake init daemon
 #inotifywait -q -r -m -e modify /etc/initrc |
 #while read file_path file_event file_name; do
 #   #echo ${file_path} ${file_name} event: ${file_event}

@@ -1,31 +1,33 @@
                           HISTORY
 
 Brief version information from development. For informational purposes only.
+Consult git for more detailed information.
 
-Version     011     (and before) Hard at work creating a sane system.
+17.0.0   Mon 13.Jan.2025   Sound drivers
+17.0.0   Fri 20.dec.2025   Changed to semantic versioning
 
-Version     012     Initial Release
+Ver-017   Converted to 64 bit, real root etc ...
 
-Version     013     Updated sound driver loading (now Intel HDA works)
-                    (Intel High Definition Audio)
+Ver-16     Second release. (Source forge release.) Updated Boot
+               process, Docs and version numbers in /etc/
 
-Version     013     Created Lite version. ComLin now fits on an 8GB USB
-                    drive. Removed: some locales, Java, Texi and such.
-                    The Lite version still has all the goodies like
-                    Openoffice, Firefox, Thunderbird Gimp ... etc ....
+Ver-15     Added extra syslin command lines for second device.
+               (SATA shows up before USB). Updated pangview for
+               Converted initramfs to custom dracut.
+               Table driven pangview parser. Tested GL based utilities
+               ... etc
 
-Version     014     First release. (Source forge release.)
+Ver-14     First release. (Source forge release.)
 
-Version     015     Added extra syslin command lines for second device.
-                    (SATA shows up before USB). Updated pangview for
-                    Converted initramfs to custom dracut.
-                    Table driven pangview parser. Tested GL based utilities
-                    ... etc
+Ver-13     Updated sound driver loading (now Intel HDA works)
+               (Intel High Definition Audio)
 
-Version     016     Second release. (Source forge release.) Updated Boot
-                    process, Docs and version numbers in /etc/
-
-Version     017     Converted to 64 bit, real root etc ...
+Ver-13     Created Lite version. ComLin now fits on an 8GB USB
+               drive. Removed: some locales, Java, Texi and such.
+               The Lite version still has all the goodies like
+               Openoffice, Firefox, Thunderbird Gimp ... etc ....
+Ver-12     Initial Release
+Ver-11     (and before) Hard at work creating a sane system.
 
 
 

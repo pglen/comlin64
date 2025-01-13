@@ -1,6 +1,20 @@
- #!/bin/bash
+#!/bin/bash
+##########################################################################
+##                                                                      ##
+## This program is free software; you can redistribute it and/or modify ##
+## it under the terms of the GNU General Public License as published by ##
+## the Free Software Foundation; either version 2 of the License, or    ##
+## (at your option) any later version.                                  ##
+##                                                                      ##
+##########################################################################
 
-. ./config_build nocheck
+# Build initramfs
+
+#echo "exec:" $0 $@   # Pathetic excuse for checking it ...
+#echo pwd: $(pwd)
+#echo  ls: $(ls config_build -l)
+
+.  config_build nocheck
 . "$SCRIPTS"/misc/lib/lib_fail
 
 echo -n "Making initramfs ... "

@@ -3,14 +3,18 @@
 # Customize these options for comlin build.
 # Copyright by Peter Glen. See open source license for details.
 
-# History
+# History:
 # Thu 02.Jan.2025   reshuffled for github friendly operation
+# Mon 13.Jan.2025   fight with the sound device
 
 # Notes:
 #  Some varibles left over from comlin32 and initrd -- Ignore them.
 #  The system is switched to grub, other boot methods are not worked on
 #       so they are defunct. They are left in for (possible) future
 #       possible implamentation.
+
+# In case of problems, this identifies the caller
+#echo "From": $0 $@
 
 # Version number for this effort. Use this file for marking the system,
 #   as well as source for the version info.

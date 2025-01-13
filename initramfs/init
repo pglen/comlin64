@@ -54,42 +54,13 @@ fi
 
 getarg 'ramfs=initqueue' && temporary_shell -n initqueue "Break before initqueue"
 
-RDRETRY=$(getarg 'rd_retry=')
-RDRETRY=${RDRETRY:-20}
-RDRETRY=$(($RDRETRY*2))
-export RDRETRY
-
-main_loop=0
-export main_loop
-while :; do
-
-    #check_finished && break
-    #udevsettle
-    #check_finished && break
-
-    if [ $main_loop -gt $(($RDRETRY/2)) ]; then
-    for job in /initqueue-timeout/*.sh; do
-            [ -e "$job" ] || break
-            job=$job . $job
-            main_loop=0
-    done
-    fi
-
-    # We do not need to suffer thru this ...
-    break
-done
-
-unset job
-unset main_loop
-unset RDRETRY
-
 # Pre-mount happens before we try to mount the root filesystem
 getarg 'ramfs=pre-mount' && temporary_shell -n pre-mount "Break pre-mount"
 
 # Mount scripts actually try to mount the root filesystem, and may
 # be sourced any number of times. As soon as one suceeds, no more are sourced.
 
-i=0
+ii=0
 while :; do
 
     #echo "Attempting Mount"
@@ -116,9 +87,9 @@ while :; do
         # Done here
         break
     fi
-    i=$(($i+1))
+    ii=$(($ii+1))
     # Give up after many tries
-    [ $i -gt 20 ] \
+    [ $ii -gt 20 ] \
         && { flock -s 9 ; temporary_shell "Can't mount root filesystem"; } \
             9>/.console_lock
 done
@@ -140,25 +111,6 @@ done
     #echo "Please check to make sure you passed a valid root filesystem!"
     temporary_shell -n check_init "ramfs No Init "
 }
-
-# Stop udev queue before killing it
-#udevadm control --stop-exec-queue
-#
-#HARD=""
-#while pidof udevd >/dev/null 2>&1; do
-#    for pid in $(pidof udevd); do
-#        kill $HARD $pid >/dev/null 2>&1
-#    done
-#    HARD="-9"
-#done
-
-# Clean up the environment
-#for i in $(export -p); do
-#    i=${i#declare -x}
-#    i=${i#export}
-#    i=${i%%=*}
-#    [ "$i" = "root" -o "$i" = "PATH" -o "$i" = "HOME" -o "$i" = "TERM" ] || unset $i
-#done
 
 #info "Creating overlay"
 #wait_for_loginit

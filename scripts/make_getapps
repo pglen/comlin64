@@ -1,4 +1,4 @@
- #!/bin/bash
+#!/bin/bash
 
 . ./config_build nocheck
 . "$SCRIPTS"/misc/lib/lib_fail
