@@ -25,6 +25,7 @@ getarg() {
 	   read CMDLINE </proc/cmdline;
 	   CMDLINE="$CMDLINE $CMDLINE_ETC"
     fi
+    echo "cmdline $CMDLINE"
     for o in $CMDLINE; do
 	   [ "$o" = "$1" ] && { [ "$RDDEBUG" = "yes" ] && set -x; return 0; }
 	   [ "${o%%=*}" = "${1%=}" ] && { echo ${o#*=}; [ "$RDDEBUG" = "yes" ] && set -x; return 0; }
@@ -471,42 +472,20 @@ wait_for_loginit()
 }
 
 # ------------------------------------------------------------------------
+# use: temporary_shell [-n]
 
-emergency_shell()
+temporary_shell()
 {
     set +e
+    local _shell_name
+    _shell_name="Comlin # "
     if [ "$1" = "-n" ]; then
-        _rdshell_name=$2
+        _shell_name=$2
         shift 2
-    else
-        _rdshell_name=Comlin
     fi
-    #wait_for_loginit
-    #echo ; echo
-    #warn $@
-    #source_all emergency
-    #echo
-
-    #[ -e /.die ] && sleep 3; exit 1
-
-    warn "Exiting this shell will return to the Comlin script"
-
-    if getarg rdshell || getarg rdbreak; then
-        echo "Dropping to debug shell."
-        echo
-        export PS1="$_rdshell_name:\${PWD}# "
-        #[ -e /.profile ] || echo "exec 0<>/dev/console 1<>/dev/console 2<>/dev/console" > /.profile
-        #sh -i -l
-        setsid -c -w /bin/bash
-    else
-        #warn "Boot has failed. To debug this issue add \"rdshell\" to the kernel command line."
-        export PS1="$_rdshell_name:\${PWD}# "
-        #[ -e /.profile ] || echo "exec 0<>/dev/console 1<>/dev/console 2<>/dev/console" > /.profile
-        #sh -i -l
-        echo
-        setsid -c -w /bin/bash
-        #exit 1
-    fi
+    export PS1="$_shell_name:\${PWD}# "
+    echo
+    setsid -c -w /bin/bash
 }
 
 # EOF

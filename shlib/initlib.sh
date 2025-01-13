@@ -8,14 +8,27 @@ examine() {
 
 # Temporary SHELL
 tmpshell() {
-    if [ "$1" == "" ] ; then
-       export PS1="tmpshell $"
-       export PS2="(2) tmpshell $"
-    else
-       export PS1=$1
-       export PS2="$1"
+    #echo called tmpshell  with \'$1\'
+    _PROMPT="tmp shell $ "
+    if [ "$1" != "" ] ; then
+        _PROMPT=\"$1\"
     fi
-    setsid -c -w /bin/bash
+    #echo "exec tmpshell with $_PROMPT"
+    setsid -c -w /bin/bash --rcfile <(echo PS1=$_PROMPT) -i
+}
+
+# ------------------------------------------------------------------------
+# Get arg from command line. Return 1 for arg.
+
+getargx() {
+    local oo
+    if [ "$CMDLINE" = "" ]; then
+    read CMDLINE </var/cmdline
+    fi
+    for oo in $CMDLINE; do
+	   [ "$oo" = "$1" ] && return 0;
+    done
+    return 1
 }
 
 # EOF

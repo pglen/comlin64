@@ -1,8 +1,6 @@
 #!/bin/sh
 ##########################################################################
 ##                                                                      ##
-## assembles the gzipped initrd image                                   ##
-##                                                                      ##
 ## This program is free software; you can redistribute it and/or modify ##
 ## it under the terms of the GNU General Public License as published by ##
 ## the Free Software Foundation; either version 2 of the License, or    ##
@@ -13,16 +11,25 @@
 . ./config_build nocheck
 . "$SCRIPTS"/misc/lib/lib_fail
 
-echo
-echo "----------------------------------"
-echo "           Cleaning temps         "
-echo "        May need sudo pass        "
-echo "----------------------------------"
-echo 
+#echo
+#echo "----------------------------------"
+#echo "           Cleaning temps         "
+#echo "        May need sudo pass        "
+#echo "----------------------------------"
+#echo
 
-rm $TMPDIR/*  >/dev/null 2>&1
-rm $BACKUPDIR/*  >/dev/null 2>&1
-sudo umount "$MOUNTPOINT" > /dev/null 2>&1
-exit 0
+echo -n "Cleaning DATA ... "
 
+rm -rf _work/*
+rm -rf _kernel/*
+rm -rf _system/*
 
+rm -f $TMPDIR/*  >/dev/null 2>&1
+rm -f $BACKUPDIR/*  >/dev/null 2>&1
+
+echo OK
+
+#sudo umount "$MOUNTPOINT" > /dev/null 2>&1
+#exit 0
+
+# EOF

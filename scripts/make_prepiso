@@ -10,7 +10,7 @@
 ##                                                                      ##
 ##########################################################################
 
-. config_build
+. config_build nocheck
 . "$SCRIPTS"/misc/lib/lib_fail
 
 echo "Preparing ISO image ;"
@@ -33,10 +33,6 @@ if [ ! -f $KERNELDIR/initramfs ] ; then
     exit 1
 fi
 
-# Remove incidentals (created during testing)
-rm -f $CURRUSB/root/.bash_history
-rm -f $CURRUSB/user/.bash_history
-
 echo "Copying (updating) filesystem ... "
 #cp -au $CURRUSB/* $ROOTFS
 
@@ -49,11 +45,18 @@ rsync -au   --info=progress2 \
             --exclude=/tmp/* \
             --exclude=/run/* \
             $CURRUSB/* $ROOTFS
-#echo Done
 
-echo -n "Copying modules ... "
-cp -au $MODULEDIR/* $ROOTFS/lib/modules
-echo OK
+# Remove incidentals (created during testing)
+for aa in "root user guest" ; do
+    #echo $aa
+    rm -f "$ROOTFS/$aa/.bash_history"
+    rm -rf "$ROOTFS/$aa/.config/xfce4"
+    rm -rf "$ROOTFS/$aa/tmp"
+done
+
+#echo -n "Copying modules ... "
+#cp -au $MODULEDIR/* $ROOTFS/lib/modules
+#echo OK
 
 echo -n "Copying boot items ... "
 cp -a $BOOTDIR/* $ROOTFS/boot
@@ -76,14 +79,15 @@ mkdir -p $ROOTFS/dev
 cp -a $DEVDIR/* $ROOTFS/dev
 echo OK
 
-#echo -n "Patching tmp permissions ... "
+#echo -n "Patching tmp and var permissions ... "
+rm -rf $ROOTFS/tmp/
+mkdir -p $ROOTFS/tmp
 chmod a+rwxt $ROOTFS/tmp
-rm -rf $ROOTFS/tmp/*
-rm -rf $ROOTFS/tmp/.*
-#echo OK
+
+#rm -rf $ROOTFS/var/run/* >/dev/null 2>&1
 
 #echo -n "Patch ICEauthority ... "
-echo "" > $ROOTFS/root/ICEauthority
+echo "" > $ROOTFS/root/.ICEauthority
 #echo OK
 
 # Pivot (or equivalent) needs this

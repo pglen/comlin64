@@ -18,6 +18,24 @@
 
 .PHONY: apps clean initramfs
 
+# Unfortunately, most scripts need to access system stuff, so sudo
+# is needed.
+
+# If you want the lazy option, use ./py/crypter.py, and create a pass.
+# Like: ./py/crypter.py -e yourpass > .crypted
+#     optional: chmod go-rw .crypted (so it is user visible only)
+# NOTE: this pass is medium secure, much better than plaintext pass ...
+# ... delete after you are done. (rm .crypted)
+# You can specify the crypter.py -key option (uses AES) to make it
+# more secure, but ultimately chicken and egg will not allow
+# this method to be really secure. For convenience only.
+
+#SUDO=@echo ${shell ./py/crypter.py -i -d <.crypted} | sudo -n -S
+
+# Else ... allow the sudo prompt as one normally would
+
+#SUDO=sudo
+
 all:
 	@echo "Type 'make help' for a list of targets"
 
@@ -178,13 +196,18 @@ doall: prompt new remnt copyusb putkern syslin cpscripts uremnt
 	@echo "Done doall"
 
 # This is the 64 bit make all
-buildiso: getapps checkscripts initramfs prepiso
-	@make iso
-	@#play /usr/share/sounds/freedesktop/stereo/bell.oga >/dev/null 2>&1
-	@play /usr/share/sounds/Oxygen-Sys-App-Message.ogg >/dev/null 2>&1
+buildiso: apps checkscripts initramfs prepiso getapps iso
+	@play Oxygen-Sys-App-Message.ogg >/dev/null 2>&1
+	@#play bell.ogg >/dev/null 2>&1
 
+# Test if sound plays
 playif:
-	@play /usr/share/sounds/Oxygen-Sys-App-Message.ogg >/dev/null 2>&1
+	@#play bell.ogg >/dev/null 2>&1 &
+	@play Oxygen-Sys-App-Message.ogg >/dev/null 2>&1
+
+# Test if sudo promptless works
+testsudo:
+	sudo echo "Message from non prompted SUDO"
 
 # Callable from scripts, will not prompt (obsolete)
 
@@ -208,7 +231,7 @@ getboot:
 getkern2:
 	@sudo ./scripts/make_getkern2
 
-getapps: apps
+getapps:
 	@sudo ./scripts/make_getapps
 
 getmods:
@@ -246,8 +269,8 @@ pack:
 	@sudo ./pack.sh
 
 clean:
-	make -C apps clean
-	@sudo ./clean.sh
+	make -s -C apps clean
+	@sudo ./scripts/make_clean
 
 getimg:
 	@sudo ./scripts/make_getimg

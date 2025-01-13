@@ -1,7 +1,8 @@
                      The BUILD and SYSTEM Options
 
- This was inherited from the ancestor project ... mostly true for COMLIN. Notable
-exceptions is that COMLIN does not download or update anything while in operation. 
+ The system options were inherited from the ancestor project ... mostly. 
+Notable exceptions is that COMLIN64 does not download or update anything 
+while creating ISOs or USBs.
 
  See the actual config files for more info.
 
@@ -12,16 +13,16 @@ exceptions is that COMLIN does not download or update anything while in operatio
     b.) config_drive file
     
         The USB drive you are working with. Use 'make detect' to create it.
-        see config_drive.sample for the format of the file
+        see the file config_drive.sample for the format of the file
 
     c.) config_system file
 
         Configure here everything related to the actual system. Most of these
-        settings are ignored, edit the actual files in the ../comlin-usb-xxx 
-        subdirectory or on the host system.
+        settings are ignored, or used as defaults. Edit the actual files in 
+		the ../comlin64-usb-xxx subdirectory. (or on the host system if 
+		applicable)
 
     This project is funded by donations. Please consider donating
     on PayPal to the account of peterglen99@gmail.com.
 
-
-
+# EOF

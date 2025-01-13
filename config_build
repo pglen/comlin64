@@ -6,16 +6,20 @@
 # History
 # Thu 02.Jan.2025   reshuffled for github friendly operation
 
-# Note: some varibles left over from comlin32 and initrd
-# Ignore them.
+# Notes:
+#  Some varibles left over from comlin32 and initrd -- Ignore them.
+#  The system is switched to grub, other boot methods are not worked on
+#       so they are defunct. They are left in for (possible) future
+#       possible implamentation.
 
-# Version number for this effort
+# Version number for this effort. Use this file for marking the system,
+#   as well as source for the version info.
 COMLINVERFILE=comlinver.txt
 
-# Check if we started from comlin script from comlin root
+# Check if we started the script from the comlin root: (here)
 if [ ! -f $COMLINVERFILE ] ; then
-    	echo "Must start from the comlin64 script root."
-    	exit 1;
+   echo "Must start from the comlin64 script root."
+   exit 1;
 fi
 
 KEYGET=./apps/keyget/keyget
@@ -47,16 +51,17 @@ fi
 MODULEDIR=../comlin64-mod-000
 mkdir -p $MODULEDIR
 
-# Where our USB LITE MOD data lives
+# Where our FULL USB .. or .. LITE USB data lives
 
-FULLUSB=../comlin64-usb-000
+FULLUSB=../comlin64-full-000
 LITEUSB=../comlin64-lite-000
 
-mkdir -p $LITEUSB
 mkdir -p $FULLUSB
+mkdir -p $LITEUSB
 
 # SET this variable for current edition
-CURRUSB=$LITEUSB
+CURRUSB=$FULLUSB
+#CURRUSB=$LITEUSB
 
 # The directory Where the kernel you want to use is located
 KERNELDIR="../kernel"
@@ -89,7 +94,8 @@ mkdir -p $COMLINMOUNT
 SHLIB="shlib"
 
 # Where is the rescue system located
-ROOTFS="_system"
+ROOTFS="../_system"
+mkdir -p $ROOTFS
 
 # Where is the new system ISO is located
 ROOTISOFILE="../comlin64.iso"
@@ -100,16 +106,19 @@ INITRDFS="initrdfs"
 # Script directory
 SCRIPTS="scripts"
 
+WORK=../_work
+mkdir -p $WORK
+
 # Temporary mount point
-MOUNTPOINT="_work/mnt"
+MOUNTPOINT="$WORK/mnt"
 mkdir -p $MOUNTPOINT
 
 # Tempdir
-TMPDIR="_work/tmp"
+TMPDIR="$WORK/tmp"
 mkdir -p $TMPDIR
 
 # Backup of changed system files
-BACKUPDIR="_work/backup"
+BACKUPDIR="$WORK/backup"
 mkdir -p $BACKUPDIR
 
 ### Configure your scsi device (not used)

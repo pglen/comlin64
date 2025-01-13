@@ -1,0 +1,14 @@
+XServer config file
+
+Files          File pathnames
+ServerFlags    Server flags
+Module         Dynamic module loading
+InputDevice    Input device description
+Device         Graphics device description
+VideoAdaptor   Xv video adaptor description
+Monitor        Monitor description
+Modes          Video modes descriptions
+Screen         Screen configuration
+ServerLayout   Overall layout
+DRI            DRI-specific configuration
+Vendor         Vendor-specific configuration

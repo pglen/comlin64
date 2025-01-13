@@ -1,15 +1,24 @@
 #!/bin/bash
 
-# Custom MAIN PRE INIT for Community Linux
+# The following breakpoints can be introduced from the kernel
+# command line:
+#    initbreak=start    "At the start of (pre)init $ "
+#    initbreak=devices  "Before installing devices $ "
+#    initbreak=network  "Before starting network $ "
+#    initbreak=sound    "Before starting sound $ "
+#    initbreak=pre-gui  "Before starting GUI $ "
+#    initbreak=post-gui "After XFCE loop iteration $ "
 
 export PATH="/sbin:/bin:/usr/sbin:/usr/bin"
 
 # Silence async messages on terminal
 setterm --msg off
 
-# Add new items  (shell lib, libreoffice)
+# Add new items  (shell library)
 export PATH=$PATH:/lib/shlib
-export PATH=$PATH:/opt/libreoffice24.8/program
+
+# Add libreoffice (disabled)
+#export PATH=$PATH:/opt/libreoffice24.8/program
 
 # Patch basic environment vars
 export TERM=linux
@@ -17,10 +26,9 @@ export TERM=linux
 # Our lib
 . /lib/shlib/initlib.sh
 
-hostname localhost
+getargx 'initbreak=start' && tmpshell "At the start of (pre)init $ "
 
-#echo "Main INIT executed"
-#tmpshell "start of file"
+hostname localhost
 
 # Mount some (important) things on new root
 mount -t proc -o nosuid,noexec,nodev proc $NEWROOT/proc >/dev/null 2>&1
@@ -35,36 +43,34 @@ mount -t devpts -o gid=5,mode=620 devpts $NEWROOT/dev/pts >/dev/null 2>&1
 
 export HOME=/root
 export USER=root
+#export UID=0
 
 cd $HOME
 
 mkdir -p /run/dbus
 dbus-daemon --system
 
-XDG_CONFIG_DIRS=/etc/xdg/xdg-xfce:/etc/xdg:/etc/xdg
-XDG_CURRENT_DESKTOP=XFCE
-XDG_DATA_DIRS=/usr/share/xfce4:/usr/share/xfce:/usr/share/gnome:/usr/local/share:/usr/share:/var/lib/snapd/desktop:/usr/share
-XDG_GREETER_DATA_DIR=/var/lib/lightdm-data/peterglen
-XDG_MENU_PREFIX=xfce-
-XDG_RUNTIME_DIR=/run/user/1000
-XDG_SEAT=seat0
-XDG_SEAT_PATH=/org/freedesktop/DisplayManager/Seat0
-XDG_SESSION_CLASS=user
-XDG_SESSION_DESKTOP=xfce
-XDG_SESSION_ID=c2
-XDG_SESSION_PATH=/org/freedesktop/DisplayManager/Session0
-XDG_SESSION_TYPE=x11
-XDG_VTNR=7
+# All these are redundant (kept for reference)
+#XDG_CONFIG_DIRS=/etc/xdg/xdg-xfce:/etc/xdg:/etc/xdg
+#XDG_CURRENT_DESKTOP=XFCE
+#XDG_DATA_DIRS=/usr/share/xfce4:/usr/share/xfce:/usr/share/gnome:/usr/local/share:/usr/share:/var/lib/snapd/desktop:/usr/share
+#XDG_GREETER_DATA_DIR=/var/lib/lightdm-data/peterglen
+#XDG_MENU_PREFIX=xfce-
+#XDG_SEAT=seat0
+#XDG_SEAT_PATH=/org/freedesktop/DisplayManager/Seat0
+#XDG_SESSION_CLASS=user
+#XDG_SESSION_DESKTOP=xfce
+#XDG_SESSION_ID=c2
+#XDG_SESSION_PATH=/org/freedesktop/DisplayManager/Session0
+#XDG_SESSION_TYPE=x11
+#XDG_VTNR=7
+#XDG_RUNTIME_DIR=/run/user/$UID
 
 export PS1="ComLin \w# "
-
 /lib/shlib/loadmods.sh
 
 # Start logging
 rsyslogd >/dev/null 2>&1
-
-# Start some daemons
-#udevd --daemon >/dev/null 2>&1
 
 # UP loopback network connection
 ifconfig lo up 127.0.0.1
@@ -72,29 +78,52 @@ ifconfig lo up 127.0.0.1
 # Virtual terminals and a serial port
 /lib/shlib/startvts.sh
 
+# Xorg needs these
 export XAUTHORITY=/root/.Xauthority
 export ICEAUTHORITY=/root/.ICEauthority
 
-keyget -t 3 "About to start GUI. Press Enter within 3 seconds to drop to shell"
-if [ $? -eq 0 ] ; then
-    echo "Dropping to pre GUI Shell"
-    export PS1="pre-GUI shell #"
-    setsid -c -w /bin/bash
-    echo
-fi
+# Left the template in; in case you want to re enable it
+#keyget -t 3 "About to install devices. Press Enter within 3 seconds to drop to shell"
+#if [ $? -eq 0 ] ; then
+#    echo "Dropping to pre-Device Shell"
+#    export PS1="pre-Device shell #"
+#    setsid -c -w /bin/bash
+#    echo
+#fi
+
+# Install devices from PCI bus; ignore vbox additions for now
+getargx 'initbreak=devices' && tmpshell "Before installing devices $ "
+echo "Installing devices ..."
+lspci -v | grep "Kernel modules" | awk -F ":" '{ print($2); }' \
+| grep -v modules | grep -v vbox | xargs -i modprobe {}
+
+echo "Starting network ..."
+getargx 'initbreak=network' && tmpshell "Before starting network $ "
+dhclient&
+
+#echo "Starting sound system ..."
+#getargx 'initbreak=sound' && tmpshell "Before starting sound $ "
+#touch .config/pulse/cookie
+#touch /var/run/pulse/.pulse-cookie
+pulseaudio --start &
+
+# After all configured, let it write some
+sync
+
+echo Starting GUI ...
+getargx 'initbreak=pre-gui' && tmpshell "Before starting GUI $ "
 
 while : ; do
 
-    tmpshell "before XFCE loop iteration $ "
-    #echo Starting XFCE on ...
     #agetty -n -l "/lib/shlib/start_xfce.sh" 38400 tty7 linux &
     startxfce4 >.xfce_out 2>.xfce_err
 
-    # Kill it, see what comes back
-    #sleep 8
-    #killall Xorg
+    # TEST: kill it, see what comes back
+    #sleep 8; killall Xorg
+
     chvt 1
-    tmpshell "after XFCE loop iteration $ "
+    #getargx 'initbreak=post-gui' &&
+    tmpshell "After XFCE loop iteration $ "
 done
 
 # Testing ....

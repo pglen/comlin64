@@ -186,6 +186,7 @@ int main(int argc, char *argv[])
 
         if (secleft != -1 && yesno == 0)
             printf("          ");           // Placeholder for seconds message
+        fflush(stdout);
         }
 
     //signal(SIGINT, SIG_IGN);              // Disable ctrl-c
@@ -212,7 +213,10 @@ int main(int argc, char *argv[])
                 exit(0);
             else
                 if(forceyn)
+                    {
                     printf("No Y/N selection, try again: ");
+                    fflush(stdout);   // System needs it
+                    }
                 else
                     exit(yesdef);
             }

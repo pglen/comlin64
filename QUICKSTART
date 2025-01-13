@@ -1,8 +1,20 @@
                                QUICKSTART
 
-  If you downloaded the comlin_image16_xxx.tgz, unzip it to your hard drive.
-Insert your 16GB jump drive, and make note of its device. (use 'df' or 'mount')
-Execute the dd utility to duplicate te disk image onto your jump drive.
+  If you downloaded the comlin_image64_xxx.tgz, unzip it to your hard drive.
+
+Make ISO:
+	
+	Execute 'make buildiso'
+	Done.
+
+ The text below originated from the 32 bit system. Please wait for updates,
+or use it as a 'rough' guide on what to do.
+
+Make USB:
+
+	Insert your 16(+)GB jump drive, and make note of its device.
+	(use 'df' or 'mount') Execute the dd utility to duplicate the disk image 
+	onto your jump drive.
 
                                Warning!
     ------------------------------------------------------------------
@@ -12,15 +24,15 @@ Execute the dd utility to duplicate te disk image onto your jump drive.
                    destroy data. You have been warned.
     ------------------------------------------------------------------
         
- Assuming comlin version is '016' and jump drive device is '/dev/sdd' issue 
+ Assuming comlin version is 'xxx' and jump drive device is '/dev/sdd' issue 
 the command:
 
-      sudo dd if=comlin-image16-016 of=/dev/sdd
+      sudo dd if=comlin-image64-xxx of=/dev/sdd
 
   If you downloaded the comlin-xxx.tgz, unzip it to your hard drive. Make
 sure you unzip as root or as sudo, so the extraction preserves permissions.
 (suids) Change to the newly created  directory.
-(comlin/comlin-016 [016 being the version of the project])
+(comlin/comlin-xxx [xxx being the version of the project])
 
  Type 'make detect' (without the quotes), and follow the prompts. You may
 need to insert your new jump drive in response to the prompts. The script
@@ -37,7 +49,7 @@ the script will prompt you to remove and reinsert the jump drive.
 
   Type 'make copyusb' to copy the Linux system files onto the jump drive. May
 take some time to shift several gigs of data. (Remember, it is a complete
-system. [see Timings section for details]) When ready, type 'make syslin'
+system.) [see Timings section for details]) When ready, type 'make syslin'
 to install the bootable parts.
 
   Finally, type 'make unmount' and your jump drive is ready.
