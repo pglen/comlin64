@@ -68,7 +68,7 @@ CURRUSB=$FULLUSB
 #CURRUSB=$LITEUSB
 
 # The directory Where the kernel you want to use is located
-KERNELDIR="../kernel"
+KERNELDIR="kernel"
 
 # Configure where the kernel is
 #NEWKERNEL=../kernel/linux-6.12.6/arch/x86/boot/bzImage
@@ -136,15 +136,12 @@ SCSISPEED="52"
 # Comment the following line out if you don't want cdrw blanking
 SCSIBLANK="blank=fast"
 
-### some more options to go
-
-INITDIR=realinit
-
+### Some more options to go
+INITDIR=preinit
 INITRAMFSDIR=initramfs
 INITRAMFSRES=$KERNELDIR/initramfs
 
 # Defaults for USB target, override if the /mnt/COMXX is mounted
-
 MCOMLIN=/media/COMLIN
 MCOMBOOT=/media/COMBOOT
 

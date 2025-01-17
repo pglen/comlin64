@@ -1,6 +1,6 @@
 #!/bin/bash
 
-. ./config_build
+. ./config_build nocheck
 . "$SCRIPTS"/misc/lib/lib_fail
 
 echo

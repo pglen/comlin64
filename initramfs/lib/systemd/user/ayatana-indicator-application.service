@@ -1,0 +1,11 @@
+[Unit]
+Description=Ayatana Indicator Application Service
+PartOf=graphical-session.target
+PartOf=ayatana-indicators.target
+
+[Service]
+ExecStart=/usr/libexec/ayatana-indicator-application/ayatana-indicator-application-service
+Restart=on-failure
+
+[Install]
+WantedBy=ayatana-indicators.target

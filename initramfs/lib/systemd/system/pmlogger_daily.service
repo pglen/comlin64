@@ -1,0 +1,15 @@
+[Unit]
+Description=Process archive logs
+Documentation=man:pmlogger_daily(1)
+ConditionPathExists=!/etc/cron.d/pcp-pmlogger
+
+[Service]
+Type=exec
+Restart=no
+TimeoutStartSec=1h
+Environment="PMLOGGER_DAILY_PARAMS=-E"
+EnvironmentFile=-/etc/default/pmlogger_timers
+ExecStart=/usr/lib/pcp/bin/pmlogger_daily $PMLOGGER_DAILY_PARAMS
+WorkingDirectory=/var/lib/pcp
+Group=pcp
+User=pcp

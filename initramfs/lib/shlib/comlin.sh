@@ -1,7 +1,8 @@
 # ------------------------------------------------------------------------
 # Custom Comlin library. Modifications by Peter Glen.
 # I attempted to preserve as much of the original as it was practical.
-# Added some func. desc.
+#
+# Thu 16.Jan.2025   Added some function descriptions.
 
 # ------------------------------------------------------------------------
 # Returns OK if $1 contains $2
@@ -11,23 +12,31 @@ strstr() {
 }
 
 # ------------------------------------------------------------------------
-# Get arg from command line. Return 1 for arg.
+# Get arg from command line. Return 1 for arg found.
 
 getarg() {
+
+    if [ ! -z $VERBOSE ] ; then
+        echo "getarg() $@"
+    fi
+
     set +x
     local o line
     if [ -z "$CMDLINE" ]; then
-        if [ -e /etc/cmdline ]; then
+        if [ -e /var/cmdline ]; then
             while read line; do
                 CMDLINE_ETC="$CMDLINE_ETC $line";
-            done </etc/cmdline;
+            done </var/cmdline;
         fi
-	   read CMDLINE </proc/cmdline;
-	   CMDLINE="$CMDLINE $CMDLINE_ETC"
+       if [ -e /proc/cmdline ]; then
+            read CMDLINE </proc/cmdline;
+        fi
+       CMDLINE="$CMDLINE $CMDLINE_ETC"
     fi
+    #echo "cmdline $CMDLINE"
     for o in $CMDLINE; do
-	   [ "$o" = "$1" ] && { [ "$RDDEBUG" = "yes" ] && set -x; return 0; }
-	   [ "${o%%=*}" = "${1%=}" ] && { echo ${o#*=}; [ "$RDDEBUG" = "yes" ] && set -x; return 0; }
+       [ "$o" = "$1" ] && { [ "$RDDEBUG" = "yes" ] && set -x; return 0; }
+       [ "${o%%=*}" = "${1%=}" ] && { echo ${o#*=}; [ "$RDDEBUG" = "yes" ] && set -x; return 0; }
     done
     [ "$RDDEBUG" = "yes" ] && set -x
     return 1
@@ -36,27 +45,32 @@ getarg() {
 # ------------------------------------------------------------------------
 
 getargs() {
+
+    if [ ! -z $VERBOSE ] ; then
+        echo "getargs() $@"
+    fi
+
     set +x
-    local o line found
+    local oo line
+    FOUNDCMD=""; FOUNDVAL=""
     if [ -z "$CMDLINE" ]; then
-	   if [ -e /etc/cmdline ]; then
+       if [ -e /var/cmdline ]; then
             while read line; do
                 CMDLINE_ETC="$CMDLINE_ETC $line";
-            done </etc/cmdline;
+            done </var/cmdline;
         fi
-	   read CMDLINE </proc/cmdline;
-	   CMDLINE="$CMDLINE $CMDLINE_ETC"
+       read CMDLINE </proc/cmdline;
+       CMDLINE="$CMDLINE $CMDLINE_ETC"
     fi
-    for o in $CMDLINE; do
-	   [ "$o" = "$1" ] && { [ "$RDDEBUG" = "yes" ] && set -x; return 0; }
-	   if [ "${o%%=*}" = "${1%=}" ]; then
-	        echo -n "${o#*=} ";
-	       found=1;
-	   fi
+    #echo "cmdline = '" $CMDLINE "'"
+    for oo in $CMDLINE; do
+       if [ "${oo%=*}" = "${1%=}" ]; then
+            #echo "Found:" "${o#*=} ";
+            FOUNDCMD=${oo%=*}
+            FOUNDVAL=${oo#*=}
+            break
+       fi
     done
-    [ -n "$found" ] && { [ "$RDDEBUG" = "yes" ] && set -x; return 0; }
-    [ "$RDDEBUG" = "yes" ] && set -x
-    return 1;
 }
 
 # ------------------------------------------------------------------------
@@ -73,7 +87,7 @@ setdebug() {
     [ "$RDDEBUG" = "yes" ] && set -x
 }
 
-setdebug
+#setdebug
 
 # ------------------------------------------------------------------------
 
@@ -81,14 +95,6 @@ source_all() {
     local f
     [ "$1" ] && [  -d "/$1" ] || return
     for f in "/$1"/*.sh; do [ -e "$f" ] && . "$f"; done
-}
-
-# ------------------------------------------------------------------------
-
-check_finished() {
-    local f
-    for f in /initqueue-finished/*.sh; do { [ -e "$f" ] && ( . "$f" ) ; } || return 1 ; done
-    return 0
 }
 
 # ------------------------------------------------------------------------
@@ -101,7 +107,19 @@ source_conf() {
 
 # ------------------------------------------------------------------------
 
+check_finished() {
+    local f
+    for f in /initqueue-finished/*.sh; do { [ -e "$f" ] && ( . "$f" ) ; } || return 1 ; done
+    return 0
+}
+
+# ------------------------------------------------------------------------
+
 die() {
+
+    if [ ! -z $VERBOSE ] ; then
+        echo "die() $@"
+    fi
 
     echo "<1>Comlin: Dropping to temp shell before reboot";
     #sh -l -i
@@ -116,7 +134,7 @@ die() {
     {
         echo "warn Comlin: FATAL: \"$@\"";
         echo "warn Comlin: Refusing to continue";
-	echo "exit 1"
+    echo "exit 1"
     } >> /emergency/01-die.sh
 
     > /.die
@@ -126,10 +144,10 @@ die() {
 # ------------------------------------------------------------------------
 
 check_quiet() {
-    if [ -z "$Comlin_QUIET" ]; then
-	Comlin_QUIET="yes"
-	getarg rdinfo && Comlin_QUIET="no"
-	getarg quiet || Comlin_QUIET="yes"
+    if [ -z "$COMLIN_QUIET" ]; then
+    Comlin_QUIET="yes"
+    getarg rdinfo && Comlin_QUIET="no"
+    getarg quiet || Comlin_QUIET="yes"
     fi
 }
 
@@ -139,7 +157,7 @@ warn() {
     check_quiet
     echo "<4>Comlin Warning: $@" > /dev/kmsg
     [ "$Comlin_QUIET" != "yes" ] && \
-    	echo "Comlin Warning: $@" >&2
+        echo "Comlin Warning: $@" >&2
 }
 
 # ------------------------------------------------------------------------
@@ -148,7 +166,7 @@ info() {
     check_quiet
     echo "<6>Comlin: $@" > /dev/kmsg
     [ "$Comlin_QUIET" != "yes" ] && \
-	echo "Comlin: $@"
+    echo "Comlin: $@"
 }
 
 # ------------------------------------------------------------------------
@@ -170,8 +188,8 @@ check_occurances() {
     local count=0
 
     while [ "${str#*$ch}" != "${str}" ]; do
-	str="${str#*$ch}"
-	count=$(( $count + 1 ))
+    str="${str#*$ch}"
+    count=$(( $count + 1 ))
     done
 
     [ $count -eq $expected ]
@@ -188,7 +206,7 @@ incol2() {
     [ -z "$str"  ] && return;
 
     while read dummy check restofline; do
-	[ "$check" = "$str" ] && return 0
+    [ "$check" = "$str" ] && return 0
     done < $file
     return 1
 }
@@ -207,27 +225,14 @@ udevsettle() {
 
 # ------------------------------------------------------------------------
 
-udevproperty() {
-    [ -z "$UDEVVERSION" ] && UDEVVERSION=$(udevadm --version)
-
-    if [ $UDEVVERSION -ge 143 ]; then
-	for i in "$@"; do udevadm control --property=$i; done
-    else
-	for i in "$@"; do udevadm control --env=$i; done
-    fi
-}
-
-# ------------------------------------------------------------------------
-
 wait_for_if_up() {
     local cnt=0
     while [ $cnt -lt 100 ]; do
-	li=$(ip link show $1)
-	[ -z "${li##*state UP*}" ] && return 0
-	sleep 0.1
-	cnt=$(($cnt+1))
+       li=$(ip link show $1)
+        [ -z "${li##*state UP*}" ] && return 0
+        sleep 0.1
+        cnt=$(($cnt+1))
     done
-    return 1
 }
 
 # root=nfs:[<server-ip>:]<root-dir>[:<nfs-options>]
@@ -242,8 +247,8 @@ nfsroot_to_var() {
 
     # check if we have a server
     if strstr "$arg" ':/*' ; then
-	server="${arg%%:/*}"
-	arg="/${arg##*:/}"
+    server="${arg%%:/*}"
+    arg="/${arg##*:/}"
     fi
 
     path="${arg%%:*}"
@@ -260,8 +265,8 @@ nfsroot_to_var() {
 
     #Fix kernel legacy style separating path and options with ','
     if [ "$path" != "${path#*,}" ] ; then
-	options=${path#*,}
-	path=${path%%,*}
+    options=${path#*,}
+    path=${path%%,*}
     fi
 }
 
@@ -272,30 +277,35 @@ ip_to_var() {
     local i
     set --
     while [ -n "$v" ]; do
-	if [ "${v#\[*:*:*\]:}" != "$v" ]; then
-	    # handle IPv6 address
-	    i="${v%%\]:*}"
-	    i="${i##\[}"
-	    set -- "$@" "$i"
-	    v=${v#\[$i\]:}
-	else
-	    set -- "$@" "${v%%:*}"
-	    v=${v#*:}
-	fi
+    if [ "${v#\[*:*:*\]:}" != "$v" ]; then
+        # handle IPv6 address
+        i="${v%%\]:*}"
+        i="${i##\[}"
+        set -- "$@" "$i"
+        v=${v#\[$i\]:}
+    else
+        set -- "$@" "${v%%:*}"
+        v=${v#*:}
+    fi
     done
 
     unset ip srv gw mask hostname dev autoconf
     case $# in
-    0)	autoconf="error" ;;
-    1)	autoconf=$1 ;;
-    2)	dev=$1; autoconf=$2 ;;
-    *)	ip=$1; srv=$2; gw=$3; mask=$4; hostname=$5; dev=$6; autoconf=$7 ;;
+    0)    autoconf="error" ;;
+    1)    autoconf=$1 ;;
+    2)    dev=$1; autoconf=$2 ;;
+    *)    ip=$1; srv=$2; gw=$3; mask=$4; hostname=$5; dev=$6; autoconf=$7 ;;
     esac
 }
 
 # ------------------------------------------------------------------------
 
 killproc() {
+
+    if [ ! -z $VERBOSE ] ; then
+        echo "killproc() $@"
+    fi
+
     local exe="$(command -v $1)"
     local sig=$2
     local i
@@ -317,64 +327,64 @@ parse_iscsi_root()
 
 # extract authentication info
     case "$v" in
-	*@*:*:*:*:*)
-	    authinfo=${v%%@*}
-	    v=${v#*@}
+    *@*:*:*:*:*)
+        authinfo=${v%%@*}
+        v=${v#*@}
     # allow empty authinfo to allow having an @ in iscsi_target_name like this:
     # netroot=iscsi:@192.168.1.100::3260::iqn.2009-01.com.example:testdi@sk
-	    if [ -n "$authinfo" ]; then
-		OLDIFS="$IFS"
-		IFS=:
-		set $authinfo
-		IFS="$OLDIFS"
-		if [ $# -gt 4 ]; then
-		    warn "Wrong authentication info in iscsi: parameter!"
-		    return 1
-		fi
-		iscsi_username=$1
-		iscsi_password=$2
-		if [ $# -gt 2 ]; then
-		    iscsi_in_username=$3
-		    iscsi_in_password=$4
-		fi
-	    fi
-	    ;;
+        if [ -n "$authinfo" ]; then
+            OLDIFS="$IFS"
+            IFS=:
+            set $authinfo
+            IFS="$OLDIFS"
+            if [ $# -gt 4 ]; then
+                warn "Wrong authentication info in iscsi: parameter!"
+                return 1
+            fi
+            iscsi_username=$1
+            iscsi_password=$2
+            if [ $# -gt 2 ]; then
+                iscsi_in_username=$3
+                iscsi_in_password=$4
+            fi
+        fi
+        ;;
     esac
 
-# extract target ip
+    # extract target ip
     case "$v" in
-	[[]*[]]:*)
-	    iscsi_target_ip=${v#[[]}
-		iscsi_target_ip=${iscsi_target_ip%%[]]*}
-	    v=${v#[[]$iscsi_target_ip[]]:}
-	    ;;
-	*)
-	    iscsi_target_ip=${v%%[:]*}
-	    v=${v#$iscsi_target_ip:}
-	    ;;
+    [[]*[]]:*)
+        iscsi_target_ip=${v#[[]}
+        iscsi_target_ip=${iscsi_target_ip%%[]]*}
+        v=${v#[[]$iscsi_target_ip[]]:}
+        ;;
+    *)
+        iscsi_target_ip=${v%%[:]*}
+        v=${v#$iscsi_target_ip:}
+        ;;
     esac
 
-# extract target name
+    # extract target name
     case "$v" in
-	*:iqn.*)
-	    iscsi_target_name=iqn.${v##*:iqn.}
-	    v=${v%:iqn.*}:
-	    ;;
-	*:eui.*)
-	    iscsi_target_name=iqn.${v##*:eui.}
-	    v=${v%:iqn.*}:
-	    ;;
-	*:naa.*)
-	    iscsi_target_name=iqn.${v##*:naa.}
-	    v=${v%:iqn.*}:
-	    ;;
-	*)
-	    warn "Invalid iscii target name, should begin with 'iqn.' or 'eui.' or 'naa.'"
-	    return 1
-	    ;;
+    *:iqn.*)
+        iscsi_target_name=iqn.${v##*:iqn.}
+        v=${v%:iqn.*}:
+        ;;
+    *:eui.*)
+        iscsi_target_name=iqn.${v##*:eui.}
+        v=${v%:iqn.*}:
+        ;;
+    *:naa.*)
+        iscsi_target_name=iqn.${v##*:naa.}
+        v=${v%:iqn.*}:
+        ;;
+    *)
+        warn "Invalid iscii target name, should begin with 'iqn.' or 'eui.' or 'naa.'"
+        return 1
+        ;;
     esac
 
-# parse the rest
+    # parse the rest
     OLDIFS="$IFS"
     IFS=:
     set $v
@@ -383,46 +393,51 @@ parse_iscsi_root()
     iscsi_protocol=$1; shift # ignored
     iscsi_target_port=$1; shift
     if [ $# -eq 3 ]; then
-	iscsi_iface_name=$1; shift
+        iscsi_iface_name=$1; shift
     fi
     if [ $# -eq 2 ]; then
-	iscsi_netdev_name=$1; shift
+        iscsi_netdev_name=$1; shift
     fi
     iscsi_lun=$1; shift
     if [ $# -ne 0 ]; then
-	warn "Invalid parameter in iscsi: parameter!"
-	return 1
+        warn "Invalid parameter in iscsi: parameter!"
+    return 1
     fi
 }
 
+# Functions for custom Comlin
+
 # ------------------------------------------------------------------------
 # Iterate /dev/sd[a-f][1-4] and /dev/sr[0-1],
-# if we can mount it, test for the comlin version file.
+# if we can mount it, test for the 'comboot' file.
 # Revisions:
 #             apr 4 2015:           Moved to Comlin
 #             apr 6 2015:           Added locals
 #                                   Removed ret code test from mount
 #           Tue 24.Dec.2024         Reworked 64 bit
 #           Tue 24.Dec.2024         Scanning lsblk
-#           Sun 29.Dec.2024         Unified from functions
-#
+
 #DRIVES="/dev/sda /dev/sdb /dev/sdc /dev/sr0 /dev/sr1 \
 #        /dev/sdd /dev/sde /dev/sdf /dev/sdg /dev/sdh"
 
-mountANY() {
+mountCD() {
+
+    if [ ! -z $VERBOSE ] ; then
+        echo "getarg() $@"
+    fi
+
     local ii DEVS
     DEVS=$(lsblk --raw | grep -v "NAME" | awk '{ print $1; }')
-    mkdir -p $1  >/dev/null 2>&1
+    mkdir -p /mnt/guest  >/dev/null 2>&1
+    #echo "MountCD() $DEVS"
     for ii in $DEVS; do
-        #echo "Drive" $ii
+        #echo "Test Drive" $ii
         sleep 0.01       # Needs to breathe
         DEVX="/dev/$ii"
-        mount $DEVX $1  >/dev/null 2>&1
-        #sleep 0.2
-        if test -f $1/etc/COMLINUX_VERSION; then
+        mount $DEVX $CDROOT  >/dev/null 2>&1
+        if test -f $CDROOT/etc/COMLINUX_VERSION; then
             #echo "Found COMLIN system at "/dev/$ii"
-            #umount $DEVX >/dev/null 2>&1
-            DEVICE=$DEVX
+            MOUNT_DEVICE=$DEVX
             return 0
         else
             umount $DEVX >/dev/null 2>&1
@@ -431,6 +446,16 @@ mountANY() {
     return 1
 }
 
+# ------------------------------------------------------------------------
+
+#dosh()
+#{
+#    export PS1="Tmp Shell\${PWD}# "
+#    #[ -e /.profile ] || echo "exec 0<>/dev/console 1<>/dev/console 2<>/dev/console" > /.profile
+#    #sh -i -l
+#    setsid -c -w /bin/bash
+#}
+#
 # ------------------------------------------------------------------------
 
 wait_for_loginit()
@@ -460,34 +485,23 @@ wait_for_loginit()
 }
 
 # ------------------------------------------------------------------------
+# use: temporary_shell [-n]
 
-emergency_shell()
+temporary_shell()
 {
+    if [ ! -z $VERBOSE ] ; then
+        echo "temporary_shell() $@"
+    fi
     set +e
+    local _shell_name
+    _shell_name="Comlin # "
     if [ "$1" = "-n" ]; then
-        RDSHELL_NAME=$2
+        _shell_name=$2
         shift 2
-    else
-        RDSHELL_NAME="Comlin Emergency Shell"
     fi
-
-    #[ -e /.die ] && sleep 3; exit 1
-    #warn "Exiting this shell will return to the Comlin script"
-
-    if getarg rdshell || getarg rdbreak; then
-        echo "Dropping to debug shell."
-        echo
-        export PS1="$RDSHELL_NAME:\${PWD}# "
-        #[ -e /.profile ] || echo "exec 0<>/dev/console 1<>/dev/console 2<>/dev/console" > /.profile
-        #sh -i -l
-        setsid -c -w /bin/bash
-    else
-        echo
-        #warn "Boot has failed. To debug this issue add \"rdshell\" to the kernel command line."
-        export PS1="$RDSHELL_NAME:\${PWD}# "
-        #[ -e /.profile ] || echo "exec 0<>/dev/console 1<>/dev/console 2<>/dev/console" > /.profile
-        setsid -c -w /bin/bash
-    fi
+    export PS1="$_shell_name:\${PWD}# "
+    echo
+    setsid -c -w /bin/bash
 }
 
 # EOF

@@ -1,0 +1,156 @@
+#!/bin/bash
+
+# The following breakpoints can be introduced from the kernel
+# command line:
+#    initbreak=start    "At the start of (pre)init $ "
+#    initbreak=devices  "Before installing devices $ "
+#    initbreak=network  "Before starting network $ "
+#    initbreak=sound    "Before starting sound $ "
+#    initbreak=pre-gui  "Before starting GUI $ "
+#    initbreak=post-gui "After XFCE loop iteration $ "
+
+# Silence async messages on terminal
+/usr/bin/setterm --msg off
+
+export PATH="/sbin:/bin:/usr/sbin:/usr/bin"
+
+hostname localhost
+
+# Patch basic environment vars
+export TERM=linux
+
+# Our lib
+. /lib/shlib/preinitlib.sh
+
+# Mount some (important) things on new root
+mount -t proc -o nosuid,noexec,nodev proc $NEWROOT/proc >/dev/null 2>&1
+mount -t sysfs -o nosuid,noexec,nodev sysfs $NEWROOT/sys >/dev/null 2>&1
+mount -t devpts -o gid=5,mode=620 devpts $NEWROOT/dev/pts >/dev/null 2>&1
+
+getargx 'initbreak=start' && tmpshell "At the start of (pre)init $ "
+
+# Remove what is left of the old root (later)
+# This method frees the resources without effecting other processes
+#rm -r /var/oldroot/*  >/dev/null 2>&1
+# And no more traces
+#umount /var/oldroot >/dev/null 2>&1
+
+export HOME=/root
+export USER=root
+#export UID=0
+
+cd $HOME
+
+# Log files for startup
+SUL=startuplog; mkdir -p $SUL
+SULERR=log_err; SULOUT=log_out
+
+# Create blanks for append
+echo "" > $SUL/$SULOUT; echo "" > $SUL/$SULERR
+
+export XDG_RUNTIME_DIR=/run/user/$UID
+mkdir -p $XDG_RUNTIME_DIR
+
+mkdir -p /run/dbus
+dbus-daemon --system >>$SUL/$SULOUT 2>>$SUL/$SULERR
+
+export PS1="ComLin \w# "
+/lib/shlib/loadmods.sh
+
+# Start logging
+rsyslogd >>$SUL/$SULOUT 2>>$SUL/$SULERR
+
+# UP loopback network connection
+ifconfig lo up 127.0.0.1
+
+# Virtual terminals and a serial port
+/lib/shlib/startvts.sh
+
+# Left the template in; in case you want to re enable it
+#keyget -t 3 "About to install devices. Press Enter within 3 seconds to drop to shell"
+#if [ $? -eq 0 ] ; then
+#    echo "Dropping to pre-Device Shell"
+#fi
+
+# Polkit, udev, etc ...
+getargx 'initbreak=daemons' && tmpshell "Before starting system daemons $ "
+echo -n "Starting system daemons ... "
+/usr/libexec/polkitd >>$SUL/$SULOUT 2>>$SUL/$SULERR &
+/lib/systemd/systemd-udevd >>$SUL/$SULOUT 2>>$SUL/$SULERR &
+echo OK
+sleep 0.05
+
+# Install devices from PCI bus; ignore vbox additions for now
+getargx 'initbreak=devices' && tmpshell "Before installing devices $ "
+echo "Installing devices ... "
+
+lspci -v | grep "Kernel modules" | awk -F ":" '{ print($2); }' | \
+       grep -v modules | tr "," "\n"  | grep -v vbox | \
+       xargs -i modprobe {}  >>$SUL/$SULOUT 2>>$SUL/$SULERR; sleep 0.05
+
+getargx 'initbreak=sound' && tmpshell "Before starting sound $ "
+echo -n "Starting sound system ... "
+
+# Create the device nodes dynamically
+FILES=$(find /sys/class/sound -follow -type f -maxdepth 2 -name dev)
+for FFF in $FILES ; do
+    [ -f "$FFF" ] && MAJOR="`cat "$FFF" | awk -F ":" '{print $1}'`"
+    [ -f "$FFF" ] && MINOR="`cat "$FFF" | awk -F ":" '{print $2}'`"
+    DEVX="/dev/snd/"$(basename ${FFF%/dev})
+    echo -e "Device:" $DEVX" \tMajor/Minor: \t" $MAJOR : $MINOR  >>$SUL/$SULOUT
+    mknod -m 0660 "$DEVX" c $MAJOR $MINOR
+    chown root:audio "$DEVX"
+done
+
+alsactl init >>$SUL/$SULOUT 2>>$SUL/$SULERR
+pulseaudio --start >>$SUL/$SULOUT 2>>$SUL/$SULERR
+echo OK
+
+getargx 'initbreak=network' && tmpshell "Before starting network $ "
+echo -n "Starting network ... "
+dhclient >>$SUL/$SULOUT 2>>$SUL/$SULERR &
+echo OK
+
+# After all configured, let it write some
+/usr/bin/sync
+
+getargx 'initbreak=pre-gui' && tmpshell "Before starting GUI $ "
+echo "Starting GUI ... "
+
+# Xorg needs these
+export XAUTHORITY=/root/.Xauthority
+export ICEAUTHORITY=/root/.ICEauthority
+
+while : ; do
+
+    #agetty -n -l "/lib/shlib/start_xfce.sh" 38400 tty7 linux &
+    #dbus-launch
+    /usr/bin/startxfce4 >$SUL/xfce_out 2>$SUL/xfce_err
+    ERR=$?
+
+    # TEST: kill it, see what comes back
+    #sleep 8; killall Xorg
+
+    chvt 1
+    getargx 'initbreak=post-gui' && tmpshell "At the end of XFCE start $ "
+    tmpshell "After XFCE loop iteration $ "
+
+done
+
+# Testing ....
+
+#  Monitor /etc/initrc -- fake init daemon
+#inotifywait -q -r -m -e modify /etc/initrc |
+#while read file_path file_event file_name; do
+#   #echo ${file_path} ${file_name} event: ${file_event}
+#   examine ${file_path} ${file_name} event: ${file_event}
+#done
+
+# Start a shell for recovery / diagnosis
+export PS1="Comlin Pre-Init fallback:\w$ "
+while : ; do
+   setsid -c -w /bin/bash
+   echo "Spawning new shell ... ($$)"
+done
+
+# EOF

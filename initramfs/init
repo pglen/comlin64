@@ -2,29 +2,41 @@
 
 # Custom INIT for Community Linux INITRD
 #
-# The following breakpoints can be introduced from the
-# kernel command line:
-#    ramfs=cmdline       cmdline       "Break before cmdline"
+# Breakpoint flags that may be introduced from the kernel command line:
+#    ramfs=cmdline       cmdline       "Break at the beginning of script"
 #    ramfs=initqueue     initqueue     "Break before initqueue"
 #    ramfs=pre-mount     pre-mount     "Break pre-mount"
 #    ramfs=pre-overlay   overlay       "Break before overlay"
 #    ramfs=pre-chroot    switch_root   "Break before switch_root"
 #
+# Arguments that may be introduced from the kernel command line:
+#
+#    preinit=initprog    program name   "The pre-init program to execute"
+#
 # History:
 #           Tue 24.Dec.2024     Reworked 64 bit
 #           Sun 29.Dec.2024     Mount CD simplified
+#           Thu 16.Jan.2025     PreInit command line argument added
+
+echo "Loaded kernel."
+
+# Silence async messages on terminal
+/usr/bin/setterm --msg off
+
+. /lib/shlib/comlin.sh
+
+getarg 'ramfs=cmdline' && temporary_shell -n cmdline "Break at the beginning of script"
 
 export PATH=/sbin:/bin:/usr/sbin:/usr/bin
+
+
 export TERM=linux
 export USER=root
 export HOME=/root
 
-. /lib/shlib/comlin.sh
-
+# This is a trick to get rid of this shell and exec the next stage
 trap "temporary_shell Signal caught!" 0
 
-# Silence async messages on terminal
-setterm --msg off
 
 CDROOT="/cdroot"
 NEWROOT="/sysroot"
@@ -73,16 +85,16 @@ while :; do
 
     # If no root, search for it, else accept command line
     if [ -z "$root" ] ; then
-        mountANY $CDROOT
+        mountCD $CDROOT
     else
-        DEVICE=$root
+        MOUNT_DEVICE=$root
     fi
 
     # No ROOT FS found, tell the user
-    if test -z $DEVICE ; then
+    if test -z $MOUNT_DEVICE ; then
         echo "Cannot find a valid system image - dropping to shell."
         echo "Exiting this shell re-scans drives for valid system image."
-        temporary_shell  "No CD drive found"
+        temporary_shell  "No CD drive found."
     else
         # Done here
         break
@@ -94,7 +106,7 @@ while :; do
             9>/.console_lock
 done
 
-#echo "Mounted $DEVICE filesystem on $CDROOT"
+#echo "Mounted $MOUNT_DEVICE filesystem on $CDROOT"
 
 # By the time we get here, the root filesystem should be mounted.
 # Try to find init.
@@ -107,9 +119,9 @@ done
 #echo "POST init search: $INIT"
 
 [ "$INIT" ] || {
-    echo "Cannot find init!"
+    echo "Cannot find CD init!"
     #echo "Please check to make sure you passed a valid root filesystem!"
-    temporary_shell -n check_init "ramfs No Init "
+    temporary_shell -n check_init "ramfs CD No Init "
 }
 
 #info "Creating overlay"
@@ -163,11 +175,21 @@ getarg 'ramfs=pre-chroot' && temporary_shell -n switch_root "Break before switch
 # So pre-init can see it
 echo $CMDLINE >$NEWROOT/var/cmdline
 cd $NEWROOT
-chroot . "/sbin/preinit"
+
+getargs 'preinit='
+if [ "" = "$FOUNDCMD" ]; then
+    FOUNDCMD="/sbin/preinit"
+fi
+
+# TESTING (oddly enough it worked)
+#chroot . /bin/systemd
+
+# Tried exec in chroot ... no go (script does not have this feature)
+chroot . $FOUNDCMD
 
 # If anything went wrong ... cycle here
 while :; do
-   export PS1="initramfs error " ; setsid -c -w /bin/bash
+   export PS1="initramfs error $ " ; setsid -c -w /bin/bash
    echo "Spawning new shell ... "
 done
 

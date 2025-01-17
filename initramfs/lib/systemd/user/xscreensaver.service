@@ -1,0 +1,9 @@
+[Unit]
+Description=XScreenSaver
+ConditionUser=!@system
+
+[Service]
+ExecStart=xscreensaver
+
+[Install]
+WantedBy=default.target

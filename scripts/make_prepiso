@@ -33,7 +33,7 @@ if [ ! -f $KERNELDIR/initramfs ] ; then
     exit 1
 fi
 
-echo "Copying (updating) filesystem ... "
+echo "  Copying (updating) filesystem ... "
 #cp -au $CURRUSB/* $ROOTFS
 
 EXC=$(basename $CURRUSB)
@@ -58,35 +58,36 @@ done
 #cp -au $MODULEDIR/* $ROOTFS/lib/modules
 #echo OK
 
-echo -n "Copying boot items ... "
+echo -n "  Copying boot items ... "
 cp -a $BOOTDIR/* $ROOTFS/boot
 echo OK
 
-echo -n "Copying kernel items ... "
+echo -n "  Copying kernel items ... "
 cp -a $KERNELDIR/* $ROOTFS/boot
 echo OK
 
-echo -n "Copying shell utilities ... "
+echo -n "  Copying sbin inits ... "
+cp -a $INITDIR/* $ROOTFS/sbin
+echo OK
+
+echo -n "  Copying shell utilities ... "
 cp -a $SHLIB $ROOTFS/lib
 echo OK
 
-echo -n "Copying sbin inits ... "
-cp -au $INITDIR/* $ROOTFS/sbin
-echo OK
-
-echo -n "Copying dev files ... "
+echo -n "  Copying dev files ... "
 mkdir -p $ROOTFS/dev
 cp -a $DEVDIR/* $ROOTFS/dev
 echo OK
 
-#echo -n "Patching tmp and var permissions ... "
+#echo -n "  Patching tmp and var permissions ... "
 rm -rf $ROOTFS/tmp/
 mkdir -p $ROOTFS/tmp
 chmod a+rwxt $ROOTFS/tmp
 
 #rm -rf $ROOTFS/var/run/* >/dev/null 2>&1
+rm  -f  $ROOTFS/var/lib/alsa/* >/dev/null 2>&1
 
-#echo -n "Patch ICEauthority ... "
+#echo -n "  Patch ICEauthority ... "
 echo "" > $ROOTFS/root/.ICEauthority
 #echo OK
 
@@ -96,6 +97,16 @@ mkdir -p $ROOTFS/var/oldroot
 # Our ID file
 cp $COMLINVERFILE $ROOTFS/etc/COMLINUX_VERSION
 
-echo Done prepping ISO.
+# Patch sound devices (done dynamically on boot, just clear it)
+mkdir -p $ROOTFS/dev/snd
+rm -rf $ROOTFS/dev/snd/*
+
+#mknod -m 666 $ROOTFS/dev/sound/adsp c 14 12
+#old = $(pwd)
+#cd $ROOTFS
+#ln -s dev/sound/dsp dev/dep
+#cd old
+
+echo "Done prepping ISO."
 
 # EOF

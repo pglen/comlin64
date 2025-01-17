@@ -1,0 +1,23 @@
+[Unit]
+Description=pmlogger farm service
+Documentation=man:pmlogger_check(1)
+Before=pmlogger_farm_check.timer
+BindsTo=pmlogger_farm_check.timer
+PartOf=pmlogger.service
+
+[Service]
+Type=exec
+Restart=always
+# long (but not infinite) start timeout - for logger farms
+TimeoutStartSec=4h
+TimeoutStopSec=120
+# the pmlogger_farm service manages all pmloggers except the primary
+Environment="PMLOGGER_CHECK_PARAMS=--skip-primary --quick"
+EnvironmentFile=-/etc/default/pmlogger_timers
+ExecStart=/usr/lib/pcp/bin/pmlogger_farm $PMLOGGER_CHECK_PARAMS
+WorkingDirectory=/var/lib/pcp
+Group=pcp
+User=pcp
+
+[Install]
+RequiredBy=pmlogger.service

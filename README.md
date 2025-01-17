@@ -1,6 +1,6 @@
 #   ComLin64 Community Linux Boot-able USB
 
-## This is the successor of the ComLin32 project, but for 64 bit computers.
+## This is the successor of the ComLin32 project for 64 bit PCs.
 
 ### Code in motion, nothing much usable.
 
@@ -11,9 +11,9 @@ Preface
     *   The Community Linux project aims to provide a simple Linux distribution
         for the masses.
     *   It is a fully functional GUI right from the CD/Thumb drive within the first
-        minute of power up.
+        30 seconds of power up.
     *   It is installation-less, and it looks and feels like a real hard drive
-        installation.  (See video - keyword 'ComLin64')
+        installation.
      _________________________________________________________________
 
 Goals
@@ -24,26 +24,30 @@ Goals
     *   Fast recovery by replicating the original jump drive.
     *   To allow low cost PC deployment without moving parts like hard drive
         and / or CD rom. Examples include low cost (student) laptop, home
-        automation, video security, industrial controls, rugged system(s)
-        for law enforcement / military.
-    *   Built in, eazy to use optional security by encryption.
+        automation, video security, industrial controls, cash registers,
+        rugged system(s) suitable for law enforcement / military.
+    *   Built in, easy to use optional security by encryption.
      ________________________________________________________________
-
 
 System requirements:
 
     ComLin64 Linux will work on most 64 bit PC platforms. With more than
-    3000 drivers  available, ComLin64  covers almost all possible  platform
+    5000 drivers available, ComLin64  covers almost all possible  platform
     combinations.
 
-Recommended Minimum System requirements:
+Recommended (minimum) system requirements:
 
     While ComLin64 Linux will work on the most basic hardware. For responsive
-    operation we recommend at least 2 Gig of RAM, 1.6 GHz
-    processor (or faster) and a 16/32 Gig USB drive
-    (also called Jump Drive, a Thumb Drive or a Flash Drive).
+    operation we recommend at least 2 Gig of RAM (or more),
+    1.6 GHz processor (or faster) and a 16/32 Gig (or larger) USB drive.
+        (also called Jump Drive, a Thumb Drive or a Flash Drive).
+    Tested: 1 Gig of Ram, 1.2 GHz CPU, 16 Gig Jump drive -- works OK
+
+The ComLin64 .ISO should boot and be usable immidiately.
 
 ComLin64 System Creation requirements:
+
+    This is of course if you opted for the source creation.
 
     1.) A host Linux system to create the jump drive with. (we used Ubuntu 22.x)
         Alternatively, one can create a new ComLin64 system from a ComLin64
@@ -59,6 +63,9 @@ ComLin64 System Creation requirements:
     (Email address can be found on the GitHub Project page)
 
 Quick Start:
+
+    NOTE: Some of the 32 bit creation utilities are left over from the
+    previous version, ignore them.
 
     Type  'make help' for quick system creation options.
     The Makefile contains brief instructions on different
@@ -78,10 +85,10 @@ Detecting the Jump Drive:
 Care and feeding:
 
     The initial setup contains two user accounts: 'root' and 'user'
-    root pass is 'admin1234' (without the quotes)
-    user pass is 'user1234' (without the quotes)
-    encryption pass is '1234' (without the quotes)
-    key chain pass is '1234' (without the quotes)
+    root pass is 'root' (without the quotes)
+    user pass is 'user' (without the quotes)
+    encryption pass is '12345678' (without the quotes)
+    key chain pass is '12345678' (without the quotes)
 
     Make sure you change these passwords on first successful boot.
     If you can, boot without a network cable attached, and change the
@@ -150,21 +157,19 @@ Description of the ComLin64 Linux boot procedure
 
     o The system loads the MBR of the USB drive
     o MBR loads the boot sector of the USB drive, containing GRUB
-    o GRUB loads the kernel and initrd
-    o The kernel jumps to initrd, and initrd loads real root from usb
+    o GRUB loads the kernel and initramfs
+    o The kernel jumps to initramfs, and that loads real root from usb
     o The real root walks thru a set of scripts to bring up the system.
 
-The NEW initramfs process:
-
-    1. init is executed, and starts startup.sh
-    2. startup.sh spawns a new terminal with startupx.sh
-    3. startupx.sh spawns the zombie collector and startup2.sh
+    1. preinit is executed, and starts many services
+    2. Spawn virtual terminal like most linux installation
+    3. spawns the zombie collector
     4. In startup2.sh the S-* scripts are executed
     5. The last S-* script starts X, and blocks
 
 The shutdown process:
 
-    1. When X is done, control is returned to startup2.sh
+    1. When X is done, control is returned to the preinit sript
     2. The K-* scripts are executed
     3. Control is returned to startup.sh (symmetry)
     4. Remaining processes are killed, file-systems unmounted
@@ -173,8 +178,9 @@ The shutdown process:
 
 Current Progress:
 
-    Thu 02.Jan.2025  Boots under VBOX into XFCE in under 15 seconds
+    Mon 13.Jan.2025  Sound drivers
     Tue 07.Jan.2025  Some correction, pango font display
+    Thu 02.Jan.2025  Boots under VBOX into XFCE in under 15 seconds
 
 Credits
 

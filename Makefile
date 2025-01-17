@@ -36,6 +36,8 @@
 
 #SUDO=sudo
 
+SOUND=sounds/longbell.ogg
+
 all:
 	@echo "Type 'make help' for a list of targets"
 
@@ -197,13 +199,11 @@ doall: prompt new remnt copyusb putkern syslin cpscripts uremnt
 
 # This is the 64 bit make all
 buildiso: apps checkscripts initramfs prepiso getapps iso
-	@play sounds/Oxygen-Sys-App-Message.ogg >/dev/null 2>&1
-	@#play sounds/bell.ogg >/dev/null 2>&1
+	@make playsound
 
 # Test if sound plays
-playif:
-	@#play sounds/bell.ogg >/dev/null 2>&1 &
-	@play sounds/Oxygen-Sys-App-Message.ogg >/dev/null 2>&1
+playsound:
+	@play ${SOUND} >/dev/null 2>&1 &
 
 # Test if sudo promptless works
 testsudo:

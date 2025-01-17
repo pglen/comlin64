@@ -43,9 +43,12 @@ fi
 
 # Gather apps into initramfs
 
-cp $APPDIR/keyget/keyget $INITRAMFSDIR/bin
-cp $APPDIR/reboot/linux_reboot $INITRAMFSDIR/bin
-cp $APPDIR/reboot/linux_poweroff $INITRAMFSDIR/bin
+cp -a $APPDIR/keyget/keyget $INITRAMFSDIR/bin
+cp -a $APPDIR/reboot/linux_reboot $INITRAMFSDIR/bin
+cp -a $APPDIR/reboot/linux_poweroff $INITRAMFSDIR/bin
+cp -a $APPDIR/pangview/pangview.py $INITRAMFSDIR/bin
+cp -a $APPDIR/pangview/panglib/ $INITRAMFSDIR/bin
+
 
 # Create a root owned copy
 RTMP=$TMPDIR/initramfs
@@ -53,6 +56,9 @@ mkdir -p $RTMP
 rm -rf $RTMP/*
 
 cp -a $INITRAMFSDIR/* $RTMP
+
+# TESTING, see if it boots with systemd:
+#cp $RTMP/bin/systemd $RTMP/init
 
 chown -R root.root $RTMP
 
