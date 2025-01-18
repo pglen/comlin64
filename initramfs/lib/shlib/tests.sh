@@ -22,7 +22,8 @@ getargs_test() {
     done
 }
 
-getargs_test heaven= COMX VALX
-echo "FOUND COM: '"$COMX"'"
-echo "FOUND VAL: '"$VALX"'"
+#getargs_test heaven= COMX VALX
+#echo "FOUND COM: '"$COMX"'"
+#echo "FOUND VAL: '"$VALX"'"
 
+# EOF

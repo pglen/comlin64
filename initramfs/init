@@ -18,17 +18,20 @@
 #           Sun 29.Dec.2024     Mount CD simplified
 #           Thu 16.Jan.2025     PreInit command line argument added
 
-echo "Loaded kernel."
-
 # Silence async messages on terminal
 /usr/bin/setterm --msg off
+
+echo "Loaded kernel ... OK"
+
+export PATH=/sbin:/bin:/usr/sbin:/usr/bin
+
+# Mount some basic things
+mount -t proc -o nosuid,noexec,nodev proc /proc >/dev/null 2>&1
+mount -t sysfs -o nosuid,noexec,nodev sysfs /sys >/dev/null 2>&1
 
 . /lib/shlib/comlin.sh
 
 getarg 'ramfs=cmdline' && temporary_shell -n cmdline "Break at the beginning of script"
-
-export PATH=/sbin:/bin:/usr/sbin:/usr/bin
-
 
 export TERM=linux
 export USER=root
@@ -37,32 +40,25 @@ export HOME=/root
 # This is a trick to get rid of this shell and exec the next stage
 trap "temporary_shell Signal caught!" 0
 
-
 CDROOT="/cdroot"
 NEWROOT="/sysroot"
 TMPROOT=/tmp
 
 [ -e /dev/console ] || ln -s /dev/tty0 /dev/console
 
-# Mount some basic things
-mount -t proc -o nosuid,noexec,nodev proc /proc >/dev/null 2>&1
-mount -t sysfs -o nosuid,noexec,nodev sysfs /sys >/dev/null 2>&1
-
 # Just to make sure
 ln -s /proc/self/fd /dev/fd >/dev/null 2>&1
 
-UDEVVERSION=$(udevadm --version)
-
+#UDEVVERSION=$(udevadm --version)
 # start up udev and trigger cold plugs
 #udevd --daemon #--resolve-names=never
-
-UDEV_LOG_PRIO_ARG=--log-priority
-UDEV_QUEUE_EMPTY="udevadm settle --timeout=0"
-
-if [ $UDEVVERSION -lt 140 ]; then
-   UDEV_LOG_PRIO_ARG=--log_priority
-   UDEV_QUEUE_EMPTY="udevadm settle --timeout=1"
-fi
+#UDEV_LOG_PRIO_ARG=--log-priority
+#UDEV_QUEUE_EMPTY="udevadm settle --timeout=0"
+#
+#if [ $UDEVVERSION -lt 140 ]; then
+#   UDEV_LOG_PRIO_ARG=--log_priority
+#   UDEV_QUEUE_EMPTY="udevadm settle --timeout=1"
+#fi
 
 getarg 'ramfs=initqueue' && temporary_shell -n initqueue "Break before initqueue"
 
@@ -74,14 +70,6 @@ getarg 'ramfs=pre-mount' && temporary_shell -n pre-mount "Break pre-mount"
 
 ii=0
 while :; do
-
-    #echo "Attempting Mount"
-    #[ -d "$NEWROOT/proc" ] && break;
-    #for f in /mount/*.sh; do
-    #   [ -f "$f" ] && . "$f"
-    #   [ -d "$NEWROOT/proc" ] && break;
-    #done
-    #sleep 1
 
     # If no root, search for it, else accept command line
     if [ -z "$root" ] ; then
@@ -123,18 +111,6 @@ done
     #echo "Please check to make sure you passed a valid root filesystem!"
     temporary_shell -n check_init "ramfs CD No Init "
 }
-
-#info "Creating overlay"
-#wait_for_loginit
-#keyget -t 3 "About to switch root, Press Enter within 3 seconds to drop to shell"
-#if [ $? -eq 0 ] ; then
-#    echo
-#    echo "Dropping to Shell"
-#    setsid -c -w /bin/bash
-#    echo
-#fi
-#mount -t tmpfs -o mode=1777,nosuid,nodev tmpfs $TMPROOT  >/dev/null 2>&1
-#mount -t tmpfs -o mode=1777,nosuid,nodev tmpfs $NEWROOT  >/dev/null 2>&1
 
 mount -t tmpfs -o tmpfs $TMPROOT  >/dev/null 2>&1
 mount -t tmpfs -o tmpfs $NEWROOT  >/dev/null 2>&1

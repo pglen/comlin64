@@ -1,35 +1,125 @@
 #!/bin/bash
 
-# The following breakpoints can be introduced from the kernel
-# command line:
-#    initbreak=start    "At the start of (pre)init $ "
+# Silence async messages on terminal
+/usr/bin/setterm --msg off
+
+# Ons script to start all
+# The following breakpoints are active from the kernel command line:
+#
+#    initbreak=start    "At the start of this script $"
 #    initbreak=devices  "Before installing devices $ "
 #    initbreak=network  "Before starting network $ "
 #    initbreak=sound    "Before starting sound $ "
 #    initbreak=pre-gui  "Before starting GUI $ "
 #    initbreak=post-gui "After XFCE loop iteration $ "
 
-# Silence async messages on terminal
-/usr/bin/setterm --msg off
-
 export PATH="/sbin:/bin:/usr/sbin:/usr/bin"
 
-hostname localhost
+# ------------------------------------------------------------------------
+# Our preinit lib (we pulled it in for speed)
+#. /lib/shlib/preinitlib.sh
 
-# Patch basic environment vars
+tmpshell() {
+
+    # Temporary SHELL
+
+    if [ $(($VERBOSE)) -gt 0 ] ; then
+        echo "tmpshell() with \'$1\'"
+    fi
+
+    _PROMPT="tmp shell $ "
+    if [ "$1" != "" ] ; then
+        _PROMPT=\"$1\"
+    fi
+
+    # "exec tmpshell() with $_PROMPT"
+
+    setsid -c -w /bin/bash --rcfile <(echo PS1=$_PROMPT) -i
+}
+
+getargx() {
+
+    # Get arg from command line. Return 1 for arg.
+
+    if [ $(($VERBOSE)) -gt 0 ] ; then
+        echo "getargx() \'$1\'"
+    fi
+    local oo FNAME
+    if [ "$CMDLINE" = "" ]; then
+        FNAME=/var/cmdline
+        if [ -f $FNAME ] ; then
+            read CMDLINE <$FNAME
+        fi
+    fi
+    for oo in $CMDLINE; do
+	   [ "$oo" = "$1" ] && return 0;
+    done
+    return 1
+}
+
+# Pulled in for no external file ...
+#/lib/shlib/loadmods.sh
+
+loadmods() {
+
+    # Load modules intended for this system
+
+    if [ $(($VERBOSE)) -gt 0 ] ; then
+        echo "loadmods() \'%1\'"
+    fi
+    local IFS UNSP
+    IFS=$'\n'
+    FF=$(cat /etc/modules)
+    for AA in $FF ; do
+        UNSP=${AA# }
+        if [ "${UNSP:0:1}" != "#" ] ; then
+            modprobe $UNSP
+        fi
+    done
+}
+
+startvts() {
+
+    # Start virtual terminals and a serial port
+
+    if [ $(($VERBOSE)) -gt 0 ] ; then
+        echo "startvts() \'%1\'"
+    fi
+
+    TERMS="tty2 tty3 tty4 tty5 tty6 ttyS0"
+
+    for TT in $TERMS ; do
+        #echo $TT
+        /lib/shlib/forever.sh "setsid agetty $TT linux >/dev/null 2>&1" >/dev/null 2>&1 &
+    done
+}
+
+# End of functions
+# ------------------------------------------------------------------------
+
+# Never leave us hanging without a name
+hostname "localhost"
+
+VERBOSE=0
+
+# Patch some basic terminal environmental vars
 export TERM=linux
+export COLUMNS=80 ; export ROWS=24
 
-# Our lib
-. /lib/shlib/preinitlib.sh
+export PS1="ComLin \w # "
 
 # Mount some (important) things on new root
 mount -t proc -o nosuid,noexec,nodev proc $NEWROOT/proc >/dev/null 2>&1
 mount -t sysfs -o nosuid,noexec,nodev sysfs $NEWROOT/sys >/dev/null 2>&1
 mount -t devpts -o gid=5,mode=620 devpts $NEWROOT/dev/pts >/dev/null 2>&1
 
+getargx 'verbose' && tmpshell VERBOSE=1
+
 getargx 'initbreak=start' && tmpshell "At the start of (pre)init $ "
 
-# Remove what is left of the old root (later)
+#export PS1="initbreak start" ; setsid -c -w /bin/bash
+
+# Remove what is left of the old root (return later)
 # This method frees the resources without effecting other processes
 #rm -r /var/oldroot/*  >/dev/null 2>&1
 # And no more traces
@@ -37,25 +127,23 @@ getargx 'initbreak=start' && tmpshell "At the start of (pre)init $ "
 
 export HOME=/root
 export USER=root
-#export UID=0
 
 cd $HOME
 
 # Log files for startup
-SUL=startuplog; mkdir -p $SUL
+SUL=.startuplogs; mkdir -p $SUL
 SULERR=log_err; SULOUT=log_out
 
 # Create blanks for append
 echo "" > $SUL/$SULOUT; echo "" > $SUL/$SULERR
 
+# We create this for lack of other creators
 export XDG_RUNTIME_DIR=/run/user/$UID
 mkdir -p $XDG_RUNTIME_DIR
 
 mkdir -p /run/dbus
 dbus-daemon --system >>$SUL/$SULOUT 2>>$SUL/$SULERR
-
-export PS1="ComLin \w# "
-/lib/shlib/loadmods.sh
+export COLUMNS=80 ; export ROWS=24
 
 # Start logging
 rsyslogd >>$SUL/$SULOUT 2>>$SUL/$SULERR
@@ -64,10 +152,13 @@ rsyslogd >>$SUL/$SULOUT 2>>$SUL/$SULERR
 ifconfig lo up 127.0.0.1
 
 # Virtual terminals and a serial port
-/lib/shlib/startvts.sh
+#/lib/shlib/startvts.sh
+
+startvts
 
 # Left the template in; in case you want to re enable it
-#keyget -t 3 "About to install devices. Press Enter within 3 seconds to drop to shell"
+#keyget -t 3 \
+#  "About to install devices. Press Enter within 3 sec to drop to shell"
 #if [ $? -eq 0 ] ; then
 #    echo "Dropping to pre-Device Shell"
 #fi
@@ -76,33 +167,39 @@ ifconfig lo up 127.0.0.1
 getargx 'initbreak=daemons' && tmpshell "Before starting system daemons $ "
 echo -n "Starting system daemons ... "
 /usr/libexec/polkitd >>$SUL/$SULOUT 2>>$SUL/$SULERR &
+# This way udev is functional in chroot
+export SYSTEMD_IGNORE_CHROOT=1
 /lib/systemd/systemd-udevd >>$SUL/$SULOUT 2>>$SUL/$SULERR &
 echo OK
-sleep 0.05
+
+getargx 'initbreak=devices' && tmpshell "Before installing devices $ "
+echo -n "Installing devices ... "
+
+# Install devices specified by user
+loadmods
 
 # Install devices from PCI bus; ignore vbox additions for now
-getargx 'initbreak=devices' && tmpshell "Before installing devices $ "
-echo "Installing devices ... "
-
 lspci -v | grep "Kernel modules" | awk -F ":" '{ print($2); }' | \
        grep -v modules | tr "," "\n"  | grep -v vbox | \
-       xargs -i modprobe {}  >>$SUL/$SULOUT 2>>$SUL/$SULERR; sleep 0.05
+       xargs -i modprobe {}  >>$SUL/$SULOUT 2>>$SUL/$SULERR;
+echo OK
 
 getargx 'initbreak=sound' && tmpshell "Before starting sound $ "
 echo -n "Starting sound system ... "
 
-# Create the device nodes dynamically
-FILES=$(find /sys/class/sound -follow -type f -maxdepth 2 -name dev)
-for FFF in $FILES ; do
+# Create the device nodes dynamically ...
+#    ... (stderr warned of dir loop -- killed it)
+SFILES=$(find /sys/class/sound -follow -type f -maxdepth 2 -name dev \
+                2>/dev/null)
+for FFF in $SFILES ; do
     [ -f "$FFF" ] && MAJOR="`cat "$FFF" | awk -F ":" '{print $1}'`"
     [ -f "$FFF" ] && MINOR="`cat "$FFF" | awk -F ":" '{print $2}'`"
     DEVX="/dev/snd/"$(basename ${FFF%/dev})
-    echo -e "Device:" $DEVX" \tMajor/Minor: \t" $MAJOR : $MINOR  >>$SUL/$SULOUT
+    echo -e "Device:" $DEVX" \tMajor/Minor: \t" \
+                 $MAJOR : $MINOR  >>$SUL/$SULOUT
     mknod -m 0660 "$DEVX" c $MAJOR $MINOR
     chown root:audio "$DEVX"
 done
-
-alsactl init >>$SUL/$SULOUT 2>>$SUL/$SULERR
 pulseaudio --start >>$SUL/$SULOUT 2>>$SUL/$SULERR
 echo OK
 
@@ -115,7 +212,10 @@ echo OK
 /usr/bin/sync
 
 getargx 'initbreak=pre-gui' && tmpshell "Before starting GUI $ "
-echo "Starting GUI ... "
+echo "Starting GUI ... OK"
+
+# Not needed but what the hell
+#play welcome.ogg >>$SUL/$SULOUT 2>>$SUL/$SULERR &
 
 # Xorg needs these
 export XAUTHORITY=/root/.Xauthority
@@ -123,8 +223,6 @@ export ICEAUTHORITY=/root/.ICEauthority
 
 while : ; do
 
-    #agetty -n -l "/lib/shlib/start_xfce.sh" 38400 tty7 linux &
-    #dbus-launch
     /usr/bin/startxfce4 >$SUL/xfce_out 2>$SUL/xfce_err
     ERR=$?
 
@@ -132,19 +230,11 @@ while : ; do
     #sleep 8; killall Xorg
 
     chvt 1
+    echo "Exit status of XFCE4" $ERR
     getargx 'initbreak=post-gui' && tmpshell "At the end of XFCE start $ "
     tmpshell "After XFCE loop iteration $ "
 
 done
-
-# Testing ....
-
-#  Monitor /etc/initrc -- fake init daemon
-#inotifywait -q -r -m -e modify /etc/initrc |
-#while read file_path file_event file_name; do
-#   #echo ${file_path} ${file_name} event: ${file_event}
-#   examine ${file_path} ${file_name} event: ${file_event}
-#done
 
 # Start a shell for recovery / diagnosis
 export PS1="Comlin Pre-Init fallback:\w$ "

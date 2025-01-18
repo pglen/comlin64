@@ -448,16 +448,6 @@ mountCD() {
 
 # ------------------------------------------------------------------------
 
-#dosh()
-#{
-#    export PS1="Tmp Shell\${PWD}# "
-#    #[ -e /.profile ] || echo "exec 0<>/dev/console 1<>/dev/console 2<>/dev/console" > /.profile
-#    #sh -i -l
-#    setsid -c -w /bin/bash
-#}
-#
-# ------------------------------------------------------------------------
-
 wait_for_loginit()
 {
     if getarg rdinitdebug; then
