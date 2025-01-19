@@ -18,77 +18,49 @@ echo "" > $SUL/$SULOUT; echo "" > $SUL/$SULERR
 #getargx 'initbreak=start' && tmpshell "At the start of (pre)init $ "
 ##getargx 'initbreak=start' && echo command recognized
 
-#../shlib/forever.sh -w 3 -n 10 echo -n ' hello world '
+#cmd2env()  {
+#    # Futile attempt to plu cmdline into env
+#    local oo cmd val
+#    FNAME="testcline"
+#    if [ "$CMDLINE" = "" ]; then
+#        if [ -f $FFF ] ; then
+#            read CMDLINE < $FNAME
+#        fi
+#    fi
+#    echo cmdline = "'"$CMDLINE"'"
+#    for oo in $CMDLINE; do
+#        #echo oo = $oo
+#        cmd=${oo%=*} ;  val=${oo#*=}
+#        if [ "$cmd" = "$val" ] ; then
+#            val=1
+#        fi
+#        echo "CMD STR:" $cmd=$val
+#        #read "$cmd" <<< $val
+#        $!cmd=$!val
+#        echo "var:" $cmd
+#	    #CMD_$oo=
+#    done
+#cmd2env
 
-loadmods() {
+TESTME=1
+. ../preinit
 
-    # Load modules intended for this system
+#VERBOSE=0
 
-    local IFS UNSP
-    IFS=$'\n'
-    FF=$(cat testfile)
-    for AA in $FF ; do
-        UNSP=${AA# }
-        #echo UNSPsp "'"$UNSP"'"
-        #echo "${UNSP:0:1}"
-        if [ "${UNSP:0:1}" != "#" ] ; then
-            echo $UNSP
-        fi
-    done
-}
+#getargx work   ;  echo "ret" $?
+#getargx world  ;  echo "ret" $?
 
+#getargx work   &&  echo $? "ret work"
+#getargx world  &&  echo $? "ret world"
+#getargx hello=  &&  echo $? "ret hello"
+#
+#getargy verbose= && echo "ret" $? echo "found verbose:" $FOUNDVAL
+#getargy verbose2= && echo "ret" $? echo "found verbose2:" $FOUNDVAL
+#
+#tmpshell "Testing $ "
+#tmpshell
 #loadmods
-
-getargx() {
-
-    # Get arg from command line. Return 1 for arg.
-
-    local oo
-    FNAME="testcline"
-    if [ "$CMDLINE" = "" ]; then
-        if [ -f $FFF ] ; then
-            read CMDLINE < $FNAME
-        fi
-    fi
-    #echo cmdline = $CMDLINE
-    for oo in $CMDLINE; do
-        #echo oo = $oo
-	    [ "$oo" = "$1" ] && return 0;
-    done
-    return 1
-}
-
-#getargx "hello=str"; echo ret = $?
-#getargx "hello=str2"; echo ret = $?
-
-cmd2env()  {
-
-    local oo cmd val
-    FNAME="testcline"
-    if [ "$CMDLINE" = "" ]; then
-        if [ -f $FFF ] ; then
-            read CMDLINE < $FNAME
-        fi
-    fi
-
-    echo cmdline = "'"$CMDLINE"'"
-    for oo in $CMDLINE; do
-        #echo oo = $oo
-        cmd=${oo%=*} ;  val=${oo#*=}
-        if [ "$cmd" = "$val" ] ; then
-            val=1
-        fi
-        echo "CMD STR:" $cmd=$val
-        #read "$cmd" <<< $val
-        $!cmd=$!val
-        echo "var:" $cmd
-	    #CMD_$oo=
-    done
-
-    #declare
-
-}
-
-cmd2env
+#startvts
+#loaddevs
 
 # EOF

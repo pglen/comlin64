@@ -16,7 +16,7 @@
 # History:
 #           Tue 24.Dec.2024     Reworked 64 bit
 #           Sun 29.Dec.2024     Mount CD simplified
-#           Thu 16.Jan.2025     PreInit command line argument added
+#           Thu 16.Jan.2025     PreInit command line arguments added
 
 # Silence async messages on terminal
 /usr/bin/setterm --msg off

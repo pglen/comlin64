@@ -1,9 +1,16 @@
 #!/bin/bash
 
-# Silence async messages on terminal
-/usr/bin/setterm --msg off
+# Set the TESTME variable to non zero if you are in a
+# simulation / test environment.
 
-# Ons script to start all
+# Silence async messages on terminal
+if [ $(($TESTME)) -eq 0 ] ; then
+    /usr/bin/setterm --msg off
+fi
+
+VERS="1.0.0"
+
+# One script to start all. Expects kernel command line in /var/cmdline
 # The following breakpoints are active from the kernel command line:
 #
 #    initbreak=start    "At the start of this script $"
@@ -12,6 +19,10 @@
 #    initbreak=sound    "Before starting sound $ "
 #    initbreak=pre-gui  "Before starting GUI $ "
 #    initbreak=post-gui "After XFCE loop iteration $ "
+
+# History:
+#           Tue 14.Jan.2025     Sound works, created /dev entries by hand
+#           Sun 19.Jan.2025     TESTME subsystem
 
 export PATH="/sbin:/bin:/usr/sbin:/usr/bin"
 
@@ -23,41 +34,79 @@ tmpshell() {
 
     # Temporary SHELL
 
-    if [ $(($VERBOSE)) -gt 0 ] ; then
-        echo "tmpshell() with \'$1\'"
+    if [ $(($VERBOSE)) -gt 1 ] ; then
+        echo "tmpshell() with $1"
     fi
 
-    _PROMPT="tmp shell $ "
+    _PROMPT="\"tmp shell $ \""
     if [ "$1" != "" ] ; then
         _PROMPT=\"$1\"
     fi
 
     # "exec tmpshell() with $_PROMPT"
 
-    setsid -c -w /bin/bash --rcfile <(echo PS1=$_PROMPT) -i
+    if [ $(($TESTME)) -eq 0 ] ; then
+        setsid -c -w /bin/bash --rcfile <(echo "PS1=$_PROMPT") -i
+    else
+        #(echo  PS1=$_PROMPT)
+        /bin/bash --rcfile <(echo "PS1=$_PROMPT") -i
+
+    fi
+}
+
+_readcmdline(){
+
+    # Read command line into variable
+
+    if [ $(($TESTME)) -gt 0 ] ; then
+        local FNAME="testcline"
+    else
+        local FNAME="/var/cmdline"
+    fi
+    if [ -f $FNAME ] ; then
+        read CMDLINE <$FNAME
+    fi
+    if [ $(($VERBOSE)) -gt 2 ] ; then
+        echo "cmdline = '"$CMDLINE"'"
+    fi
 }
 
 getargx() {
 
     # Get arg from command line. Return 1 for arg.
 
-    if [ $(($VERBOSE)) -gt 0 ] ; then
-        echo "getargx() \'$1\'"
+    if [ $(($VERBOSE)) -gt 1 ] ; then
+        echo "getargx() $@"
     fi
-    local oo FNAME
-    if [ "$CMDLINE" = "" ]; then
-        FNAME=/var/cmdline
-        if [ -f $FNAME ] ; then
-            read CMDLINE <$FNAME
-        fi
-    fi
+    ret=1
+    _readcmdline
     for oo in $CMDLINE; do
-	   [ "$oo" = "$1" ] && return 0;
+	   if [ "$oo" = "$1" ] ; then
+            ret=0; break
+       fi
     done
-    return 1
+    return $ret
 }
 
-# Pulled in for no external file ...
+getargy() {
+
+    if [ $(($VERBOSE)) -gt 1 ] ; then
+        echo "getargy() $@"
+    fi
+    local oo line
+    FOUNDCMD=""; FOUNDVAL=""; ret=1
+    _readcmdline
+    for oo in $CMDLINE; do
+       if [ "${oo%=*}" = "${1%=}" ]; then
+            #echo "Found pair:" "${o#*=} ";
+            FOUNDCMD=${oo%=*}; FOUNDVAL=${oo#*=}
+            ret=0; break
+       fi
+    done
+    return $ret
+}
+
+# Pulled in for avoiding external file ...
 #/lib/shlib/loadmods.sh
 
 loadmods() {
@@ -65,7 +114,7 @@ loadmods() {
     # Load modules intended for this system
 
     if [ $(($VERBOSE)) -gt 0 ] ; then
-        echo "loadmods() \'%1\'"
+        echo "loadmods() $@"
     fi
     local IFS UNSP
     IFS=$'\n'
@@ -73,7 +122,11 @@ loadmods() {
     for AA in $FF ; do
         UNSP=${AA# }
         if [ "${UNSP:0:1}" != "#" ] ; then
-            modprobe $UNSP
+            if [ $(($TESTME)) -gt 0 ] ; then
+                echo $UNSP
+            else
+                modprobe $UNSP
+            fi
         fi
     done
 }
@@ -83,19 +136,48 @@ startvts() {
     # Start virtual terminals and a serial port
 
     if [ $(($VERBOSE)) -gt 0 ] ; then
-        echo "startvts() \'%1\'"
+        echo "startvts() $@"
     fi
 
     TERMS="tty2 tty3 tty4 tty5 tty6 ttyS0"
 
     for TT in $TERMS ; do
         #echo $TT
-        /lib/shlib/forever.sh "setsid agetty $TT linux >/dev/null 2>&1" >/dev/null 2>&1 &
+        if [ $(($TESTME)) -gt 0 ] ; then
+            echo "would exec: \"setsid agetty $TT linux >/dev/null\" 2>&1 >/dev/null 2>&1"
+         else
+            /lib/shlib/forever.sh "setsid agetty $TT linux >/dev/null 2>&1" >/dev/null 2>&1 &
+        fi
     done
 }
 
+loaddevs() {
+
+    # Install devices from PCI bus; ignore vbox additions for now
+
+    DEVS=$(lspci -v | grep "Kernel modules" | awk -F ":" '{ print($2); }' | \
+           grep -v modules | tr "," "\n"  | grep -v vbox)
+
+    if [ $(($TESTME)) -gt 0 ] ; then
+        for aa in $DEVS ; do
+            echo "Would load: '"$aa"'"
+        done
+    else
+        for aa in $DEVS ; do
+            modprobe $aa >>$SUL/$SULOUT 2>>$SUL/$SULERR;
+        done
+    fi
+}
+
+# Hack to test from dev system
+if [ $(($TESTME)) -gt 0 ] ; then
+    return
+fi
+
 # End of functions
 # ------------------------------------------------------------------------
+
+echo "Booting ComLin " $VERS
 
 # Never leave us hanging without a name
 hostname "localhost"
@@ -105,7 +187,6 @@ VERBOSE=0
 # Patch some basic terminal environmental vars
 export TERM=linux
 export COLUMNS=80 ; export ROWS=24
-
 export PS1="ComLin \w # "
 
 # Mount some (important) things on new root
@@ -113,7 +194,7 @@ mount -t proc -o nosuid,noexec,nodev proc $NEWROOT/proc >/dev/null 2>&1
 mount -t sysfs -o nosuid,noexec,nodev sysfs $NEWROOT/sys >/dev/null 2>&1
 mount -t devpts -o gid=5,mode=620 devpts $NEWROOT/dev/pts >/dev/null 2>&1
 
-getargx 'verbose' && tmpshell VERBOSE=1
+getargy 'verbose' && VERBOSE=$FOUNDVAL
 
 getargx 'initbreak=start' && tmpshell "At the start of (pre)init $ "
 
@@ -167,21 +248,19 @@ startvts
 getargx 'initbreak=daemons' && tmpshell "Before starting system daemons $ "
 echo -n "Starting system daemons ... "
 /usr/libexec/polkitd >>$SUL/$SULOUT 2>>$SUL/$SULERR &
+
 # This way udev is functional in chroot
 export SYSTEMD_IGNORE_CHROOT=1
 /lib/systemd/systemd-udevd >>$SUL/$SULOUT 2>>$SUL/$SULERR &
+/lib/systemd/systemd-logind >>$SUL/$SULOUT 2>>$SUL/$SULERR &
 echo OK
 
 getargx 'initbreak=devices' && tmpshell "Before installing devices $ "
 echo -n "Installing devices ... "
-
-# Install devices specified by user
+# Install devices specified by the user's /etc
 loadmods
-
 # Install devices from PCI bus; ignore vbox additions for now
-lspci -v | grep "Kernel modules" | awk -F ":" '{ print($2); }' | \
-       grep -v modules | tr "," "\n"  | grep -v vbox | \
-       xargs -i modprobe {}  >>$SUL/$SULOUT 2>>$SUL/$SULERR;
+loaddevs
 echo OK
 
 getargx 'initbreak=sound' && tmpshell "Before starting sound $ "
@@ -200,7 +279,7 @@ for FFF in $SFILES ; do
     mknod -m 0660 "$DEVX" c $MAJOR $MINOR
     chown root:audio "$DEVX"
 done
-pulseaudio --start >>$SUL/$SULOUT 2>>$SUL/$SULERR
+
 echo OK
 
 getargx 'initbreak=network' && tmpshell "Before starting network $ "
@@ -223,14 +302,18 @@ export ICEAUTHORITY=/root/.ICEauthority
 
 while : ; do
 
+    pulseaudio --start >>$SUL/$SULOUT 2>>$SUL/$SULERR
+    pactl set-sink-mute 0 0
+    pactl set-sink-volume 0 0.5
+
     /usr/bin/startxfce4 >$SUL/xfce_out 2>$SUL/xfce_err
-    ERR=$?
+    #ERR=$?
 
     # TEST: kill it, see what comes back
     #sleep 8; killall Xorg
 
     chvt 1
-    echo "Exit status of XFCE4" $ERR
+    #echo "Exit status of XFCE4" $ERR
     getargx 'initbreak=post-gui' && tmpshell "At the end of XFCE start $ "
     tmpshell "After XFCE loop iteration $ "
 
