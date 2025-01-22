@@ -1,0 +1,10 @@
+
+
+** (polkitd:114277): WARNING **: 11:31:09.113: Error getting enumerator for /var/lib/polkit-1/localauthority: Error opening directory '/var/lib/polkit-1/localauthority': Permission denied
+
+** (polkitd:114277): WARNING **: 11:31:09.113: Error getting enumerator for /etc/polkit-1/localauthority: Error opening directory '/etc/polkit-1/localauthority': Permission denied
+Need to be root.
+W: [pulseaudio] core-util.c: Failed to open configuration file '/root/.config/pulse//daemon.conf': Permission denied
+W: [pulseaudio] daemon-conf.c: Failed to open configuration file: Permission denied
+RTNETLINK answers: Operation not permitted
+mkdir: cannot create directory '/run/network': Permission denied

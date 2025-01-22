@@ -1,0 +1,10 @@
+mkdir: cannot create directory ‘/root/.config’: Permission denied
+mkdir: cannot create directory ‘/root/.cache’: Permission denied
+Can't create dir /root/Desktop
+Can't create dir /root/Downloads
+Can't create dir /root/Templates
+Can't create dir /root/Public
+Can't create dir /root/Documents
+Can't create dir /root/Music
+Can't create dir /root/Pictures
+Can't create dir /root/Videos

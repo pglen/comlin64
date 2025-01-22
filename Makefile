@@ -198,7 +198,7 @@ doall: prompt new remnt copyusb putkern syslin cpscripts uremnt
 	@echo "Done doall"
 
 # This is the 64 bit make all
-buildiso: apps checkscripts initramfs prepiso getapps iso
+buildiso: apps checkscripts initramfs prepiso prepdown getapps iso
 	@make playsound
 
 # Test if sound plays
@@ -259,6 +259,9 @@ iso:
 
 prepiso:
 	@sudo ./scripts/make_prepiso
+
+prepdown:
+	@sudo ./scripts/make_shutdown
 
 # ------------------------------------------------------------------------
 

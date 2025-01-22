@@ -1,0 +1,25 @@
+#!/bin/bash
+##########################################################################
+##                                                                      ##
+## Make the install ISO                                                 ##
+##                                                                      ##
+## This program is free software; you can redistribute it and/or modify ##
+## it under the terms of the GNU General Public License as published by ##
+## the Free Software Foundation; either version 2 of the License, or    ##
+## (at your option) any later version.                                  ##
+##                                                                      ##
+##########################################################################
+
+. config_build nocheck
+. "$SCRIPTS"/misc/lib/lib_fail
+
+echo "Patching shutdown files"
+
+# Patch shutdown
+
+rm  -f $ROOTFS/sbin/shutdown.bin
+cp -a shutdown/shutdown.sh $ROOTFS/sbin
+mv  $ROOTFS/sbin/shutdown $ROOTFS/sbin/shutdown.bin  >/dev/null 2>&1
+ln -s -r $ROOTFS/sbin/shutdown.sh $ROOTFS/sbin/shutdown
+
+# EOF

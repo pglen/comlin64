@@ -11,6 +11,8 @@
 .  config_build nocheck
 . "$SCRIPTS"/misc/lib/lib_fail
 
+# This is just a rough check, will only catch syntax errors.
+
 echo -n "Checking scripts ... "
 
 for FF in initramfs/lib/shlib/*.sh ; do
@@ -24,7 +26,19 @@ done
 
 bash -n initramfs/init; ERR=$?
 if [ "$ERR" != "0" ] ; then
-    echo "Syntax error in $FF"
+    echo "Syntax error in initramfs/init"
+    exit 1
+fi
+
+bash -n preinit/preinit; ERR=$?
+if [ "$ERR" != "0" ] ; then
+    echo "Syntax error in preinit/preinit"
+    exit 1
+fi
+
+bash -n preinit/preinit.sh ; ERR=$?
+if [ "$ERR" != "0" ] ; then
+    echo "Syntax error in preinit/preinit.sh"
     exit 1
 fi
 

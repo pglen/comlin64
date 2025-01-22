@@ -1,0 +1,13 @@
+# Define test cases here. Python syntax
+
+#   Context_String,     Send_String,   Expect_String,   Find/Compare
+#   -----------------   ------------   --------------   ------------
+#   info for the user   what to send   what to expect   True if Find
+
+[
+    [ "test empty", "bash -i tests.sh" , b"", False],
+    [ "test gatargy verbose", "bash -i tests.sh 1" , "VERBOSE=4", True],
+    [ "test gatargy bsleep", "bash -i tests.sh 2" , "would sleep", True],
+]
+
+# EOF

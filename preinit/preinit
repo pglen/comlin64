@@ -1,204 +1,85 @@
 #!/bin/bash
+# shellcheck disable=SC2004,SC2009,SC2068,SC2002
+# shellcheck disable=SC1091
 
 # Set the TESTME variable to non zero if you are in a
-# simulation / test environment.
+# simulation / test environment. Warning: it will not work in the real env.
+#TESTME=1
 
 # Silence async messages on terminal
-if [ $(($TESTME)) -eq 0 ] ; then
-    /usr/bin/setterm --msg off
+/usr/bin/setterm --msg off
+# Silence comments and commands on terminal
+set +x; set +v
+
+# Catch resize
+shopt -s checkwinsize
+
+export PATH="/sbin:/bin:/usr/sbin:/usr/bin"
+
+# ------------------------------------------------------------------------
+# Ended up with ONE separate file. (for enabling unit tests):
+
+if [ $(($TESTME)) -gt 0 ] ; then
+    .  ./preinit.sh
+else
+    .  /sbin/preinit.sh
 fi
 
-VERS="1.0.0"
+echo "Booting Community Linux, Lib version: $LIBVERS"
 
-# One script to start all. Expects kernel command line in /var/cmdline
 # The following breakpoints are active from the kernel command line:
-#
 #    initbreak=start    "At the start of this script $"
 #    initbreak=devices  "Before installing devices $ "
 #    initbreak=network  "Before starting network $ "
 #    initbreak=sound    "Before starting sound $ "
 #    initbreak=pre-gui  "Before starting GUI $ "
 #    initbreak=post-gui "After XFCE loop iteration $ "
+# Other variables:
+#    bsleep=sec         "sleep after commands for visual observetion"
+#    verbose=lev        "verbosity level"
+# More break ITEMS, see source below
 
-# History:
-#           Tue 14.Jan.2025     Sound works, created /dev entries by hand
+# History:  Tue 14.Jan.2025     Sound works, created /dev entries by hand
 #           Sun 19.Jan.2025     TESTME subsystem
+#           Tue 21.Jan.2025     Cleanup
 
-export PATH="/sbin:/bin:/usr/sbin:/usr/bin"
+export HOME=/root
+export USER=root
 
-# ------------------------------------------------------------------------
-# Our preinit lib (we pulled it in for speed)
-#. /lib/shlib/preinitlib.sh
+cd $HOME || echo "Warn:" cannot cd to $HOME >&2
 
-tmpshell() {
+mkdir -p /var/tmp
+SDCOM="/var/tmp/.shutdowncmd"
 
-    # Temporary SHELL
+# Log files for startup
+export SUL="/.startuplogs"
 
-    if [ $(($VERBOSE)) -gt 1 ] ; then
-        echo "tmpshell() with $1"
-    fi
+mkdir -p $SUL
+SULERR=$SUL/log_err;
+SULOUT=$SUL/log_out
 
-    _PROMPT="\"tmp shell $ \""
-    if [ "$1" != "" ] ; then
-        _PROMPT=\"$1\"
-    fi
-
-    # "exec tmpshell() with $_PROMPT"
-
-    if [ $(($TESTME)) -eq 0 ] ; then
-        setsid -c -w /bin/bash --rcfile <(echo "PS1=$_PROMPT") -i
-    else
-        #(echo  PS1=$_PROMPT)
-        /bin/bash --rcfile <(echo "PS1=$_PROMPT") -i
-
-    fi
-}
-
-_readcmdline(){
-
-    # Read command line into variable
-
-    if [ $(($TESTME)) -gt 0 ] ; then
-        local FNAME="testcline"
-    else
-        local FNAME="/var/cmdline"
-    fi
-    if [ -f $FNAME ] ; then
-        read CMDLINE <$FNAME
-    fi
-    if [ $(($VERBOSE)) -gt 2 ] ; then
-        echo "cmdline = '"$CMDLINE"'"
-    fi
-}
-
-getargx() {
-
-    # Get arg from command line. Return 1 for arg.
-
-    if [ $(($VERBOSE)) -gt 1 ] ; then
-        echo "getargx() $@"
-    fi
-    ret=1
-    _readcmdline
-    for oo in $CMDLINE; do
-	   if [ "$oo" = "$1" ] ; then
-            ret=0; break
-       fi
-    done
-    return $ret
-}
-
-getargy() {
-
-    if [ $(($VERBOSE)) -gt 1 ] ; then
-        echo "getargy() $@"
-    fi
-    local oo line
-    FOUNDCMD=""; FOUNDVAL=""; ret=1
-    _readcmdline
-    for oo in $CMDLINE; do
-       if [ "${oo%=*}" = "${1%=}" ]; then
-            #echo "Found pair:" "${o#*=} ";
-            FOUNDCMD=${oo%=*}; FOUNDVAL=${oo#*=}
-            ret=0; break
-       fi
-    done
-    return $ret
-}
-
-# Pulled in for avoiding external file ...
-#/lib/shlib/loadmods.sh
-
-loadmods() {
-
-    # Load modules intended for this system
-
-    if [ $(($VERBOSE)) -gt 0 ] ; then
-        echo "loadmods() $@"
-    fi
-    local IFS UNSP
-    IFS=$'\n'
-    FF=$(cat /etc/modules)
-    for AA in $FF ; do
-        UNSP=${AA# }
-        if [ "${UNSP:0:1}" != "#" ] ; then
-            if [ $(($TESTME)) -gt 0 ] ; then
-                echo $UNSP
-            else
-                modprobe $UNSP
-            fi
-        fi
-    done
-}
-
-startvts() {
-
-    # Start virtual terminals and a serial port
-
-    if [ $(($VERBOSE)) -gt 0 ] ; then
-        echo "startvts() $@"
-    fi
-
-    TERMS="tty2 tty3 tty4 tty5 tty6 ttyS0"
-
-    for TT in $TERMS ; do
-        #echo $TT
-        if [ $(($TESTME)) -gt 0 ] ; then
-            echo "would exec: \"setsid agetty $TT linux >/dev/null\" 2>&1 >/dev/null 2>&1"
-         else
-            /lib/shlib/forever.sh "setsid agetty $TT linux >/dev/null 2>&1" >/dev/null 2>&1 &
-        fi
-    done
-}
-
-loaddevs() {
-
-    # Install devices from PCI bus; ignore vbox additions for now
-
-    DEVS=$(lspci -v | grep "Kernel modules" | awk -F ":" '{ print($2); }' | \
-           grep -v modules | tr "," "\n"  | grep -v vbox)
-
-    if [ $(($TESTME)) -gt 0 ] ; then
-        for aa in $DEVS ; do
-            echo "Would load: '"$aa"'"
-        done
-    else
-        for aa in $DEVS ; do
-            modprobe $aa >>$SUL/$SULOUT 2>>$SUL/$SULERR;
-        done
-    fi
-}
-
-# Hack to test from dev system
-if [ $(($TESTME)) -gt 0 ] ; then
-    return
-fi
-
-# End of functions
-# ------------------------------------------------------------------------
-
-echo "Booting ComLin " $VERS
+# Create blanks for append
+echo "" > "$SULOUT"
+echo "" > "$SULERR"
 
 # Never leave us hanging without a name
-hostname "localhost"
-
-VERBOSE=0
+hostname "localhost"  >>$SULOUT 2>>$SULERR
 
 # Patch some basic terminal environmental vars
 export TERM=linux
-export COLUMNS=80 ; export ROWS=24
 export PS1="ComLin \w # "
+export COLUMNS=80 ; export ROWS=24
 
 # Mount some (important) things on new root
-mount -t proc -o nosuid,noexec,nodev proc $NEWROOT/proc >/dev/null 2>&1
-mount -t sysfs -o nosuid,noexec,nodev sysfs $NEWROOT/sys >/dev/null 2>&1
-mount -t devpts -o gid=5,mode=620 devpts $NEWROOT/dev/pts >/dev/null 2>&1
-
-getargy 'verbose' && VERBOSE=$FOUNDVAL
+mount -t proc -o nosuid,noexec,nodev proc "$NEWROOT/proc" >/dev/null 2>&1
+mount -t sysfs -o nosuid,noexec,nodev sysfs "$NEWROOT/sys" >/dev/null 2>&1
+mount -t devpts -o gid=5,mode=620 devpts "$NEWROOT/dev/pts" >/dev/null 2>&1
 
 getargx 'initbreak=start' && tmpshell "At the start of (pre)init $ "
 
-#export PS1="initbreak start" ; setsid -c -w /bin/bash
+# Determine overall flags for operation
+getargy 'verbose' && export VERBOSE=$FOUNDVAL
+getargx 'initbreak=all' && export BREAKALL=1
 
 # Remove what is left of the old root (return later)
 # This method frees the resources without effecting other processes
@@ -206,124 +87,116 @@ getargx 'initbreak=start' && tmpshell "At the start of (pre)init $ "
 # And no more traces
 #umount /var/oldroot >/dev/null 2>&1
 
-export HOME=/root
-export USER=root
-
-cd $HOME
-
-# Log files for startup
-SUL=.startuplogs; mkdir -p $SUL
-SULERR=log_err; SULOUT=log_out
-
-# Create blanks for append
-echo "" > $SUL/$SULOUT; echo "" > $SUL/$SULERR
-
-# We create this for lack of other creators
+# We create this dynamically
 export XDG_RUNTIME_DIR=/run/user/$UID
 mkdir -p $XDG_RUNTIME_DIR
 
+getargy 'bsleep' && sleep "$FOUNDVAL"
+
 mkdir -p /run/dbus
-dbus-daemon --system >>$SUL/$SULOUT 2>>$SUL/$SULERR
-export COLUMNS=80 ; export ROWS=24
+echo -n "Starting DBUS ... "
+dbus-daemon --system #>>"$SULOUT" 2>>"$SULERR"
+echo " OK"
 
 # Start logging
-rsyslogd >>$SUL/$SULOUT 2>>$SUL/$SULERR
+rsyslogd >> "$SULOUT" 2>> "$SULERR"
 
 # UP loopback network connection
 ifconfig lo up 127.0.0.1
 
 # Virtual terminals and a serial port
-#/lib/shlib/startvts.sh
-
+echo -n "Starting VTs ... "
 startvts
+getargy 'bsleep' && sleep "$FOUNDVAL"
+echo " OK"
 
-# Left the template in; in case you want to re enable it
-#keyget -t 3 \
-#  "About to install devices. Press Enter within 3 sec to drop to shell"
-#if [ $? -eq 0 ] ; then
-#    echo "Dropping to pre-Device Shell"
-#fi
+#export PS1="Comlin \w$ $ " ; setsid -c -w /bin/bash
 
 # Polkit, udev, etc ...
 getargx 'initbreak=daemons' && tmpshell "Before starting system daemons $ "
 echo -n "Starting system daemons ... "
-/usr/libexec/polkitd >>$SUL/$SULOUT 2>>$SUL/$SULERR &
+/usr/libexec/polkitd >>$SULOUT 2>>$SULERR &
 
 # This way udev is functional in chroot
 export SYSTEMD_IGNORE_CHROOT=1
-/lib/systemd/systemd-udevd >>$SUL/$SULOUT 2>>$SUL/$SULERR &
-/lib/systemd/systemd-logind >>$SUL/$SULOUT 2>>$SUL/$SULERR &
-echo OK
+/lib/systemd/systemd-udevd >>$SULOUT 2>>$SULERR &
+/lib/systemd/systemd-logind >>$SULOUT 2>>$SULERR &
+getargy 'bsleep' && sleep "$FOUNDVAL"
+echo " OK"
 
-getargx 'initbreak=devices' && tmpshell "Before installing devices $ "
-echo -n "Installing devices ... "
+getargx 'initbreak=modules' && tmpshell "$FOUNDVAR $ "
+echo -n "Installing modules ... "
 # Install devices specified by the user's /etc
 loadmods
+echo " OK"
+
+getargx 'initbreak=devices' && tmpshell "$FOUNDVAR $ "
+echo -n "Installing devices ... "
 # Install devices from PCI bus; ignore vbox additions for now
 loaddevs
-echo OK
+getargy 'bsleep' && sleep "$FOUNDVAL"
+echo " OK"
 
-getargx 'initbreak=sound' && tmpshell "Before starting sound $ "
+getargx 'initbreak=sound' &&  tmpshell "$FOUNDVAR $ "
 echo -n "Starting sound system ... "
+makedevices
+getargy 'bsleep' && sleep "$FOUNDVAL"
+echo " OK"
 
-# Create the device nodes dynamically ...
-#    ... (stderr warned of dir loop -- killed it)
-SFILES=$(find /sys/class/sound -follow -type f -maxdepth 2 -name dev \
-                2>/dev/null)
-for FFF in $SFILES ; do
-    [ -f "$FFF" ] && MAJOR="`cat "$FFF" | awk -F ":" '{print $1}'`"
-    [ -f "$FFF" ] && MINOR="`cat "$FFF" | awk -F ":" '{print $2}'`"
-    DEVX="/dev/snd/"$(basename ${FFF%/dev})
-    echo -e "Device:" $DEVX" \tMajor/Minor: \t" \
-                 $MAJOR : $MINOR  >>$SUL/$SULOUT
-    mknod -m 0660 "$DEVX" c $MAJOR $MINOR
-    chown root:audio "$DEVX"
-done
-
-echo OK
-
-getargx 'initbreak=network' && tmpshell "Before starting network $ "
+getargx 'initbreak=network' && tmpshell "$FOUNDVAR $ "
 echo -n "Starting network ... "
-dhclient >>$SUL/$SULOUT 2>>$SUL/$SULERR &
-echo OK
+dhclient >>$SULOUT 2>>$SULERR &
+getargy 'bsleep' && sleep "$FOUNDVAL"
+echo " OK"
 
 # After all configured, let it write some
-/usr/bin/sync
+#/usr/bin/sync
 
-getargx 'initbreak=pre-gui' && tmpshell "Before starting GUI $ "
-echo "Starting GUI ... OK"
-
-# Not needed but what the hell
-#play welcome.ogg >>$SUL/$SULOUT 2>>$SUL/$SULERR &
+getargx 'initbreak=pre-gui' && tmpshell  "$FOUNDVAR $ "
 
 # Xorg needs these
 export XAUTHORITY=/root/.Xauthority
 export ICEAUTHORITY=/root/.ICEauthority
 
+
 while : ; do
 
-    pulseaudio --start >>$SUL/$SULOUT 2>>$SUL/$SULERR
+    echo "Starting GUI ... OK"
+    getargy 'bsleep' && sleep "$FOUNDVAL"
+
+    rm -f $SDCOM                # Fresh start
+
+    pulseaudio --start >>$SULOUT 2>>$SULERR
     pactl set-sink-mute 0 0
     pactl set-sink-volume 0 0.5
 
-    /usr/bin/startxfce4 >$SUL/xfce_out 2>$SUL/xfce_err
-    #ERR=$?
-
-    # TEST: kill it, see what comes back
-    #sleep 8; killall Xorg
-
+    /usr/bin/startxfce4 >"$SUL/xfce_out" 2>"$SUL/xfce_err"
+    #sleep 8; killall Xorg      # TEST: kill it, see what comes back
     chvt 1
-    #echo "Exit status of XFCE4" $ERR
-    getargx 'initbreak=post-gui' && tmpshell "At the end of XFCE start $ "
-    tmpshell "After XFCE loop iteration $ "
 
+    export CMDLINE=                  # Force re-read of command line
+
+    # Here one can examine post - cleanup
+    getargx 'initbreak=post-gui' &&  tmpshell "$FOUNDVAR $"
+    #if [ -e $SDCOM ] ; then
+    #    echo -n "Shutting down ... "
+    #    shutdownx
+    #    echo " OK"
+    #fi
+
+    # If it got here, it is a logout or shutdown error
+    tmpshell "After XFCE loop iteration $ "
+    sleep 1
 done
 
+# Can not reach this ... just in case
+
 # Start a shell for recovery / diagnosis
-export PS1="Comlin Pre-Init fallback:\w$ "
+export PS1="Comlin PreInit fallback: \w $ "
 while : ; do
    setsid -c -w /bin/bash
-   echo "Spawning new shell ... ($$)"
+   echo "Spawning new shell ... \($$\)"
+   sleep 1
 done
 
 # EOF

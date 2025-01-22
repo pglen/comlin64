@@ -101,12 +101,6 @@ cp $COMLINVERFILE $ROOTFS/etc/COMLINUX_VERSION
 mkdir -p $ROOTFS/dev/snd
 rm -rf $ROOTFS/dev/snd/*
 
-#mknod -m 666 $ROOTFS/dev/sound/adsp c 14 12
-#old = $(pwd)
-#cd $ROOTFS
-#ln -s dev/sound/dsp dev/dep
-#cd old
-
 echo "Done prepping ISO."
 
 # EOF

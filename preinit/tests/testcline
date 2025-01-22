@@ -1,1 +1,1 @@
-hello=str world again=none verbose=2
+initbreak=pre-gui initbreak=post-gui bsleep=.5 hello verbose=4  initbreak=all
