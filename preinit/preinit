@@ -3,21 +3,19 @@
 # shellcheck disable=SC1091
 
 # Set the TESTME variable to non zero if you are in a
-# simulation / test environment. Warning: it will not work in the real env.
+# simulation / test environment. Warning: script will not work in the real env.
 #TESTME=1
 
 # Silence async messages on terminal
 /usr/bin/setterm --msg off
+
 # Silence comments and commands on terminal
 set +x; set +v
-stty rows 24 cols 80
-# Catch resize
-shopt -s checkwinsize
 
 export PATH="/sbin:/bin:/usr/sbin:/usr/bin"
 
 # ------------------------------------------------------------------------
-# Ended up with ONE separate file. (for enabling unit tests):
+# Ended up with ONE separate file. (for accomodating unit tests):
 
 if [ $(($TESTME)) -gt 0 ] ; then
     .  ./preinit.sh
@@ -29,19 +27,21 @@ echo "Booting Community Linux, Lib version: $LIBVERS"
 
 # The following breakpoints are active from the kernel command line:
 #    initbreak=start    "At the start of this script $"
+#    initbreak=deemons  "Before starting daemons $ "
+#    initbreak=modules  "Before installing modules $ "
 #    initbreak=devices  "Before installing devices $ "
 #    initbreak=network  "Before starting network $ "
 #    initbreak=sound    "Before starting sound $ "
 #    initbreak=pre-gui  "Before starting GUI $ "
 #    initbreak=post-gui "After XFCE loop iteration $ "
 # Other variables:
-#    bsleep=sec         "sleep after commands for visual observetion"
+#    bsleep=sec         "sleep after commands for visual observation"
 #    verbose=lev        "verbosity level"
-# More break ITEMS, see source below
+# There are more break ITEMS, see source below
 
 # History:  Tue 14.Jan.2025     Sound works, created /dev entries by hand
-#           Sun 19.Jan.2025     TESTME subsystem
-#           Tue 21.Jan.2025     Cleanup
+#           Sun 19.Jan.2025     Added TESTME subsystem + shellcheck
+#           Tue 21.Jan.2025     Cleanup (quote errors in bash are difficult)
 
 export HOME=/root
 export USER=root
@@ -91,15 +91,17 @@ getargx 'initbreak=all' && export BREAKALL=1
 export XDG_RUNTIME_DIR=/run/user/$UID
 mkdir -p $XDG_RUNTIME_DIR
 
-getargy 'bsleep' && sleep "$FOUNDVAL"
-
 mkdir -p /run/dbus
 echo -n "Starting DBUS ... "
 dbus-daemon --system #>>"$SULOUT" 2>>"$SULERR"
+getargy 'bsleep' && sleep "$FOUNDVAL"
 echo " OK"
 
 # Start logging
+echo -n "Starting rsyslogd ... "
 rsyslogd >> "$SULOUT" 2>> "$SULERR"
+getargy 'bsleep' && sleep "$FOUNDVAL"
+echo " OK"
 
 # UP loopback network connection
 ifconfig lo up 127.0.0.1
@@ -112,27 +114,38 @@ echo " OK"
 
 #export PS1="Comlin \w$ $ " ; setsid -c -w /bin/bash
 
-# Polkit, udev, etc ...
-getargx 'initbreak=daemons' && tmpshell "Before starting system daemons $ "
-echo -n "Starting system daemons ... "
-/usr/libexec/polkitd >>$SULOUT 2>>$SULERR &
-
 # This way udev is functional in chroot
 export SYSTEMD_IGNORE_CHROOT=1
+
+# Polkit, udev, etc ...
+getargx 'initbreak=daemons' && tmpshell "Before starting system daemons $ "
+echo -n "Starting daemons ... "
+
+echo -n "polkit "
+/usr/libexec/polkitd >>$SULOUT 2>>$SULERR &
+getargy 'bsleep' && sleep "$FOUNDVAL"
+
+echo -n "systemd-udevd "
 /lib/systemd/systemd-udevd >>$SULOUT 2>>$SULERR &
+getargy 'bsleep' && sleep "$FOUNDVAL"
+
+echo -n "systemd-logind "
 /lib/systemd/systemd-logind >>$SULOUT 2>>$SULERR &
 getargy 'bsleep' && sleep "$FOUNDVAL"
 echo " OK"
 
 getargx 'initbreak=modules' && tmpshell "$FOUNDVAR $ "
-echo -n "Installing modules ... "
+
 # Install devices specified by the user's /etc
+echo -n "Installing modules ... "
 loadmods
+getargy 'bsleep' && sleep "$FOUNDVAL"
 echo " OK"
 
 getargx 'initbreak=devices' && tmpshell "$FOUNDVAR $ "
-echo -n "Installing devices ... "
+
 # Install devices from PCI bus; ignore vbox additions for now
+echo -n "Installing devices ... "
 loaddevs
 getargy 'bsleep' && sleep "$FOUNDVAL"
 echo " OK"
@@ -140,6 +153,13 @@ echo " OK"
 getargx 'initbreak=sound' &&  tmpshell "$FOUNDVAR $ "
 echo -n "Starting sound system ... "
 makedevices
+getargy 'bsleep' && sleep "$FOUNDVAL"
+echo " OK"
+
+echo -n "Setting sound voulume  ... "
+pulseaudio --start >>$SULOUT 2>>$SULERR
+pactl set-sink-mute 0 0
+pactl set-sink-volume 0 0.5
 getargy 'bsleep' && sleep "$FOUNDVAL"
 echo " OK"
 
@@ -158,35 +178,28 @@ getargx 'initbreak=pre-gui' && tmpshell  "$FOUNDVAR $ "
 export XAUTHORITY=/root/.Xauthority
 export ICEAUTHORITY=/root/.ICEauthority
 
-
 while : ; do
-
-    echo "Starting GUI ... OK"
-    getargy 'bsleep' && sleep "$FOUNDVAL"
 
     rm -f $SDCOM                # Fresh start
 
-    pulseaudio --start >>$SULOUT 2>>$SULERR
-    pactl set-sink-mute 0 0
-    pactl set-sink-volume 0 0.5
-
-    /usr/bin/startxfce4 >"$SUL/xfce_out" 2>"$SUL/xfce_err"
+    echo -n "Starting GUI ... "
+    getargy 'bsleep' && sleep "$FOUNDVAL"
+    pulseaudio >>$SULOUT 2>>$SULERR
+    #dbus-launch lightdm
+    /usr/bin/startxfce4 -- -keeptty  >"$SUL/xfce_out" 2>"$SUL/xfce_err"
     #sleep 8; killall Xorg      # TEST: kill it, see what comes back
-    chvt 1
-
-    export CMDLINE=                  # Force re-read of command line
-
+    #chvt 1
+    #resize 24 80
+    #echo " OK"
     # Here one can examine post - cleanup
-    getargx 'initbreak=post-gui' &&  tmpshell "$FOUNDVAR $"
-    #if [ -e $SDCOM ] ; then
-    #    echo -n "Shutting down ... "
-    #    shutdownx
-    #    echo " OK"
-    #fi
-
+    getargx 'initbreak=post-gui' &&  tmpshell "$FOUNDVAR $ "
+    if [ -e $SDCOM ] ; then
+        shutdownx
+        echo " OK"
+    fi
     # If it got here, it is a logout or shutdown error
-    tmpshell "After XFCE loop iteration $ "
-    sleep 1
+    #tmpshell "After XFCE loop iteration $ "
+    #sleep 1
 done
 
 # Can not reach this ... just in case
@@ -195,7 +208,7 @@ done
 export PS1="Comlin PreInit fallback: \w $ "
 while : ; do
    setsid -c -w /bin/bash
-   echo "Spawning new shell ... \($$\)"
+   echo "Spawning new shell $$ \w # "
    sleep 1
 done
 

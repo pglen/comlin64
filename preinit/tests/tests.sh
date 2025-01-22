@@ -9,8 +9,19 @@
 # Set the TESTME variable to non zero if you are in a
 # simulation / test environment.
 
+#echo {1..10} ; exit
+
 if [ "$1" = "" ] ; then
-    echo "Use: $(basename $0) 1...c"
+    echo "Use: $(basename $0) [all] [1...c]"
+    exit
+fi
+
+if [ "$1" = "all" ] ; then
+    for aa in {1..10} ; do
+        ALL+="$aa "
+    done
+else
+    ALL=$@
 fi
 
 TESTME=1
@@ -18,7 +29,7 @@ TESTME=1
 
 # Pass individual test numbers per argument to see results
 
-for itemx in $@ ; do
+for itemx in $ALL ; do
     #echo Item: $itemx
     case "$itemx" in
         1)  getargy 'verbose' && echo "found VERBOSE=$FOUNDVAL"; VERBOSE=$FOUNDVAL ;;

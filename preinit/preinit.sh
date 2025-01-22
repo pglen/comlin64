@@ -2,7 +2,7 @@
 # shellcheck disable=SC2004,SC2009,SC2068,SC2002
 # shellcheck disable=SC1091
 
-LIBVERS="1.0.0"
+export LIBVERS="1.0.0"
 
 # Set the TESTME variable to non zero if you are in a
 # simulation / test environment. Warning: it will not work in real env.
@@ -210,6 +210,7 @@ shutdownx()  {
                 if [ $(($VERBOSE)) -gt 0 ] ; then
                     echo calling linux_reboot
                 fi
+                echo -n "Rebooting ... "
                 linux_reboot -f
             fi
         elif [ "$AA" = '-P' ]  ||  [ "$AA" = '-h' ] ; then
@@ -220,6 +221,7 @@ shutdownx()  {
                 if [ $(($VERBOSE)) -gt 0 ] ; then
                     echo calling linux_poweroff
                 fi
+                echo -n "Shutting down ... "
                 linux_poweroff -f
             fi
         fi
