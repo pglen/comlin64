@@ -10,7 +10,7 @@
 /usr/bin/setterm --msg off
 # Silence comments and commands on terminal
 set +x; set +v
-
+stty rows 24 cols 80
 # Catch resize
 shopt -s checkwinsize
 
