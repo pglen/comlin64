@@ -173,13 +173,11 @@ echo " OK"
 # After all configured, let it write some
 #/usr/bin/sync
 
-getargx 'initbreak=pre-gui' && tmpshell  "$FOUNDVAR $ "
-
-# Xorg needs these
-export XAUTHORITY=/root/.Xauthority
-export ICEAUTHORITY=/root/.ICEauthority
+getargx 'initbreak=pre-user' && tmpshell  "$FOUNDVAR $ "
 
 pulseaudio --session >>$SULOUT 2>>$SULERR
+
+getargx 'initbreak=pre-gui' && tmpshell  "$FOUNDVAR $ "
 
 while : ; do
 
@@ -187,9 +185,17 @@ while : ; do
 
     echo -n "Starting GUI ... "
     getargy 'bsleep' && sleep "$FOUNDVAL"
-    #dbus-launch lightdm
 
-    /usr/bin/startxfce4 -- -keeptty -novtswitch  >"$SUL/xfce_out" 2>"$SUL/xfce_err"
+    # Bye Bye root
+    NEWHOME="/home/user/"
+
+    # Xorg needs these
+    export XAUTHORITY=$NEWHOME/.Xauthority
+    export ICEAUTHORITY=$NEWHOME/.ICEauthority
+
+    su - user -c $NEWHOME/.self_setup.sh
+
+    #/usr/bin/startxfce4 -- -keeptty -novtswitch  >"$SUL/xfce_out" 2>"$SUL/xfce_err"
     #/usr/bin/startxfce4 >"$SUL/xfce_out" 2>"$SUL/xfce_err"
 
     echo " OK"

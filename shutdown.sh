@@ -1,1 +1,0 @@
-../_system/sbin/shutdown
