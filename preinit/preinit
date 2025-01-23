@@ -75,7 +75,7 @@ mount -t proc -o nosuid,noexec,nodev proc "$NEWROOT/proc" >/dev/null 2>&1
 mount -t sysfs -o nosuid,noexec,nodev sysfs "$NEWROOT/sys" >/dev/null 2>&1
 mount -t devpts -o gid=5,mode=620 devpts "$NEWROOT/dev/pts" >/dev/null 2>&1
 
-getargx 'initbreak=start' && tmpshell "At the start of (pre)init $ "
+getargx 'initbreak=start' && tmpshell "$FOUNDVAR $ "
 
 # Determine overall flags for operation
 getargy 'verbose' && export VERBOSE=$FOUNDVAL
@@ -118,20 +118,21 @@ echo " OK"
 export SYSTEMD_IGNORE_CHROOT=1
 
 # Polkit, udev, etc ...
-getargx 'initbreak=daemons' && tmpshell "Before starting system daemons $ "
+getargx 'initbreak=daemons' && tmpshell "$FOUNDVAR $ "
 echo -n "Starting daemons ... "
 
-echo -n "polkit "
-/usr/libexec/polkitd >>$SULOUT 2>>$SULERR &
-getargy 'bsleep' && sleep "$FOUNDVAL"
+#echo -n "polkit "
+#/usr/libexec/polkitd >>$SULOUT 2>>$SULERR &
+#getargy 'bsleep' && sleep "$FOUNDVAL"
 
 echo -n "systemd-udevd "
 /lib/systemd/systemd-udevd >>$SULOUT 2>>$SULERR &
 getargy 'bsleep' && sleep "$FOUNDVAL"
 
-echo -n "systemd-logind "
-/lib/systemd/systemd-logind >>$SULOUT 2>>$SULERR &
-getargy 'bsleep' && sleep "$FOUNDVAL"
+#echo -n "systemd-logind "
+#/lib/systemd/systemd-logind >>$SULOUT 2>>$SULERR &
+#getargy 'bsleep' && sleep "$FOUNDVAL"
+
 echo " OK"
 
 getargx 'initbreak=modules' && tmpshell "$FOUNDVAR $ "
@@ -178,28 +179,39 @@ getargx 'initbreak=pre-gui' && tmpshell  "$FOUNDVAR $ "
 export XAUTHORITY=/root/.Xauthority
 export ICEAUTHORITY=/root/.ICEauthority
 
+pulseaudio --session >>$SULOUT 2>>$SULERR
+
 while : ; do
 
     rm -f $SDCOM                # Fresh start
 
     echo -n "Starting GUI ... "
     getargy 'bsleep' && sleep "$FOUNDVAL"
-    pulseaudio >>$SULOUT 2>>$SULERR
     #dbus-launch lightdm
-    /usr/bin/startxfce4 -- -keeptty  >"$SUL/xfce_out" 2>"$SUL/xfce_err"
+
+    /usr/bin/startxfce4 -- -keeptty -novtswitch  >"$SUL/xfce_out" 2>"$SUL/xfce_err"
+    #/usr/bin/startxfce4 >"$SUL/xfce_out" 2>"$SUL/xfce_err"
+
+    echo " OK"
+
     #sleep 8; killall Xorg      # TEST: kill it, see what comes back
-    #chvt 1
-    #resize 24 80
-    #echo " OK"
+    chvt 1
+
     # Here one can examine post - cleanup
     getargx 'initbreak=post-gui' &&  tmpshell "$FOUNDVAR $ "
+
+    # Shutdown?
     if [ -e $SDCOM ] ; then
         shutdownx
-        echo " OK"
     fi
+
     # If it got here, it is a logout or shutdown error
-    #tmpshell "After XFCE loop iteration $ "
+    echo "Exit this shell to continue."
+    tmpshell "XFCE loop iteration $ "
+
     #sleep 1
+    #export PS1="Comlin Post GUI \w$ $ " ; setsid -c -w /bin/bash
+
 done
 
 # Can not reach this ... just in case
