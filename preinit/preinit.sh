@@ -387,12 +387,11 @@ tmpshell() {
         _PROMPT=\"$1\"
     fi
     if [ $(($TESTME)) -eq 0 ] ; then
-        #setsid -c -w /bin/bash --rcfile <(echo "PS1=$_PROMPT") -i
-        export PS1="$_PROMPT"
-        setsid -c -w /bin/bash -i
+        setsid -c -w /bin/bash --rcfile <(echo "PS1=$_PROMPT") -i
+        #export PS1="$_PROMPT"       # This did not work
+        #setsid -c -w /bin/bash -i
     else
         #(echo  PS1=$_PROMPT)
-        #/bin/bash --rcfile <(echo "PS1=$_PROMPT") -i
         echo "Would start shell with prompt: $_PROMPT"
     fi
 }

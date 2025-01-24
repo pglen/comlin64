@@ -1,3 +1,4 @@
+# Makefile for PAM related utilites
 
-pamtest: pamtest.c
-	gcc pamtest.c -lpam -lpam_misc -o pamtest
+passcheck: passcheck.c
+	gcc passcheck.c -lpam -lpam_misc -o passcheck

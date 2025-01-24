@@ -15,6 +15,12 @@
 
 echo "Preparing ISO image ;"
 
+if [ "$ROOTFS" == "" ] ; then
+    # This would be really bad;
+    echo "Empty ROOTFS variable ... exiting."
+    exit 1
+fi
+
 # See if conditions are met
 
 if [ ! -f $KEYGET ] ; then
@@ -77,6 +83,11 @@ echo OK
 echo -n "  Copying dev files ... "
 mkdir -p $ROOTFS/dev
 cp -a $DEVDIR/* $ROOTFS/dev
+echo OK
+
+echo -n "  Copying user files ... "
+mkdir -p $ROOTFS/home/user
+cp -a $USERDIR/* $ROOTFS/home/user
 echo OK
 
 #echo -n "  Patching tmp and var permissions ... "

@@ -19,6 +19,7 @@ cp $APPDIR/keyget/keyget $ROOTFS/bin
 cp $APPDIR/reboot/linux_reboot $ROOTFS/bin
 cp $APPDIR/reboot/linux_poweroff $ROOTFS/bin
 cp $APPDIR/MessageBox-X11/progress $ROOTFS/bin
+cp $APPDIR/pypass/passcheck $ROOTFS/usr/bin
 
 cp -au $APPDIR/pangview $ROOTFS/root/Utils
 cp -au $APPDIR/pyedpro  $ROOTFS/root/Utils

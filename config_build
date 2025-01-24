@@ -80,6 +80,7 @@ NEWKERNEL=/boot/$KERNELBIN
 NEWKERNELDIR=.
 
 DEVDIR=../dev-files
+USERDIR=./user-dir
 
 # Where boot related stuff is
 BOOTDIR=boot

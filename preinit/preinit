@@ -15,7 +15,7 @@ set +x; set +v
 export PATH="/sbin:/bin:/usr/sbin:/usr/bin"
 
 # ------------------------------------------------------------------------
-# Ended up with ONE separate file. (for accomodating unit tests):
+# Ended up with ONE separate file. (for unit tests and shellcheck):
 
 if [ $(($TESTME)) -gt 0 ] ; then
     .  ./preinit.sh
@@ -43,6 +43,8 @@ echo "Booting Community Linux, Lib version: $LIBVERS"
 #           Sun 19.Jan.2025     Added TESTME subsystem + shellcheck
 #           Tue 21.Jan.2025     Cleanup (quote errors in bash are difficult)
 
+# Patch some basic environmental vars
+export TERM=linux
 export HOME=/root
 export USER=root
 
@@ -65,10 +67,8 @@ echo "" > "$SULERR"
 # Never leave us hanging without a name
 hostname "localhost"  >>$SULOUT 2>>$SULERR
 
-# Patch some basic terminal environmental vars
-export TERM=linux
-export PS1="ComLin \w # "
-export COLUMNS=80 ; export ROWS=24
+#export PS1="ComLin \w # "
+#export COLUMNS=80 ; export ROWS=24
 
 # Mount some (important) things on new root
 mount -t proc -o nosuid,noexec,nodev proc "$NEWROOT/proc" >/dev/null 2>&1
@@ -95,13 +95,13 @@ mkdir -p /run/dbus
 echo -n "Starting DBUS ... "
 dbus-daemon --system #>>"$SULOUT" 2>>"$SULERR"
 getargy 'bsleep' && sleep "$FOUNDVAL"
-echo " OK"
+echo " \033[32;1mOK\033[0m"
 
 # Start logging
 echo -n "Starting rsyslogd ... "
 rsyslogd >> "$SULOUT" 2>> "$SULERR"
 getargy 'bsleep' && sleep "$FOUNDVAL"
-echo " OK"
+echo " \033[32;1mOK\033[0m"
 
 # UP loopback network connection
 ifconfig lo up 127.0.0.1
@@ -110,7 +110,7 @@ ifconfig lo up 127.0.0.1
 echo -n "Starting VTs ... "
 startvts
 getargy 'bsleep' && sleep "$FOUNDVAL"
-echo " OK"
+echo " \033[32;1mOK\033[0m"
 
 #export PS1="Comlin \w$ $ " ; setsid -c -w /bin/bash
 
@@ -133,7 +133,7 @@ getargy 'bsleep' && sleep "$FOUNDVAL"
 #/lib/systemd/systemd-logind >>$SULOUT 2>>$SULERR &
 #getargy 'bsleep' && sleep "$FOUNDVAL"
 
-echo " OK"
+echo " \033[32;1mOK\033[0m"
 
 getargx 'initbreak=modules' && tmpshell "$FOUNDVAR $ "
 
@@ -141,7 +141,7 @@ getargx 'initbreak=modules' && tmpshell "$FOUNDVAR $ "
 echo -n "Installing modules ... "
 loadmods
 getargy 'bsleep' && sleep "$FOUNDVAL"
-echo " OK"
+echo " \033[32;1mOK\033[0m"
 
 getargx 'initbreak=devices' && tmpshell "$FOUNDVAR $ "
 
@@ -149,61 +149,50 @@ getargx 'initbreak=devices' && tmpshell "$FOUNDVAR $ "
 echo -n "Installing devices ... "
 loaddevs
 getargy 'bsleep' && sleep "$FOUNDVAL"
-echo " OK"
+echo " \033[32;1mOK\033[0m"
 
 getargx 'initbreak=sound' &&  tmpshell "$FOUNDVAR $ "
 echo -n "Starting sound system ... "
 makedevices
 getargy 'bsleep' && sleep "$FOUNDVAL"
-echo " OK"
+echo " \033[32;1mOK\033[0m"
 
 echo -n "Setting sound voulume  ... "
 pulseaudio --start >>$SULOUT 2>>$SULERR
 pactl set-sink-mute 0 0
 pactl set-sink-volume 0 0.5
 getargy 'bsleep' && sleep "$FOUNDVAL"
-echo " OK"
+echo " \033[32;1mOK\033[0m"
 
 getargx 'initbreak=network' && tmpshell "$FOUNDVAR $ "
 echo -n "Starting network ... "
 dhclient >>$SULOUT 2>>$SULERR &
 getargy 'bsleep' && sleep "$FOUNDVAL"
-echo " OK"
+echo " \033[32;1mOK\033[0m"
+
+dbus-daemon --session >/dev/null 2>&1 &
 
 # After all configured, let it write some
 #/usr/bin/sync
 
 getargx 'initbreak=pre-user' && tmpshell  "$FOUNDVAR $ "
 
-pulseaudio --session >>$SULOUT 2>>$SULERR
+# Bye Bye root
+NEWHOME="/home/user"
+mkdir -p $NEWHOME
 
-getargx 'initbreak=pre-gui' && tmpshell  "$FOUNDVAR $ "
+# Xorg needs these
+export XAUTHORITY=$NEWHOME/.Xauthority
+export ICEAUTHORITY=$NEWHOME/.ICEauthority
 
 while : ; do
-
     rm -f $SDCOM                # Fresh start
-
-    echo -n "Starting GUI ... "
     getargy 'bsleep' && sleep "$FOUNDVAL"
 
-    # Bye Bye root
-    NEWHOME="/home/user/"
+    # Start Xorg as a regular user
+    su - user -c "./startup.sh"
 
-    # Xorg needs these
-    export XAUTHORITY=$NEWHOME/.Xauthority
-    export ICEAUTHORITY=$NEWHOME/.ICEauthority
-
-    su - user -c $NEWHOME/.self_setup.sh
-
-    #/usr/bin/startxfce4 -- -keeptty -novtswitch  >"$SUL/xfce_out" 2>"$SUL/xfce_err"
-    #/usr/bin/startxfce4 >"$SUL/xfce_out" 2>"$SUL/xfce_err"
-
-    echo " OK"
-
-    #sleep 8; killall Xorg      # TEST: kill it, see what comes back
-    chvt 1
-
-    # Here one can examine post - cleanup
+    # Here one can examine post - gui
     getargx 'initbreak=post-gui' &&  tmpshell "$FOUNDVAR $ "
 
     # Shutdown?
@@ -212,10 +201,8 @@ while : ; do
     fi
 
     # If it got here, it is a logout or shutdown error
-    echo "Exit this shell to continue."
+    #echo "Exit this shell to continue."
     tmpshell "XFCE loop iteration $ "
-
-    #sleep 1
     #export PS1="Comlin Post GUI \w$ $ " ; setsid -c -w /bin/bash
 
 done
