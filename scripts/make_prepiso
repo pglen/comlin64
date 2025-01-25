@@ -84,17 +84,18 @@ cp -a $USERDIR/* $ROOTFS/home/user
 echo OK
 
 # Remove incidentals (created during testing)
-IFS=$' \t\n'
+IFS=$' \t\n'        # Restore original IFS
 VALS="root home/user home/guest"
 for aaa in $VALS ; do
     #echo "cleaning: $aaa"
     rm -f  "$ROOTFS/$aaa/.bash_history"
     rm -f  "$ROOTFS/$aaa/.ICEauthority"
-    rm -rf "$ROOTFS/$aaa/.config/xfce4"
     rm -rf "$ROOTFS/$aaa/.local"
     rm -rf "$ROOTFS/$aaa/.cache"
     rm -rf "$ROOTFS/$aaa/tmp"
-    rm -rf "$ROOTFS/$aaa/.xfce*"
+    # We remember the settings od XFCE from ev environments
+    #rm -rf "$ROOTFS/$aaa/.xfce*"
+    #rm -rf "$ROOTFS/$aaa/.config/xfce4"
 done
 
 echo -n "  Patching tmp and var permissions ... "

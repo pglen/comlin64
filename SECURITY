@@ -31,4 +31,29 @@ Security caution / warning:
 	(HTTP, SSH ...) You may enable more firewalled ports by editing the
 	firewall configuration.
 
+ Just in case one considers improving / heighteninig security, the
+following information may be useful.
+
+### List of user suid files:
+
+    /bin/su
+    /bin/passwd
+    /usr/libexec/polkit-agent-helper-1
+    /usr/bin/sudo
+    /usr/bin/setsid
+    /usr/bin/chvt
+    /usr/lib/xorg/Xorg    ,
+    /usr/lib/dbus-1.0/dbus-daemon-launch-helper
+    /usr/lib/x86_64-linux-gnu/xfce4/session/xfsm-shutdown-helper
+
+### List of group suid files:
+
+    /usr/libexec/camel-lock-helper-1.2
+    /usr/bin/plocate
+    /usr/bin/setsid
+
+ These files are suid, because that is needed for the proper operations
+and configuration of te system. Once that is done, most items can be un sudo-d.
+    (like: chmod ug-s filename)
+
 # EOF
