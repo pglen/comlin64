@@ -52,20 +52,27 @@ if [ "$1" != "nocheck" ] ; then
     fi
 fi
 
-MODULEDIR=../comlin64-mod-000
-mkdir -p $MODULEDIR
-
-# Where our FULL USB .. or .. LITE USB data lives
+# Where our FULL USB .. or LITE .. or MIN USB data lives
 
 FULLUSB=../comlin64-full-000
 LITEUSB=../comlin64-lite-000
+MINUSB=../comlin64-min-000
 
+# Pre-create if not there
 mkdir -p $FULLUSB
 mkdir -p $LITEUSB
+mkdir -p $MINUSB
 
 # SET this variable for current edition
+
 CURRUSB=$FULLUSB
 #CURRUSB=$LITEUSB
+#CURRUSB=$MINUSB
+
+#echo "Building: $CURRUSB"
+
+MODULEDIR=../comlin64-mod-000
+mkdir -p $MODULEDIR
 
 # The directory Where the kernel you want to use is located
 KERNELDIR="kernel"

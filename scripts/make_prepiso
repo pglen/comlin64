@@ -1,4 +1,5 @@
 #!/bin/bash
+# shellcheck disable=SC2004,SC2009,SC2068,SC2002,SC2086,SC1091
 ##########################################################################
 ##                                                                      ##
 ## Make the install ISO                                                 ##
@@ -42,7 +43,7 @@ fi
 echo "  Copying (updating) filesystem ... "
 #cp -au $CURRUSB/* $ROOTFS
 
-EXC=$(basename $CURRUSB)
+#EXC=$(basename $CURRUSB)
 
 rsync -au   --info=progress2 \
             --exclude=/proc/* \
@@ -51,14 +52,6 @@ rsync -au   --info=progress2 \
             --exclude=/tmp/* \
             --exclude=/run/* \
             $CURRUSB/* $ROOTFS
-
-# Remove incidentals (created during testing)
-for aa in "root user guest" ; do
-    #echo $aa
-    rm -f "$ROOTFS/$aa/.bash_history"
-    rm -rf "$ROOTFS/$aa/.config/xfce4"
-    rm -rf "$ROOTFS/$aa/tmp"
-done
 
 #echo -n "Copying modules ... "
 #cp -au $MODULEDIR/* $ROOTFS/lib/modules
@@ -90,17 +83,33 @@ mkdir -p $ROOTFS/home/user
 cp -a $USERDIR/* $ROOTFS/home/user
 echo OK
 
-#echo -n "  Patching tmp and var permissions ... "
+# Remove incidentals (created during testing)
+IFS=$' \t\n'
+VALS="root home/user home/guest"
+for aaa in $VALS ; do
+    #echo "cleaning: $aaa"
+    rm -f  "$ROOTFS/$aaa/.bash_history"
+    rm -f  "$ROOTFS/$aaa/.ICEauthority"
+    rm -rf "$ROOTFS/$aaa/.config/xfce4"
+    rm -rf "$ROOTFS/$aaa/.local"
+    rm -rf "$ROOTFS/$aaa/.cache"
+    rm -rf "$ROOTFS/$aaa/tmp"
+    rm -rf "$ROOTFS/$aaa/.xfce*"
+done
+
+echo -n "  Patching tmp and var permissions ... "
 rm -rf $ROOTFS/tmp/
 mkdir -p $ROOTFS/tmp
 chmod a+rwxt $ROOTFS/tmp
 
+rm -rf $ROOTFS/var/tmp/
+mkdir -p $ROOTFS/var/tmp
+chmod a+rwxt $ROOTFS/var/tmp
+
 #rm -rf $ROOTFS/var/run/* >/dev/null 2>&1
 rm  -f  $ROOTFS/var/lib/alsa/* >/dev/null 2>&1
 
-#echo -n "  Patch ICEauthority ... "
-echo "" > $ROOTFS/root/.ICEauthority
-#echo OK
+echo OK
 
 # Pivot (or equivalent) needs this
 mkdir -p $ROOTFS/var/oldroot

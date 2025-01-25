@@ -106,7 +106,7 @@ loadmods() {
         echo "loadmods() " $@
     #fi
 
-    local modx filex unsp oldifs=$IFS
+    local modx filex unsp
     IFS=$'\n'
     filex=$(cat /etc/modules)
     for modx in $filex ; do
@@ -121,7 +121,7 @@ loadmods() {
                 modprobe "$unsp"
             fi
         fi
-    IFS=$oldifs
+    unset IFS
     done
 }
 
@@ -237,7 +237,6 @@ umountAll() {
     if [ $(($VERBOSE)) -gt 1 ] ; then
        echo "umountAll() $0 " $@
     fi
-    local oldifs=$IFS
     IFS=$'\n'
     PARTS=$(lsblk -pl | awk '{printf("%s %s\n", $7, $6) }' | grep part | \
             awk '{printf("%s\n", $1) }' | grep -v part)
@@ -262,7 +261,7 @@ umountAll() {
         fi
     done
 
-    IFS=$oldifs
+    unset IFS
 }
 
 termAll() {
@@ -447,7 +446,6 @@ makedevices() {
     if [ $(($VERBOSE)) -gt 2 ] ; then
         echo "makedevices() " $@
     fi
-    oldifs=$IFS
     IFS=$'\n'
     local sfiles onef devx majorx minorx
     sfiles=$(find /sys/class/sound -follow -type f -maxdepth 2 -name dev  2>/dev/null)
@@ -465,7 +463,7 @@ makedevices() {
             chown root:audio "$devx"  >>"$SULOUT" 2>>"$SULERR"
         fi
     done
-    IFS=$oldifs
+    unset IFS
 }
 
 # Pulled in for avoiding external file ...
@@ -479,7 +477,7 @@ loadmods() {
         echo "loadmods() " $@
     fi
 
-    local modx filex unsp oldifs=$IFS
+    local modx filex unsp
     IFS=$'\n'
     filex=$(cat /etc/modules)
     for modx in $filex ; do
@@ -494,7 +492,7 @@ loadmods() {
                 modprobe "$unsp"
             fi
         fi
-    IFS=$oldifs
+    unset IFS
     done
 }
 
@@ -609,7 +607,7 @@ umountAll() {
     if [ $(($VERBOSE)) -gt 1 ] ; then
        echo "umountAll() $0 " $@
     fi
-    local cc PARTS oldifs=$IFS
+    local cc PARTS
     IFS=$'\n'
     PARTS=$(lsblk -pl | awk '{printf("%s %s\n", $7, $6) }' | grep part | \
             awk '{printf("%s\n", $1) }' | grep -v part)
@@ -633,7 +631,7 @@ umountAll() {
             umount "$cc"
         fi
     done
-    IFS=$oldifs
+    unset IFS
 }
 
 termAll() {

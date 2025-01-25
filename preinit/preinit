@@ -95,13 +95,13 @@ mkdir -p /run/dbus
 echo -n "Starting DBUS ... "
 dbus-daemon --system #>>"$SULOUT" 2>>"$SULERR"
 getargy 'bsleep' && sleep "$FOUNDVAL"
-echo " \033[32;1mOK\033[0m"
+echo -e " \033[32;1mOK\033[0m"
 
 # Start logging
 echo -n "Starting rsyslogd ... "
 rsyslogd >> "$SULOUT" 2>> "$SULERR"
 getargy 'bsleep' && sleep "$FOUNDVAL"
-echo " \033[32;1mOK\033[0m"
+echo -e " \033[32;1mOK\033[0m"
 
 # UP loopback network connection
 ifconfig lo up 127.0.0.1
@@ -110,7 +110,7 @@ ifconfig lo up 127.0.0.1
 echo -n "Starting VTs ... "
 startvts
 getargy 'bsleep' && sleep "$FOUNDVAL"
-echo " \033[32;1mOK\033[0m"
+echo -e " \033[32;1mOK\033[0m"
 
 #export PS1="Comlin \w$ $ " ; setsid -c -w /bin/bash
 
@@ -133,7 +133,7 @@ getargy 'bsleep' && sleep "$FOUNDVAL"
 #/lib/systemd/systemd-logind >>$SULOUT 2>>$SULERR &
 #getargy 'bsleep' && sleep "$FOUNDVAL"
 
-echo " \033[32;1mOK\033[0m"
+echo -e " \033[32;1mOK\033[0m"
 
 getargx 'initbreak=modules' && tmpshell "$FOUNDVAR $ "
 
@@ -141,7 +141,7 @@ getargx 'initbreak=modules' && tmpshell "$FOUNDVAR $ "
 echo -n "Installing modules ... "
 loadmods
 getargy 'bsleep' && sleep "$FOUNDVAL"
-echo " \033[32;1mOK\033[0m"
+echo -e " \033[32;1mOK\033[0m"
 
 getargx 'initbreak=devices' && tmpshell "$FOUNDVAR $ "
 
@@ -149,26 +149,26 @@ getargx 'initbreak=devices' && tmpshell "$FOUNDVAR $ "
 echo -n "Installing devices ... "
 loaddevs
 getargy 'bsleep' && sleep "$FOUNDVAL"
-echo " \033[32;1mOK\033[0m"
+echo -e " \033[32;1mOK\033[0m"
 
 getargx 'initbreak=sound' &&  tmpshell "$FOUNDVAR $ "
 echo -n "Starting sound system ... "
 makedevices
 getargy 'bsleep' && sleep "$FOUNDVAL"
-echo " \033[32;1mOK\033[0m"
+echo -e " \033[32;1mOK\033[0m"
 
 echo -n "Setting sound voulume  ... "
 pulseaudio --start >>$SULOUT 2>>$SULERR
 pactl set-sink-mute 0 0
 pactl set-sink-volume 0 0.5
 getargy 'bsleep' && sleep "$FOUNDVAL"
-echo " \033[32;1mOK\033[0m"
+echo -e " \033[32;1mOK\033[0m"
 
 getargx 'initbreak=network' && tmpshell "$FOUNDVAR $ "
 echo -n "Starting network ... "
 dhclient >>$SULOUT 2>>$SULERR &
 getargy 'bsleep' && sleep "$FOUNDVAL"
-echo " \033[32;1mOK\033[0m"
+echo -e " \033[32;1mOK\033[0m"
 
 dbus-daemon --session >/dev/null 2>&1 &
 
