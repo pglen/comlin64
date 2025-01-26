@@ -31,7 +31,7 @@
 /* Including <unistd.h> makes sure that on a glibc system
    <features.h> is included, which again defines __GLIBC__ */
 #include <unistd.h>
-#include "linux_reboot.h"
+//include "linux_reboot.h"
 
 #define USE_LIBC
 
@@ -45,9 +45,7 @@
 extern int reboot(int, int, int);
 #  define REBOOT(cmd) reboot(LINUX_REBOOT_MAGIC1,LINUX_REBOOT_MAGIC2,(cmd))
 #endif
-static inline int my_reboot(int cmd) {
-	return REBOOT(cmd);
-}
+
 
 #else /* no USE_LIBC */
 
@@ -55,15 +53,13 @@ static inline int my_reboot(int cmd) {
 #include <linux/unistd.h>
 
 #ifdef _syscall3
-_syscall3(int,  reboot,  int,  magic, int, magic_too, int, cmd);
+    printf("Reboot syscall")
+    _syscall3(int,  reboot,  int,  magic, int, magic_too, int, cmd);
 #else
-/* Let us hope we have a 3-argument reboot here */
-extern int reboot(int, int, int);
+    /* Let us hope we have a 3-argument reboot here */
+    printf("Reboot ext def")
+    extern int reboot(int, int, int);
 #endif
-
-static inline int my_reboot(int cmd) {
-	return reboot(LINUX_REBOOT_MAGIC1, LINUX_REBOOT_MAGIC2, cmd);
-}
 
 #endif
 

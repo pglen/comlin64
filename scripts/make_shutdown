@@ -13,13 +13,25 @@
 . config_build nocheck
 . "$SCRIPTS"/misc/lib/lib_fail
 
-echo "Patching shutdown files"
+echo -n "Patching shutdown files ... "
 
 # Patch shutdown
 
-rm  -f $ROOTFS/sbin/shutdown.bin
-cp -a shutdown/shutdown.sh $ROOTFS/sbin
-mv  $ROOTFS/sbin/shutdown $ROOTFS/sbin/shutdown.bin  >/dev/null 2>&1
-ln -s -r $ROOTFS/sbin/shutdown.sh $ROOTFS/sbin/shutdown
+FILES="shutdown reboot flushall"
+
+for aa in $FILES ; do
+    #echo "rm: $aa"
+    rm  -f $ROOTFS/sbin/$aa
+done
+
+for bb in $FILES ; do
+    #echo "cp: $bb"
+    cp -a shutdown/$bb.sh $ROOTFS/sbin/$bb
+    chown root.root $ROOTFS/sbin/$bb
+    chmod a+x $ROOTFS/sbin/$bb
+    chmod u+s $ROOTFS/sbin/$bb
+done
+
+echo " OK"
 
 # EOF

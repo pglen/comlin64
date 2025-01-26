@@ -10,13 +10,14 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <errno.h>
 #include <signal.h>
 #include <sys/stat.h>
 
 #include "linux_reboot.h"
 
 char *help   = \
-    "Usage: linux_reboot [-h] [-t] [-f] [w seconds] [-m message]\n" \
+    "Usage: linux_[poweroff | reboot] [-h] [-t] [-f] [w seconds] [-m message]\n" \
     "          -f          - force\n" \
     "          -m msg      - send message\n" \
     "          -w sec      - wait seconds before action\n" \
@@ -26,6 +27,21 @@ char *help   = \
 
 int force = false, testx = false, verbose = false, waitx = 0;
 char *message = NULL;
+
+#ifdef COMPILE_POWEROFF
+    char *opstr = "shutdown";
+#else
+    char *opstr = "reboot";
+#endif
+
+static int my_reboot(int cmd) {
+     if(verbose)
+        {
+        printf("%s ... \n", opstr);
+        }
+	//return reboot(LINUX_REBOOT_MAGIC1, LINUX_REBOOT_MAGIC2, cmd);
+	return reboot(cmd);
+}
 
 // -----------------------------------------------------------------------
 
@@ -82,11 +98,17 @@ int main(int argc, char *argv[])
     if(!testx)
         {
         sync();
+
+        int ret = 0;
         #ifdef COMPILE_POWEROFF
-           my_reboot(LINUX_REBOOT_CMD_POWER_OFF);
+            ret = my_reboot(LINUX_REBOOT_CMD_POWER_OFF);
         #else
-            my_reboot(LINUX_REBOOT_CMD_RESTART);
+            ret = my_reboot(LINUX_REBOOT_CMD_RESTART);
         #endif
+        if (ret < 0)
+            {
+            printf("Cannot %s: %s\n", opstr, strerror(errno));
+            }
         }
     else
         {

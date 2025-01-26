@@ -9,9 +9,9 @@ clean:
 	@rm -f *.o
 	@rm -f linux_reboot linux_poweroff
 
-linux_reboot: linux_reboot.c
+linux_reboot: linux_reboot.c linux_reboot.h
 	gcc  linux_reboot.c -o linux_reboot
 
-linux_poweroff: linux_reboot.c
+linux_poweroff: linux_reboot.c linux_reboot.h
 	gcc -DCOMPILE_POWEROFF linux_reboot.c -o linux_poweroff
 

@@ -67,6 +67,7 @@ echo OK
 
 echo -n "  Copying sbin inits ... "
 cp -a $INITDIR/* $ROOTFS/sbin
+chown root.root $ROOTFS/sbin/*
 echo OK
 
 echo -n "  Copying shell utilities ... "
