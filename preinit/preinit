@@ -93,13 +93,13 @@ mkdir -p $XDG_RUNTIME_DIR
 
 mkdir -p /run/dbus
 echo -n "Starting DBUS ... "
-dbus-daemon --system #>>"$SULOUT" 2>>"$SULERR"
+dbus-daemon --system >>"$SULOUT" 2>>"$SULERR" &
 getargy 'bsleep' && sleep "$FOUNDVAL"
 echo -e " \033[32;1mOK\033[0m"
 
 # Start logging
 echo -n "Starting rsyslogd ... "
-rsyslogd >> "$SULOUT" 2>> "$SULERR"
+rsyslogd >> "$SULOUT" 2>> "$SULERR" &
 getargy 'bsleep' && sleep "$FOUNDVAL"
 echo -e " \033[32;1mOK\033[0m"
 
@@ -121,8 +121,8 @@ export SYSTEMD_IGNORE_CHROOT=1
 getargx 'initbreak=daemons' && tmpshell "$FOUNDVAR $ "
 echo -n "Starting daemons ... "
 
-#echo -n "polkit "
-#/usr/libexec/polkitd >>$SULOUT 2>>$SULERR &
+echo -n "polkit "
+/usr/libexec/polkitd >>$SULOUT 2>>$SULERR &
 #getargy 'bsleep' && sleep "$FOUNDVAL"
 
 echo -n "systemd-udevd "
