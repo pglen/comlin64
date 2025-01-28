@@ -14,7 +14,7 @@ HTML                -- subdirectory for applications
 docs                -- subdirectory for documentation / pango sources
 images              -- subdirectory for applications
 _kernel             -- subdirectory for kernel and map
-LICENSE             -- Re-distribution licence 
+LICENSE             -- Re-distribution licence
 Makefile            -- Main Makefile
 OPTIONS             -- Options description
 pack.sh             -- make distro archive
@@ -22,7 +22,7 @@ QUICKSTART          -- Instructions for new USB system creation
 README              -- Readme for project
 sbin                -- subdirectory for applications
 scripts             -- subdirectory for scripts called by Makefile
-sh                  -- subdirectory for sys boot / shell 
+sh                  -- subdirectory for sys boot / shell
 sha1.sum            -- sum file
 SUMFILE             -- sum file for sha1.sum (see notes in README)
 suidgr              -- files that need suid group bit set
@@ -31,3 +31,57 @@ syslinux            -- subdirectory for syslinux originals
 TECH                -- Technical notes
 tmp                 -- subdirectory for temp files
 _work               -- subdirectory for work related files
+
+boot
+BOOT
+checksum.sh
+cleancomlin.sh
+clean_usb.sh
+comlinver.txt
+config_build
+config_drive.sample
+config_oldusb
+config_system
+CONTRIB
+currconsole.sh
+cycle_lite.sh
+cycle.sh
+Desktop
+docs
+empty
+FAQ
+FEATURES
+files
+FILES
+gensum.sh
+HISTORY
+HOWTO
+HTML
+images
+initramfs
+kernel
+license
+LICENSE
+Makefile
+OPTIONS
+packscr.sh
+pack.sh
+pl
+preinit
+py
+QUICKSTART
+README.md
+scripts
+SECURITY
+sha1.sum
+shlib
+shutdown
+sounds
+study
+SUMFILE
+sysgensum.sh
+syslinux
+TECH
+user-dir
+Videos
+xephir.sh

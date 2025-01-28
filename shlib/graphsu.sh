@@ -12,10 +12,11 @@ if [[ $# -eq 0 ]]; then
 fi
 
 OPTIND=1
-while getopts u: opt; do
+while getopts "u:f" opt; do
     case "$opt" in
         f) force="yes" ;;
         u) user="$OPTARG" ;;
+        *) echo
     esac
 done
 shift $((OPTIND - 1))
@@ -26,13 +27,15 @@ if [[ $force != "no" ]]; then
     # check for sudo
     sudo_check=$(sudo -H -S -- echo SUDO_OK 2>&1 &)
     if [[ $sudo_check == "SUDO_OK" ]]; then
-        eval sudo $cmd
+        eval sudo "$cmd"
         exit $?
     fi
 fi
 
 # get password
-pass=$(yad --class="GSu" \
+#--class="GSu" \
+pass=$(yad \
+    --class="GSu" \
     --title="Password" \
     --text="Enter password for user <b>$user</b>:" \
     --image="dialog-password" \
@@ -40,15 +43,18 @@ pass=$(yad --class="GSu" \
 [[ -z "$pass" ]] && exit 1
 
 # grant access to xserver for specified user
-xhost +${user}@ &> /dev/null
+#xhost +${user}@ &> /dev/null
 
 # run command
 fifo_in="$(mktemp -u --tmpdir gsu.empty.in.XXXXXXXXX)"
 fifo_out="$(mktemp -u --tmpdir gsu.empty.out.XXXXXXXXX)"
-
-LC_MESSAGES=C empty -f -i $fifo_in -o $fifo_out su $suargs $user -c "$cmd"
-[[ $? -eq 0 ]] && empty -w -i $fifo_out -o $fifo_in "word:" "$pass\n"
+#echo "executing" 'pass='$pass "args="$suargs "user="$user cmd="$cmd"
+LC_MESSAGES=C
+./empty  -f -i "$fifo_in" -o "$fifo_out"  -L sess su "$suargs" "$user" -c "$cmd"
+#echo ret=$ret fifo=$fifo_in fifo=$fifo_out
+ret=$?
+[[ $ret -eq 0 ]] && ./empty -w -i "$fifo_out" -o "$fifo_in" -L sess "word:" "$pass\n"
 
 exit $?
 
-
+# EOF

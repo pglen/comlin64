@@ -205,7 +205,7 @@ buildiso: apps checkscripts initramfs prepiso prepdown getapps iso
 playsound:
 	@play ${SOUND} >/dev/null 2>&1 &
 
-# Test if sudo promptless works
+# Test if promptless sudo works
 testsudo:
 	sudo echo "Message from non prompted SUDO"
 

@@ -1,4 +1,5 @@
 #!/bin/sh
+# shellcheck disable=SC2034,SC1091
 
 # Customize these options for comlin build.
 # Copyright by Peter Glen. See open source license for details.
@@ -30,11 +31,12 @@ KEYGET=./apps/keyget/keyget
 APPDIR=./apps/
 
 # root directory of the USB-set
-BASE=`pwd`
+BASE=$(pwd)
 
 # !IMPORTANT! make sure this is really the USB drive, otherwise you are
 # overwriting live data. You have been advised.
 
+RDDEV=""
 # Skip check if instructed
 if [ "$1" != "nocheck" ] ; then
 
@@ -69,7 +71,20 @@ CURRUSB=$FULLUSB
 #CURRUSB=$LITEUSB
 #CURRUSB=$MINUSB
 
+# Logic to detect if build edition changed
+OLDNAME=config_oldusb
+if [ ! -f $OLDNAME ] ; then
+    touch $OLDNAME
+fi
+oldusb=$(cat $OLDNAME)
+
+if [ "$oldusb" != "$CURRUSB" ] ; then
+    echo "Edition changed, Cleaning: $oldusb"
+    echo $CURRUSB > $OLDNAME
+fi
+
 #echo "Building: $CURRUSB"
+#exit
 
 MODULEDIR=../comlin64-mod-000
 mkdir -p $MODULEDIR
@@ -153,13 +168,13 @@ INITRAMFSRES=$KERNELDIR/initramfs
 MCOMLIN=/media/COMLIN
 MCOMBOOT=/media/COMBOOT
 
-GREPX=`mount | grep /mnt/COMLIN`
-if [ x"$GREPX" != x"" ] ; then
-    #echo "Force override to /mnt/COMLIN"
-   	MCOMLIN=/mnt/COMLIN
-fi
+#GREPX=`mount | grep /mnt/COMLIN`
+#if [ x"$GREPX" != x"" ] ; then
+#    #echo "Force override to /mnt/COMLIN"
+#   	MCOMLIN=/mnt/COMLIN
+#fi
 
-GREPX=`mount | grep /mnt/COMBOOT`
+GREPX=$(mount | grep /mnt/COMBOOT)
 if [ x"$GREPX" != x"" ] ; then
     #echo "Force override to /mnt/COMBOOT"
    	MCOMBOOT=/mnt/COMBOOT
@@ -170,8 +185,8 @@ fi
 
 checkMnt()
 {
-    MM=`mount | grep $DDEV`
-    MMM=`echo $MM | grep "$1"`
+    MM=$(mount | grep "$DDEV")
+    MMM=$(echo "$MM" | grep "$1")
     if [ x"" != x"$MMM" ] ; then
         echo "Refusing to operate on partition that is mounted on the $1 subtree"
         exit 1
@@ -191,30 +206,14 @@ checkMnt()
 
 #BOOTLOADER="isolinux"
 
-# The size of the initial ramdisk in kbytes
-RAMDISKSIZE="25000"
-
 # Must be multiple of 0x8000
 #RAMSIZE=$((400*0x8000))
 
 # If you don't want to burn the cd but only the isoimage say yes here
 # you will find the image in $BASE/rescuecd.iso
 
-ISOIMAGEONLY="yes"
+#ISOIMAGEONLY="yes"
 #ISOIMAGEONLY="no"
-
-# if you want to use a compressed cramfs image say yes here. It
-# will double the available space on your cd. cramfs will
-# result in a slightly better compression ratio than zisofs, but
-# on the other hand cramfs is somewhat limited. Max. 256MB Images
-# and max. 16MB big files are supported.
-# if you plan to load the rescuecd into ram then i highly suggest
-# using a compressed cramfs image because it will reduce the
-# total needed RAM by the factor 2.
-# The kernel will need compiled in support for cramfs.
-# Only one of COMPRESSEDFS and CRAMFS can be set to yes.
-
-CRAMFS="no"
 
 # size of the floppy disk image if you are using lilo, syslinux or grub as the
 # bootloader.

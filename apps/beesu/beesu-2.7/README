@@ -1,0 +1,12 @@
+------------------------------------ BEESU -------------------------------------
+
+Beesu is a wrapper around su and it works with consolehelper under
+Fedora to let you have a graphic interface like gksu.
+
+It's useful to replace the missing gksu in Fedora.
+
+It's a simple software, but once installed, you could read its
+manual by typing `man beesu'.
+
+Homepage: <http://www.honeybeenet.altervista.org>
+

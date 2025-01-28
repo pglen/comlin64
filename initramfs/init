@@ -21,7 +21,8 @@
 # Silence async messages on terminal
 /usr/bin/setterm --msg off
 
-echo "Loaded kernel ... OK"
+# This also signals that we are active
+echo -e "Loaded kernel ... \033[32;1mOK\033[0m "
 
 export PATH=/sbin:/bin:/usr/sbin:/usr/bin
 
