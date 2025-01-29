@@ -143,7 +143,8 @@ startvts() {
             echo "would exec: \"setsid agetty $TT linux >/dev/null\" 2>&1 >/dev/null 2>&1"
          else
             # We ececute in a sub shell, so it becomes its own
-            /lib/shlib/forever.sh "setsid agetty $TT linux >/dev/null 2>&1" >/dev/null 2>&1 &
+            #/lib/shlib/forever.sh "setsid agetty $TT linux >/dev/null 2>&1" >/dev/null 2>&1 &
+            /lib/shlib/forever.sh "setsid agetty $TT linux >>agetty 2>&1" >>forever 2>&1 &
         fi
     done
 }

@@ -102,7 +102,7 @@ echo OK
 #chown -R 1001.100 $ROOTFS/home/guest
 
 # Single user, needs permission
-chmod u+s /sbin/chvt
+chmod u+s /bin/chvt
 
 echo -n "  Copying etc files ... "
 
