@@ -17,20 +17,21 @@ echo -n "Patching shutdown files ... "
 
 # Patch shutdown
 
-FILES="shutdown reboot flushall"
+#FILES="shutdown reboot flushall"
+#for aa in $FILES ; do
+#    #echo "rm: $aa"
+#    rm  -f $ROOTFS/sbin/$aa
+#done
+#for bb in $FILES ; do
+#    #echo "cp: $bb"
+#    cp -a shutdown/$bb.sh $ROOTFS/sbin/$bb
+#    chown root.root $ROOTFS/sbin/$bb
+#    chmod a+x $ROOTFS/sbin/$bb
+#    chmod u+s $ROOTFS/sbin/$bb
+#done
 
-for aa in $FILES ; do
-    #echo "rm: $aa"
-    rm  -f $ROOTFS/sbin/$aa
-done
-
-for bb in $FILES ; do
-    #echo "cp: $bb"
-    cp -a shutdown/$bb.sh $ROOTFS/sbin/$bb
-    chown root.root $ROOTFS/sbin/$bb
-    chmod a+x $ROOTFS/sbin/$bb
-    chmod u+s $ROOTFS/sbin/$bb
-done
+cp -a apps/empty/empty $ROOTFS/sbin/
+cp -a shutdown/. $ROOTFS/sbin/
 
 echo " OK"
 

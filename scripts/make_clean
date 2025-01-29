@@ -31,6 +31,8 @@ rm -rf $ROOTFS/*
 rm -f $TMPDIR/*  >/dev/null 2>&1
 rm -f $BACKUPDIR/*  >/dev/null 2>&1
 
+rm -rf $ROOTUSERDIR/.cache  >/dev/null 2>&1
+
 echo OK
 
 #sudo umount "$MOUNTPOINT" > /dev/null 2>&1

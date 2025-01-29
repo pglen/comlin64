@@ -29,11 +29,23 @@ fifo_out="$(mktemp -u --tmpdir gsu.empty.out.XXXXXXXXX)"
 
 # Run command
 LC_MESSAGES=C
-./empty  -f -i "$fifo_in" -o "$fifo_out"  -L sess su "$suargs" "$user" -c "$cmd"
+/sbin/empty  -f -i "$fifo_in" -o "$fifo_out"  -L sess su "$suargs" "$user" -c "$cmd"
 ret=$?
 #echo ret=$ret fifo=$fifo_in fifo=$fifo_out
-[[ $ret -eq 0 ]] && ./empty -w -i "$fifo_out" -o "$fifo_in" "word:" "$pass\n"
+[[ $ret -eq 0 ]] && /sbin/empty -w -i "$fifo_out" -o "$fifo_in" "word:" "$pass\n"
+ret=$?
 
-exit $?
+if [ $((ret)) -ne 0 ] ; then
+    #echo $ret
+    $(yad \
+    --text-align="center"\
+    --width=300 \
+    --button=OK:0 \
+    --text="Invalid Pass" \
+    --title="Invalid Pass" \
+    )
+fi
+
+exit $ret
 
 # EOF

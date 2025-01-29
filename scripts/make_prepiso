@@ -81,7 +81,38 @@ echo OK
 
 echo -n "  Copying user files ... "
 mkdir -p $ROOTFS/home/user
-cp -a $USERDIR/* $ROOTFS/home/user
+mkdir -p $ROOTFS/home/guest
+mkdir -p $ROOTFS/root
+
+if [ ! -d "$ROOTFS/home/user" ] ; then
+    echo "Cannot operate without the target system 'user'."
+    echo "Please create it."
+    exit 1
+fi
+
+cp -a $USERDIR/. $ROOTFS/home/user
+cp -a $GUESTDIR/. $ROOTFS/home/guest
+cp -a $ROOTUSERDIR/. $ROOTFS/root
+
+echo OK
+
+# Change to booted system's permissions
+#   Wed 29.Jan.2025: copy passwd instead
+#chown -R 1000.100 $ROOTFS/home/user
+#chown -R 1001.100 $ROOTFS/home/guest
+
+# Single user, needs permission
+chmod u+s /sbin/chvt
+
+echo -n "  Copying etc files ... "
+
+# The pre created pass and group
+cp -a $ETCDIR/* $ROOTFS/etc
+
+# XFCE related
+cp -a X11/* $ROOTFS/etc/X11
+cp -a backgrounds/ $ROOTFS/usr/share/
+
 echo OK
 
 # Remove incidentals (created during testing)
@@ -89,12 +120,13 @@ IFS=$' \t\n'        # Restore original IFS
 VALS="root home/user home/guest"
 for aaa in $VALS ; do
     #echo "cleaning: $aaa"
+    rm -f  "$ROOTFS/$aaa/.sudo_as_admin_successful"
     rm -f  "$ROOTFS/$aaa/.bash_history"
     rm -f  "$ROOTFS/$aaa/.ICEauthority"
     rm -rf "$ROOTFS/$aaa/.local"
     rm -rf "$ROOTFS/$aaa/.cache"
     rm -rf "$ROOTFS/$aaa/tmp"
-    # We remember the settings od XFCE from ev environments
+    # No clear, we remember the settings of XFCE from prev environments
     #rm -rf "$ROOTFS/$aaa/.xfce*"
     #rm -rf "$ROOTFS/$aaa/.config/xfce4"
 done
@@ -119,7 +151,7 @@ mkdir -p $ROOTFS/var/oldroot
 # Our ID file
 cp $COMLINVERFILE $ROOTFS/etc/COMLINUX_VERSION
 
-# Patch sound devices (done dynamically on boot, just clear it)
+# Patch sound devices (done dynamically on init, just clear it)
 mkdir -p $ROOTFS/dev/snd
 rm -rf $ROOTFS/dev/snd/*
 

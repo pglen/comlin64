@@ -1,6 +1,5 @@
 #!/bin/bash
 
-sync
-linux_poweroff -f
+../shlib/graphdown.sh
 
 # EOF

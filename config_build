@@ -36,6 +36,18 @@ BASE=$(pwd)
 # !IMPORTANT! make sure this is really the USB drive, otherwise you are
 # overwriting live data. You have been advised.
 
+# Where our FULL USB .. or LITE .. or MIN USB data lives
+
+FULLUSB=../comlin64-full-000
+LITEUSB=../comlin64-lite-000
+MINUSB=../comlin64-min-000
+
+# SELECT this variable for current edition
+
+#CURRUSB=$FULLUSB
+CURRUSB=$LITEUSB
+#CURRUSB=$MINUSB
+
 RDDEV=""
 # Skip check if instructed
 if [ "$1" != "nocheck" ] ; then
@@ -54,22 +66,10 @@ if [ "$1" != "nocheck" ] ; then
     fi
 fi
 
-# Where our FULL USB .. or LITE .. or MIN USB data lives
-
-FULLUSB=../comlin64-full-000
-LITEUSB=../comlin64-lite-000
-MINUSB=../comlin64-min-000
-
 # Pre-create if not there
 mkdir -p $FULLUSB
 mkdir -p $LITEUSB
 mkdir -p $MINUSB
-
-# SET this variable for current edition
-
-CURRUSB=$FULLUSB
-#CURRUSB=$LITEUSB
-#CURRUSB=$MINUSB
 
 # Logic to detect if build edition changed
 OLDNAME=config_oldusb
@@ -81,6 +81,7 @@ oldusb=$(cat $OLDNAME)
 if [ "$oldusb" != "$CURRUSB" ] ; then
     echo "Edition changed, Cleaning: $oldusb"
     echo $CURRUSB > $OLDNAME
+    make clean
 fi
 
 #echo "Building: $CURRUSB"
@@ -102,7 +103,15 @@ NEWKERNEL=/boot/$KERNELBIN
 NEWKERNELDIR=.
 
 DEVDIR=../dev-files
+
 USERDIR=./user-dir
+GUESTDIR=./guest-dir
+ROOTUSERDIR=./rootuser-dir
+ETCDIR=./etc-dir/
+
+mkdir -p USERDIR
+mkdir -p GUESTDIR
+mkdir -p ROOTUSERDIR
 
 # Where boot related stuff is
 BOOTDIR=boot

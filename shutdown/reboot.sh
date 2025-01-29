@@ -1,6 +1,5 @@
 #!/bin/bash
 
-sync
-linux_reboot -f
+/shlib/graphdown.sh reboot
 
 # EOF

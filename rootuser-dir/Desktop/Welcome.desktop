@@ -1,0 +1,10 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Welcome
+Comment=Welcome to COMIN64
+Exec=/root/Utils/pangview/pangview.py /root/Utils/WELCOME
+Icon=
+Path=
+Terminal=false
+StartupNotify=false
