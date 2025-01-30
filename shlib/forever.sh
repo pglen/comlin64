@@ -42,7 +42,8 @@ while : ; do
 	if [ $((VERBOSE)) -gt $((0)) ] ; then
         echo "Executing: $@"
     fi
-    "$@"         # EXEC is here
+    # EXEC is here
+    $1 $2 $3 $4 $5 $6 $7 $8 $9 # did not work here : $@
     FREQ2=$(date +%s)
     if [ $((FREQ2)) -ne $((FREQ)) ]; then
         #echo; echo tick $CNT

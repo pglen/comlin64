@@ -30,6 +30,10 @@ echo -n "Patching shutdown files ... "
 #    chmod u+s $ROOTFS/sbin/$bb
 #done
 
+# Triganals are symlinks -- nuke them
+rm -f $ROOTFS/sbin/shutdown
+rm -f $ROOTFS/sbin/reboot
+
 cp -a apps/empty/empty $ROOTFS/sbin/
 cp -a shutdown/. $ROOTFS/sbin/
 

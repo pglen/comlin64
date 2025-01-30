@@ -1,4 +1,6 @@
 #!/bin/bash
+# shellcheck disable=SC2004,SC2009,SC2068,SC2002
+# shellcheck disable=SC1091
 
 # This is a tester for the preinit functions. Defining the 'TESTME'
 # will prevent the code from executing system functions, instaed
@@ -12,7 +14,7 @@
 #echo {1..10} ; exit
 
 if [ "$1" = "" ] ; then
-    echo "Use: $(basename $0) [all] [1...c]"
+    echo "Use: $(basename "$0") [all] [1...c]"
     exit
 fi
 
@@ -21,7 +23,7 @@ if [ "$1" = "all" ] ; then
         ALL+="$aa "
     done
 else
-    ALL=$@
+    ALL=$*
 fi
 
 TESTME=1
@@ -29,18 +31,20 @@ TESTME=1
 
 # Pass individual test numbers per argument to see results
 
+VERBOSE=0
+
 for itemx in $ALL ; do
     #echo Item: $itemx
     case "$itemx" in
-        1)  getargy 'verbose' && echo "found VERBOSE=$FOUNDVAL"; VERBOSE=$FOUNDVAL ;;
+        1)  getargy 'verbose' && echo "found VERBOSE=$FOUNDVAL"; VERBOSE="$FOUNDVAL" ;;
         2)  getargy 'bsleep' && echo "found bsleep=$FOUNDVAL"; echo would sleep "$FOUNDVAL" ;;
         3)  getargx 'initbreak=device' && tmpshell "Found VAR2: $FOUNDVAR $ " ;;
         4)  getargx 'hello' && tmpshell "Found VAR: $FOUNDVAR $ " ;;
         5)  getargx 'initbreak=post-gui' && tmpshell "Found VAR: $FOUNDVAR $ " ;;
         6)  tmpshell ;;
-        7)  startvts ;;
-        8)  loaddevs ;;
-        9)  loadmods ;;
+        7)  loaddevs ;;
+        8)  loadmods ;;
+        9)  startvts ;;
         a) downClean ;;
         b) shutdownx ;;
         c) getargx 'initbreak=all' && export BREAKALL=1

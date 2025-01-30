@@ -125,30 +125,6 @@ loadmods() {
     done
 }
 
-startvts() {
-
-    # Start virtual terminals and a serial port
-
-    if [ $(($VERBOSE)) -gt 1 ] ; then
-        echo "startvts() " $@
-    fi
-
-    local TT TERMS="tty2 tty3 tty4 tty5 tty6 ttyS0"
-
-    for TT in $TERMS ; do
-        if [ $(($VERBOSE)) -gt 0 ] ; then
-            echo "Starting term: $TT"
-        fi
-        if [ $(($TESTME)) -gt 0 ] ; then
-            echo "would exec: \"setsid agetty $TT linux >/dev/null\" 2>&1 >/dev/null 2>&1"
-         else
-            # We ececute in a sub shell, so it becomes its own
-            #/lib/shlib/forever.sh "setsid agetty $TT linux >/dev/null 2>&1" >/dev/null 2>&1 &
-            /lib/shlib/forever.sh "setsid agetty $TT linux >>agetty 2>&1" >>forever 2>&1 &
-        fi
-    done
-}
-
 loaddevs() {
 
     # Install devices from PCI bus; ignore vbox additions for now
@@ -172,6 +148,29 @@ loaddevs() {
             modprobe "$aa" >>"$SULOUT" 2>>"$SULERR"
         done
     fi
+}
+
+startvts() {
+
+    # Start virtual terminals and a serial port
+
+    if [ $(($VERBOSE)) -gt 1 ] ; then
+        echo "startvts() " $@
+    fi
+
+    local TT TERMS="tty2 tty3 ttyS0"
+
+    for TT in $TERMS ; do
+        if [ $(($VERBOSE)) -gt 0 ] ; then
+            echo "Starting term: $TT"
+        fi
+        if [ $(($TESTME)) -gt 0 ] ; then
+            echo "would exec: /usr/bin/setsid -c -w /sbin/agetty $TT linux >/dev/null 2>&1 >/dev/null 2>&1"
+         else
+            # We ececute in a sub shell, so it becomes its own
+            /lib/shlib/forever.sh "/usr/bin/setsid /sbin/agetty $TT linux >/dev/null 2>&1" >/dev/null 2>&1 &
+        fi
+    done
 }
 
 shutdownx()  {
@@ -478,7 +477,7 @@ loadmods() {
     # Load modules intended for this system
 
     if [ $(($VERBOSE)) -gt 1 ] ; then
-        echo "loadmods() " $@
+        echo "loadmods() $* "
     fi
 
     local modx filex unsp
@@ -500,28 +499,6 @@ loadmods() {
     done
 }
 
-startvts() {
-
-    # Start virtual terminals and a serial port
-
-    if [ $(($VERBOSE)) -gt 1 ] ; then
-        echo "startvts() " $@
-    fi
-
-    local TT TERMS="tty2 tty3 tty4 tty5 tty6 ttyS0"
-
-    for TT in $TERMS ; do
-        if [ $(($VERBOSE)) -gt 0 ] ; then
-            echo "Starting term: $TT"
-        fi
-        if [ $(($TESTME)) -gt 0 ] ; then
-            echo "would exec: \"setsid agetty $TT linux >/dev/null\" 2>&1 >/dev/null 2>&1"
-         else
-            # We ececute in a sub shell, so it becomes its own
-            /lib/shlib/forever.sh "setsid agetty $TT linux >/dev/null 2>&1" >/dev/null 2>&1 &
-        fi
-    done
-}
 
 loaddevs() {
 

@@ -107,12 +107,6 @@ echo -e " \033[32;1mOK\033[0m"
 # UP loopback network connection
 ifconfig lo up 127.0.0.1
 
-# Virtual terminals and a serial port
-echo -n "Starting VTs ... "
-startvts
-getargy 'bsleep' && sleep "$FOUNDVAL"
-echo -e " \033[32;1mOK\033[0m"
-
 #export PS1="Comlin \w$ $ " ; setsid -c -w /bin/bash
 
 # This way udev is functional in chroot
@@ -124,7 +118,7 @@ echo -n "Starting daemons ... "
 
 echo -n "polkit "
 /usr/libexec/polkitd >>$SULOUT 2>>$SULERR &
-#getargy 'bsleep' && sleep "$FOUNDVAL"
+getargy 'bsleep' && sleep "$FOUNDVAL"
 
 echo -n "systemd-udevd "
 /lib/systemd/systemd-udevd >>$SULOUT 2>>$SULERR &
@@ -134,6 +128,12 @@ getargy 'bsleep' && sleep "$FOUNDVAL"
 #/lib/systemd/systemd-logind >>$SULOUT 2>>$SULERR &
 #getargy 'bsleep' && sleep "$FOUNDVAL"
 
+echo -e " \033[32;1mOK\033[0m"
+
+# Virtual terminals and a serial port
+echo -n "Starting VTs ... "
+startvts
+getargy 'bsleep' && sleep "$FOUNDVAL"
 echo -e " \033[32;1mOK\033[0m"
 
 getargx 'initbreak=modules' && tmpshell "$FOUNDVAR $ "
@@ -191,7 +191,7 @@ while : ; do
     getargy 'bsleep' && sleep "$FOUNDVAL"
 
     # Start Xorg as a regular user
-    su - user -c "./startup.sh"
+    su - user -c "./.startup.sh"
     chvt 1
 
     # Here one can examine post - gui
