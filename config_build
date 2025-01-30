@@ -9,10 +9,10 @@
 # Mon 13.Jan.2025   fight with the sound device
 
 # Notes:
-#  Some varibles left over from comlin32 and initrd -- Ignore them.
+#  Some variables left over from comlin32 and initrd -- Ignore them.
 #  The system is switched to grub, other boot methods are not worked on
 #       so they are defunct. They are left in for (possible) future
-#       possible implamentation.
+#       possible implementation.
 
 # In case of problems, this identifies the caller
 #echo "From": $0 $@
@@ -47,6 +47,16 @@ MINUSB=../comlin64-min-000
 #CURRUSB=$FULLUSB
 CURRUSB=$LITEUSB
 #CURRUSB=$MINUSB
+
+while getopts 'h' opt; do
+  case "$opt" in
+    h)
+      echo "Processing option 'h' "
+      ;;
+  esac
+done
+
+shift $(( OPTIND - 1 ));
 
 RDDEV=""
 # Skip check if instructed

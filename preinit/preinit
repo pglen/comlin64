@@ -192,6 +192,7 @@ while : ; do
 
     # Start Xorg as a regular user
     su - user -c "./startup.sh"
+    chvt 1
 
     # Here one can examine post - gui
     getargx 'initbreak=post-gui' &&  tmpshell "$FOUNDVAR $ "

@@ -40,6 +40,9 @@ if [ ! -f $KERNELDIR/initramfs ] ; then
     exit 1
 fi
 
+# Pre - Clean some config (to be refilled from target)
+rm -f $ROOTFS/usr/share/X11/xorg.conf.d/*
+
 echo "  Copying (updating) filesystem ... "
 #cp -au $CURRUSB/* $ROOTFS
 
@@ -84,11 +87,11 @@ mkdir -p $ROOTFS/home/user
 mkdir -p $ROOTFS/home/guest
 mkdir -p $ROOTFS/root
 
-if [ ! -d "$ROOTFS/home/user" ] ; then
-    echo "Cannot operate without the target system 'user'."
-    echo "Please create it."
-    exit 1
-fi
+#if [ ! -d "$ROOTFS/home/user" ] ; then
+#    echo "Cannot operate without the target system 'user'."
+#    echo "Please create it."
+#    exit 1
+#fi
 
 cp -a $USERDIR/. $ROOTFS/home/user
 cp -a $GUESTDIR/. $ROOTFS/home/guest

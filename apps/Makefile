@@ -1,5 +1,7 @@
 # Makefile
 
+.PHONY: apps clean
+
 all:
 	@echo "Help: make help for more info"
 

@@ -149,7 +149,7 @@ new2:
 	sudo ./scripts/make_part go
 	sudo ./scripts/make_fs go
 
-initramfs:
+initramfs: apps
 	@sudo ./scripts/make_initramfs
 
 checkscripts:

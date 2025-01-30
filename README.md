@@ -11,7 +11,7 @@ Preface
     *   The Community Linux project aims to provide a simple Linux distribution
         for the masses.
     *   It is a fully functional GUI right from the CD/Thumb drive within the first
-        30 seconds of power up.
+        30 seconds of power up. (21 seconds measured 0n dell laptop)
     *   It is installation-less, and it looks and feels like a real hard drive
         installation.
      _________________________________________________________________

@@ -166,6 +166,9 @@ loaddevs() {
         done
     else
         for aa in $DEVS ; do
+            if [ $(($VERBOSE)) -gt 0 ] ; then
+                echo "Loading: $aa"
+            fi
             modprobe "$aa" >>"$SULOUT" 2>>"$SULERR"
         done
     fi
