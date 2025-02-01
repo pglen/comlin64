@@ -90,12 +90,25 @@ mkdir -p $ROOTFS/home/guest
 mkdir -p $ROOTFS/root
 
 cp -a $USERDIR/. $ROOTFS/home/user
+UIDX=$(grep user:x etc-dir/passwd  | awk -F ":" '{print $3}')
+GIDX=$(grep user:x etc-dir/passwd  | awk -F ":" '{print $4}')
+chown -R $UIDX.$GIDX $ROOTFS/home/user/.
+
 cp -a $GUESTDIR/. $ROOTFS/home/guest
+UIDG=$(grep guest:x etc-dir/passwd  | awk -F ":" '{print $3}')
+GIDG=$(grep guest:x etc-dir/passwd  | awk -F ":" '{print $4}')
+chown -R $UIDG.$GIDG $ROOTFS/home/guest/.
+
 cp -a $ROOTUSERDIR/. $ROOTFS/root
+UIDR=$(grep root:x etc-dir/passwd  | awk -F ":" '{print $3}')
+GIDR=$(grep root:x etc-dir/passwd  | awk -F ":" '{print $4}')
+chown -R $UIDR.$GIDR $ROOTFS/root/.
+
+unset UIDX GIDX UIDG GIDG UIDR GIDR
 echo OK
 
 # Single user, needs permission
-chmod u+s /bin/chvt
+chmod u+s $ROOTFS/bin/chvt
 
 echo -n "  Copying etc files ... "
 
@@ -119,6 +132,8 @@ for aaa in $VALS ; do
     rm -rf "$ROOTFS/$aaa/.local"
     rm -rf "$ROOTFS/$aaa/.cache"
     rm -rf "$ROOTFS/$aaa/tmp"
+    rm -rf "$ROOTFS/$aaa/.xfce_err"
+    rm -rf "$ROOTFS/$aaa/.xfce_out"
     # No clear, we remember the settings of XFCE from prev environments
     #rm -rf "$ROOTFS/$aaa/.xfce*"
     #rm -rf "$ROOTFS/$aaa/.config/xfce4"
@@ -128,10 +143,12 @@ echo -n "  Patching tmp and var permissions ... "
 rm -rf $ROOTFS/tmp/
 mkdir -p $ROOTFS/tmp
 chmod a+rwxt $ROOTFS/tmp
+rm -rf $ROOTFS/tmp/.
 
 rm -rf $ROOTFS/var/tmp/
 mkdir -p $ROOTFS/var/tmp
 chmod a+rwxt $ROOTFS/var/tmp
+rm -rf $ROOTFS/var/tmp/.
 
 #rm -rf $ROOTFS/var/run/* >/dev/null 2>&1
 rm  -f  $ROOTFS/var/lib/alsa/* >/dev/null 2>&1

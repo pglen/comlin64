@@ -119,9 +119,9 @@ GUESTDIR=./guest-dir
 ROOTUSERDIR=./rootuser-dir
 ETCDIR=./etc-dir/
 
-mkdir -p USERDIR
-mkdir -p GUESTDIR
-mkdir -p ROOTUSERDIR
+mkdir -p $USERDIR
+mkdir -p $GUESTDIR
+mkdir -p $ROOTUSERDIR
 
 # Where boot related stuff is
 BOOTDIR=boot

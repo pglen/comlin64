@@ -158,17 +158,19 @@ startvts() {
         echo "startvts() " $@
     fi
 
-    local TT TERMS="tty2 tty3 ttyS0"
+    local TT TERMS="tty2 tty3 tty4 ttyS0"
 
     for TT in $TERMS ; do
         if [ $(($VERBOSE)) -gt 0 ] ; then
             echo "Starting term: $TT"
         fi
         if [ $(($TESTME)) -gt 0 ] ; then
-            echo "would exec: /usr/bin/setsid -c -w /sbin/agetty $TT linux >/dev/null 2>&1 >/dev/null 2>&1"
+            echo "would exec: /usr/bin/setsid -c -w /sbin/agetty $TT 38400 linux >/dev/null 2>&1 >/dev/null 2>&1"
          else
             # We ececute in a sub shell, so it becomes its own
-            /lib/shlib/forever.sh "/usr/bin/setsid /sbin/agetty $TT linux >/dev/null 2>&1" >/dev/null 2>&1 &
+            #/lib/shlib/forever.sh "/usr/bin/setsid /sbin/agetty $TT 38400 linux >/dev/null 2>&1" >/dev/null 2>&1 &
+            #/lib/shlib/forever.sh "/usr/bin/setsid /sbin/agetty $TT 38400 linux >/tmp/vt-$TT 2>&1" >/dev/null 2>&1 &
+            /lib/shlib/forever.sh "/usr/bin/setsid /sbin/agetty $TT 38400" &
         fi
     done
 }

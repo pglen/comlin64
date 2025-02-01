@@ -130,12 +130,6 @@ getargy 'bsleep' && sleep "$FOUNDVAL"
 
 echo -e " \033[32;1mOK\033[0m"
 
-# Virtual terminals and a serial port
-echo -n "Starting VTs ... "
-startvts
-getargy 'bsleep' && sleep "$FOUNDVAL"
-echo -e " \033[32;1mOK\033[0m"
-
 getargx 'initbreak=modules' && tmpshell "$FOUNDVAR $ "
 
 # Install devices specified by the user's /etc
@@ -171,10 +165,21 @@ dhclient >>$SULOUT 2>>$SULERR &
 getargy 'bsleep' && sleep "$FOUNDVAL"
 echo -e " \033[32;1mOK\033[0m"
 
+getargx 'initbreak=vt' && tmpshell "$FOUNDVAR $ "
+
 dbus-daemon --session >/dev/null 2>&1 &
+
+# Virtual terminals and a serial port
+echo -n "Starting VTs ... "
+startvts
+getargy 'bsleep' && sleep "$FOUNDVAL"
+echo -e " \033[32;1mOK\033[0m"
 
 # After all configured, let it write some
 #/usr/bin/sync
+
+# Mount available media
+# TODO
 
 getargx 'initbreak=pre-user' && tmpshell  "$FOUNDVAR $ "
 
