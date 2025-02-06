@@ -199,11 +199,14 @@ doall: prompt new remnt copyusb putkern syslin cpscripts uremnt
 
 # This is the 64 bit make all
 buildiso: apps checkscripts initramfs prepiso prepdown getapps iso
-	@make playsound
+	@make playsound2
 
 # Test if sound plays
 playsound:
 	@play ${SOUND} >/dev/null 2>&1 &
+
+playsound2:
+	@play  sounds/bell.ogg >/dev/null 2>&1 &
 
 # Test if promptless sudo works
 testsudo:

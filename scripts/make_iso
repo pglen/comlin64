@@ -39,7 +39,7 @@ if [ ! -f ./boot/grub/grub.conf ] ; then
     exit 1
 fi
 
-rm -f $ROOTISOFILE $ROOTISOFILE.part
+rm -f $ROOTISOFILE.part
 touch $ROOTISOFILE.part
 scripts/progress.sh $ROOTISOFILE.part &
 
@@ -50,6 +50,7 @@ mkisofs -input-charset utf-8 -R -b boot/grub/stage2_eltorito -no-emul-boot  \
 echo
 echo OK
 
+rm -f $ROOTISOFILE
 mv $ROOTISOFILE.part $ROOTISOFILE
 
 SSS=$(stat -c  "%s" $ROOTISOFILE)

@@ -52,7 +52,6 @@ export USER=root
 cd $HOME || echo "Warn:" cannot cd to $HOME >&2
 
 mkdir -p /var/tmp
-SDCOM="/var/tmp/.shutdowncmd"
 
 # Log files for startup
 export SUL="/.startuplogs"
@@ -183,45 +182,6 @@ echo -e " \033[32;1mOK\033[0m"
 
 getargx 'initbreak=pre-user' && tmpshell  "$FOUNDVAR $ "
 
-# Bye Bye root
-NEWHOME="/home/user"
-mkdir -p $NEWHOME
-
-# Xorg needs these
-export XAUTHORITY=$NEWHOME/.Xauthority
-export ICEAUTHORITY=$NEWHOME/.ICEauthority
-
-while : ; do
-    rm -f $SDCOM                # Fresh start
-    getargy 'bsleep' && sleep "$FOUNDVAL"
-
-    # Start Xorg as a regular user
-    su - user -c "./.startup.sh"
-    chvt 1
-
-    # Here one can examine post - gui
-    getargx 'initbreak=post-gui' &&  tmpshell "$FOUNDVAR $ "
-
-    # Shutdown?
-    if [ -e $SDCOM ] ; then
-        shutdownx
-    fi
-
-    # If it got here, it is a logout or shutdown error
-    #echo "Exit this shell to continue."
-    tmpshell "XFCE loop iteration $ "
-    #export PS1="Comlin Post GUI \w$ $ " ; setsid -c -w /bin/bash
-
-done
-
-# Can not reach this ... just in case
-
-# Start a shell for recovery / diagnosis
-export PS1="Comlin PreInit fallback: \w $ "
-while : ; do
-   setsid -c -w /bin/bash
-   echo "Spawning new shell $$ \w # "
-   sleep 1
-done
+/sbin/preinit-post
 
 # EOF

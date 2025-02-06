@@ -139,16 +139,14 @@ for aaa in $VALS ; do
     #rm -rf "$ROOTFS/$aaa/.config/xfce4"
 done
 
-echo -n "  Patching tmp and var permissions ... "
-rm -rf $ROOTFS/tmp/
+echo -n "  Patching tmp and var/tmp permissions ... "
+rm -rf $ROOTFS/tmp
 mkdir -p $ROOTFS/tmp
 chmod a+rwxt $ROOTFS/tmp
-rm -rf $ROOTFS/tmp/.
 
-rm -rf $ROOTFS/var/tmp/
+rm -rf $ROOTFS/var/tmp
 mkdir -p $ROOTFS/var/tmp
 chmod a+rwxt $ROOTFS/var/tmp
-rm -rf $ROOTFS/var/tmp/.
 
 #rm -rf $ROOTFS/var/run/* >/dev/null 2>&1
 rm  -f  $ROOTFS/var/lib/alsa/* >/dev/null 2>&1

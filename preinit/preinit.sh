@@ -168,9 +168,9 @@ startvts() {
             echo "would exec: /usr/bin/setsid -c -w /sbin/agetty $TT 38400 linux >/dev/null 2>&1 >/dev/null 2>&1"
          else
             # We ececute in a sub shell, so it becomes its own
-            #/lib/shlib/forever.sh "/usr/bin/setsid /sbin/agetty $TT 38400 linux >/dev/null 2>&1" >/dev/null 2>&1 &
+            /lib/shlib/forever.sh "/usr/bin/setsid /sbin/agetty $TT 38400 linux >/dev/null 2>&1" >/dev/null 2>&1 &
             #/lib/shlib/forever.sh "/usr/bin/setsid /sbin/agetty $TT 38400 linux >/tmp/vt-$TT 2>&1" >/dev/null 2>&1 &
-            /lib/shlib/forever.sh "/usr/bin/setsid /sbin/agetty $TT 38400" &
+            #/lib/shlib/forever.sh "/usr/bin/setsid /sbin/agetty $TT 38400" &
         fi
     done
 }

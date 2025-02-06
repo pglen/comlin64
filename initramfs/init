@@ -116,16 +116,17 @@ done
 mount -t tmpfs -o tmpfs $TMPROOT  >/dev/null 2>&1
 mount -t tmpfs -o tmpfs $NEWROOT  >/dev/null 2>&1
 
+touch /etc/fstab
+
 mkdir -p $TMPROOT/work
 mkdir -p $TMPROOT/fs
 
 #export PS1="initramfs before overlay " ; setsid -c -w /bin/bash
 
-#OLDROOT="$NEWROOT/var/oldroot"
-#mkdir -p $OLDROOT
-
-OLDROOT="$CDROOT/var/oldroot"
-mount --bind / $OLDROOT
+OLDROOT="$TMPROOT/fs/var/oldroot"
+mkdir -p $OLDROOT
+mount --rbind -o ro $CDROOT $OLDROOT
+#mount --make-private $OLDROOT
 
 #export PS1="initramfs after oldroot " ; setsid -c -w /bin/bash
 
