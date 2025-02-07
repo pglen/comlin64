@@ -125,7 +125,7 @@ mkdir -p $TMPROOT/fs
 
 OLDROOT="$TMPROOT/fs/var/oldroot"
 mkdir -p $OLDROOT
-mount --rbind -o ro $CDROOT $OLDROOT
+#mount --bind -o ro / $OLDROOT
 #mount --make-private $OLDROOT
 
 #export PS1="initramfs after oldroot " ; setsid -c -w /bin/bash
@@ -144,14 +144,26 @@ mount -t overlay  comlin_overlay  \
 # have at it as you wish. And share.
 #pivot_root . $OLDROOT
 
-# This way, the old FS does not have any danglies
-umount /proc /sys >/dev/null 2>&1
+# So pre-init can see it
+echo $CMDLINE >$NEWROOT/var/cmdline
+
+getarg 'ramfs=pre-del' && temporary_shell -n del_initram "Break before init_ram"
+
+# Get rid of unneeded files ... should release blocks (not much .. appx 80 megs)
+rm -rf lib/modules
+rm -rf lib/firmware
+rm -rf lib/systemd
+rm -rf usr/bin
+rm -rf bin
+rm -rf sbin
+rm -rf dev
 
 #info "Switching root"
 getarg 'ramfs=pre-chroot' && temporary_shell -n switch_root "Break before switch_root"
 
-# So pre-init can see it
-echo $CMDLINE >$NEWROOT/var/cmdline
+# This way, the old FS does not have any danglies
+umount /proc /sys >/dev/null 2>&1
+
 cd $NEWROOT
 
 getargs 'preinit='
