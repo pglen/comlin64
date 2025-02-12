@@ -115,34 +115,6 @@ check_finished() {
 
 # ------------------------------------------------------------------------
 
-die() {
-
-    if [ ! -z $VERBOSE ] ; then
-        echo "die() $@"
-    fi
-
-    echo "<1>Comlin: Dropping to temp shell before reboot";
-    #sh -l -i
-
-    setsid -c -w /bin/bash
-
-    {
-        echo "<1>Comlin: FATAL: $@";
-        echo "<1>Comlin: Refusing to continue";
-    } > /dev/kmsg
-
-    {
-        echo "warn Comlin: FATAL: \"$@\"";
-        echo "warn Comlin: Refusing to continue";
-    echo "exit 1"
-    } >> /emergency/01-die.sh
-
-    > /.die
-    exit 1
-}
-
-# ------------------------------------------------------------------------
-
 check_quiet() {
     if [ -z "$COMLIN_QUIET" ]; then
     Comlin_QUIET="yes"

@@ -22,6 +22,8 @@ while : ; do
     rm -f $SDCOM                # Fresh start
     getargy 'bsleep' && sleep "$FOUNDVAL"
 
+    getargx 'initbreak=pre-gui' && tmpshell  "$FOUNDVAR $ "
+
     # Start Xorg as a regular user
     su - user -c "./.startup.sh"
     chvt 1

@@ -22,7 +22,8 @@
 /usr/bin/setterm --msg off
 
 # This also signals that we are active
-echo -e "Loaded kernel ... \033[32;1mOK\033[0m "
+echo "COMMUNITY LINUX 64 Version 1.0.0\n"
+echo "Loaded kernel ... \033[32;1mOK\033[0m "
 
 export PATH=/sbin:/bin:/usr/sbin:/usr/bin
 
@@ -61,7 +62,7 @@ ln -s /proc/self/fd /dev/fd >/dev/null 2>&1
 #   UDEV_QUEUE_EMPTY="udevadm settle --timeout=1"
 #fi
 
-getarg 'ramfs=initqueue' && temporary_shell -n initqueue "Break before initqueue"
+#getarg 'ramfs=initqueue' && temporary_shell -n initqueue "Break before initqueue"
 
 # Pre-mount happens before we try to mount the root filesystem
 getarg 'ramfs=pre-mount' && temporary_shell -n pre-mount "Break pre-mount"
@@ -123,12 +124,7 @@ mkdir -p $TMPROOT/fs
 
 #export PS1="initramfs before overlay " ; setsid -c -w /bin/bash
 
-OLDROOT="$TMPROOT/fs/var/oldroot"
-mkdir -p $OLDROOT
-#mount --bind -o ro / $OLDROOT
-#mount --make-private $OLDROOT
 
-#export PS1="initramfs after oldroot " ; setsid -c -w /bin/bash
 
 getarg 'ramfs=pre-overlay' && temporary_shell -n overlay "Break before overlay"
 
@@ -140,8 +136,6 @@ mount -t overlay  comlin_overlay  \
 
 # This (pivot_root) was a disaster. Would not let go of the resources.
 # Maybe it does not need to, as it is not much.
-# However, the old root is preserved under /var/oldroot so
-# have at it as you wish. And share.
 #pivot_root . $OLDROOT
 
 # So pre-init can see it
@@ -149,20 +143,23 @@ echo $CMDLINE >$NEWROOT/var/cmdline
 
 getarg 'ramfs=pre-del' && temporary_shell -n del_initram "Break before init_ram"
 
-# Get rid of unneeded files ... should release blocks (not much .. appx 80 megs)
+# Del unneeded files ... should release appx 80 megs (not much)
 rm -rf lib/modules
 rm -rf lib/firmware
 rm -rf lib/systemd
-rm -rf usr/bin
-rm -rf bin
 rm -rf sbin
-rm -rf dev
+rm -rf usr/sbin
+rm -rf dev/*
+mknod -m 0666 /dev/null c 1 3   # Put it back for now
 
 #info "Switching root"
 getarg 'ramfs=pre-chroot' && temporary_shell -n switch_root "Break before switch_root"
 
 # This way, the old FS does not have any danglies
-umount /proc /sys >/dev/null 2>&1
+umount /proc /sys #>/dev/null 2>&1
+
+rm -rf usr/bin
+rm -rf bin
 
 cd $NEWROOT
 
@@ -175,7 +172,7 @@ fi
 #chroot . /bin/systemd
 
 # Tried exec in chroot ... no go (script does not have this feature)
-chroot . $FOUNDCMD
+./usr/sbin/chroot . $FOUNDCMD
 
 # If anything went wrong ... cycle here
 while :; do

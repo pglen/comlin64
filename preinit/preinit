@@ -24,7 +24,7 @@ else
     .  /sbin/preinit.sh
 fi
 
-echo "Booting Community Linux, Lib version: $LIBVERS"
+#echo "Booting Community Linux, Lib version: $LIBVERS"
 
 # The following breakpoints are active from the kernel command line:
 #    initbreak=start    "At the start of this script $"
