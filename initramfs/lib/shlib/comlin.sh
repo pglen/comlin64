@@ -1,3 +1,7 @@
+#!/bin/bash
+# shellcheck disable=SC2004,SC2009,SC2068,SC2002
+# shellcheck disable=SC1091
+
 # ------------------------------------------------------------------------
 # Custom Comlin library. Modifications by Peter Glen.
 # I attempted to preserve as much of the original as it was practical.
@@ -17,7 +21,7 @@ strstr() {
 getarg() {
 
     if [ ! -z $VERBOSE ] ; then
-        echo "getarg() $@"
+        echo "getarg() $*"
     fi
 
     set +x
@@ -47,7 +51,7 @@ getarg() {
 getargs() {
 
     if [ ! -z $VERBOSE ] ; then
-        echo "getargs() $@"
+        echo "getargs() $*"
     fi
 
     set +x
@@ -127,18 +131,18 @@ check_quiet() {
 
 warn() {
     check_quiet
-    echo "<4>Comlin Warning: $@" > /dev/kmsg
+    echo "<4>Comlin Warning: $*" > /dev/kmsg
     [ "$Comlin_QUIET" != "yes" ] && \
-        echo "Comlin Warning: $@" >&2
+        echo "Comlin Warning: $*" >&2
 }
 
 # ------------------------------------------------------------------------
 
 info() {
     check_quiet
-    echo "<6>Comlin: $@" > /dev/kmsg
+    echo "<6>Comlin: $*" > /dev/kmsg
     [ "$Comlin_QUIET" != "yes" ] && \
-    echo "Comlin: $@"
+    echo "Comlin: $*"
 }
 
 # ------------------------------------------------------------------------
@@ -213,7 +217,7 @@ wait_for_if_up() {
 
 nfsroot_to_var() {
     # strip nfs[4]:
-    local arg="$@:"
+    local arg="$*:"
     nfs="${arg%%:*}"
     arg="${arg##$nfs:}"
 
@@ -253,10 +257,10 @@ ip_to_var() {
         # handle IPv6 address
         i="${v%%\]:*}"
         i="${i##\[}"
-        set -- "$@" "$i"
+        set -- "$*" "$i"
         v=${v#\[$i\]:}
     else
-        set -- "$@" "${v%%:*}"
+        set -- "$*" "${v%%:*}"
         v=${v#*:}
     fi
     done
@@ -275,7 +279,7 @@ ip_to_var() {
 killproc() {
 
     if [ ! -z $VERBOSE ] ; then
-        echo "killproc() $@"
+        echo "killproc() $*"
     fi
 
     local exe="$(command -v $1)"
@@ -307,7 +311,7 @@ parse_iscsi_root()
         if [ -n "$authinfo" ]; then
             OLDIFS="$IFS"
             IFS=:
-            set $authinfo
+            set "$authinfo"
             IFS="$OLDIFS"
             if [ $# -gt 4 ]; then
                 warn "Wrong authentication info in iscsi: parameter!"
@@ -359,7 +363,7 @@ parse_iscsi_root()
     # parse the rest
     OLDIFS="$IFS"
     IFS=:
-    set $v
+    set "$v"
     IFS="$OLDIFS"
 
     iscsi_protocol=$1; shift # ignored
@@ -394,9 +398,11 @@ parse_iscsi_root()
 
 mountCD() {
 
-    if [ ! -z $VERBOSE ] ; then
-        echo "getarg() $@"
+    if [ "$VERBOSE" != "" ] ; then
+        echo "mountcd() $*"
     fi
+
+    export MOUNT_DEVICE=""
 
     local ii DEVS
     DEVS=$(lsblk --raw | grep -v "NAME" | awk '{ print $1; }')
@@ -406,13 +412,13 @@ mountCD() {
         #echo "Test Drive" $ii
         sleep 0.01       # Needs to breathe
         DEVX="/dev/$ii"
-        mount $DEVX $CDROOT  >/dev/null 2>&1
-        if test -f $CDROOT/etc/COMLINUX_VERSION; then
-            #echo "Found COMLIN system at "/dev/$ii"
+        mount "$DEVX" "$CDROOT"  >/dev/null 2>&1
+        if test -f "$CDROOT/etc/COMLINUX_VERSION" ; then
+            #echo "Found COMLIN SYSTEM at "/dev/$ii"
             MOUNT_DEVICE=$DEVX
             return 0
         else
-            umount $DEVX >/dev/null 2>&1
+            umount "$DEVX" >/dev/null 2>&1
         fi
         done
     return 1
@@ -427,18 +433,18 @@ wait_for_loginit()
     exec 0<>/dev/console 1<>/dev/console 2<>/dev/console
     # wait for loginit
     i=0
-    while [ $i -lt 10 ]; do
+    while [ "$ii" -lt 10 ]; do
         j=$(jobs)
         [ -z "$j" ] && break
         [ -z "${j##*Running*}" ] || break
         sleep 0.1
-        i=$(($i+1))
+        ii=$((ii+1))
     done
-    [ $i -eq 10 ] && kill %1  >/dev/null 2>&1
+    [ $ii -eq 10 ] && kill %1  >/dev/null 2>&1
 
         while pidof -x /sbin/loginit   >/dev/null 2>&1; do
             for pid in $(pidof -x /sbin/loginit); do
-                kill $HARD $pid   >/dev/null 2>&1
+                kill "$HARD" "$pid"   >/dev/null 2>&1
             done
             HARD="-9"
         done
@@ -451,8 +457,8 @@ wait_for_loginit()
 
 temporary_shell()
 {
-    if [ ! -z $VERBOSE ] ; then
-        echo "temporary_shell() $@"
+    if [  "$VERBOSE" != "" ] ; then
+        echo "temporary_shell() $*"
     fi
     set +e
     local _shell_name

@@ -501,6 +501,32 @@ loadmods() {
     done
 }
 
+mountHD() {
+
+    if [ "$VERBOSE" != "" ] ; then
+        echo "mountHD() $*"
+    fi
+
+    export MOUNT_DISK=""
+    local ii DEVS
+    DEVS=$(lsblk --raw | grep -v "NAME" | awk '{ print $1; }')
+    #mkdir -p "$HDROOT"  >/dev/null 2>&1
+    #echo "MountCD() $DEVS"
+    for ii in $DEVS; do
+        #echo "Test Drive" $ii
+        sleep 0.01       # Needs to breathe
+        DEVX="/dev/$ii"
+        mount "$DEVX" "$HDROOT"  >/dev/null 2>&1
+        if test -f "$HDROOT/.comlin_data" ; then
+            #echo "Found COMLIN DATA at /dev/$ii"
+            MOUNT_DISK=$DEVX
+            return 0
+        else
+            umount "$DEVX" >/dev/null 2>&1
+        fi
+        done
+    return 1
+}
 
 loaddevs() {
 

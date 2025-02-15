@@ -43,6 +43,7 @@ fi
 # History:  Tue 14.Jan.2025     Sound works, created /dev entries by hand
 #           Sun 19.Jan.2025     Added TESTME subsystem + shellcheck
 #           Tue 21.Jan.2025     Cleanup (quote errors in bash are difficult)
+#           Sat 15.Feb.2025     Restructure /proc ... etc to --bind
 
 # Patch some basic environmental vars
 export TERM=linux
@@ -57,12 +58,10 @@ mkdir -p /var/tmp
 export SUL="/.startuplogs"
 
 mkdir -p $SUL
-SULERR=$SUL/log_err;
-SULOUT=$SUL/log_out
+SULERR=$SUL/log_err; SULOUT=$SUL/log_out
 
 # Create blanks for append
-echo "" > "$SULOUT"
-echo "" > "$SULERR"
+echo "" > "$SULOUT" ; echo "" > "$SULERR"
 
 # Never leave us hanging without a name
 hostname "localhost"  >>$SULOUT 2>>$SULERR
@@ -70,18 +69,13 @@ hostname "localhost"  >>$SULOUT 2>>$SULERR
 #export PS1="ComLin \w # "
 #export COLUMNS=80 ; export ROWS=24
 
-# Mount some (important) things on new root
-mount -t proc -o nosuid,noexec,nodev proc "$NEWROOT/proc" >/dev/null 2>&1
-mount -t sysfs -o nosuid,noexec,nodev sysfs "$NEWROOT/sys" >/dev/null 2>&1
-mount -t devpts -o gid=5,mode=620 devpts "$NEWROOT/dev/pts" >/dev/null 2>&1
-
 getargx 'initbreak=start' && tmpshell "$FOUNDVAR $ "
 
 # Determine overall flags for operation
 getargy 'verbose' && export VERBOSE=$FOUNDVAL
 getargx 'initbreak=all' && export BREAKALL=1
 
-# Remove what is left of the old root (return later)
+# Remove what is left of the old root (TODO return to this later)
 # This method frees the resources without effecting other processes
 #rm -r /var/oldroot/*  >/dev/null 2>&1
 # And no more traces
@@ -177,11 +171,56 @@ echo -e " \033[32;1mOK\033[0m"
 # After all configured, let it write some
 #/usr/bin/sync
 
-# Mount available media
+# Mount available writable media
 # TODO
 
 getargx 'initbreak=pre-user' && tmpshell  "$FOUNDVAR $ "
 
-/sbin/preinit-post
+# Time to find the writable disk
+getargx 'initbreak=hd' && tmpshell "$FOUNDVAR $ "
+
+NEWROOT=/newroot
+mkdir -p $NEWROOT
+HDROOT="/hdroot"
+mkdir -p $HDROOT
+
+MOUNT_DISK=""
+mountHD $HDROOT
+
+getargy 'nodisk' && export NODISK=$FOUNDVAL
+
+if [ "$NODISK" != "" ] ; then
+    # User wants no data mount
+    exec /sbin/preinit-post
+else
+    if [ "$MOUNT_DISK" == "" ] ; then
+        # No DATA FS found, do ram disk
+        echo "Cannot find data storage. Searching free space ..."
+        exec /sbin/preinit-post
+    else
+        echo -e "Data storage at $MOUNT_DISK \033[32;1mOK\033[0m"
+
+        mkdir -p $HDROOT/fs
+        mkdir -p $HDROOT/work
+
+        # Done here, mount overlay
+        mount -t overlay  comlin_data  \
+            -olowerdir=/,upperdir=$HDROOT/fs,workdir=$HDROOT/work \
+            $NEWROOT
+
+        getargx 'initbreak=chroot' && tmpshell "$FOUNDVAR $ "
+
+        mkdir -p $NEWROOT/proc $NEWROOT/sys $NEWROOT/dev/pts
+        mount --bind /proc $NEWROOT/proc
+        mount --bind /sys $NEWROOT/sys
+        mount --bind /dev/pts $NEWROOT/dev/pts
+        #mount -t devpts -o nosuid,noexec,nodev  devpts /dev/pts >/dev/null 2>&1
+
+        cd "$NEWROOT" || echo "Cannot CD to $NEWROOT"
+        chroot  $NEWROOT /sbin/preinit-post
+    fi
+fi
+
+#exec /sbin/preinit-post
 
 # EOF

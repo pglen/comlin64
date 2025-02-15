@@ -27,11 +27,17 @@ echo "Loaded kernel ... \033[32;1mOK\033[0m "
 
 export PATH=/sbin:/bin:/usr/sbin:/usr/bin
 
-# Mount some basic things
-mount -t proc -o nosuid,noexec,nodev proc /proc >/dev/null 2>&1
-mount -t sysfs -o nosuid,noexec,nodev sysfs /sys >/dev/null 2>&1
+mkdir -p /proc /sys /dev/pts
 
+# Mount some basic things
+mount -t proc -o  nosuid,noexec,nodev proc /proc >/dev/null 2>&1
+mount -t sysfs -o nosuid,noexec,nodev sysfs /sys >/dev/null 2>&1
+mount -t devpts -o nosuid,noexec,nodev  devpts /dev/pts >/dev/null 2>&1
+
+# Load out lib
 . /lib/shlib/comlin.sh
+
+getargs 'verbose' && export VERBOSE=$FOUNDVAL
 
 getarg 'ramfs=cmdline' && temporary_shell -n cmdline "Break at the beginning of script"
 
@@ -75,6 +81,7 @@ while :; do
 
     # If no root, search for it, else accept command line
     if [ -z "$root" ] ; then
+        MOUNT_DEVICE=""
         mountCD $CDROOT
     else
         MOUNT_DEVICE=$root
@@ -114,17 +121,22 @@ done
     temporary_shell -n check_init "ramfs CD No Init "
 }
 
-mount -t tmpfs -o tmpfs $TMPROOT  >/dev/null 2>&1
 mount -t tmpfs -o tmpfs $NEWROOT  >/dev/null 2>&1
 
 touch /etc/fstab
 
-mkdir -p $TMPROOT/work
-mkdir -p $TMPROOT/fs
-
 #export PS1="initramfs before overlay " ; setsid -c -w /bin/bash
 
+mount -t tmpfs -o tmpfs $TMPROOT  >/dev/null 2>&1
 
+mkdir -p $TMPROOT/work
+mkdir -p $TMPROOT/fs
+mkdir -p $TMPROOT/fs/orig
+
+mount --bind / $TMPROOT/fs/orig
+mount --make-private $TMPROOT/fs/orig
+
+#getarg 'ramfs=post-hd' && temporary_shell -n post-hd "Break post-hd"
 
 getarg 'ramfs=pre-overlay' && temporary_shell -n overlay "Break before overlay"
 
@@ -149,17 +161,21 @@ rm -rf lib/firmware
 rm -rf lib/systemd
 rm -rf sbin
 rm -rf usr/sbin
-rm -rf dev/*
-mknod -m 0666 /dev/null c 1 3   # Put it back for now
 
-#info "Switching root"
+#rm -rf dev/*
+#mknod -m 0666 /dev/null c 1 3   # Put it back for now
+
+mkdir -p $NEWROOT/proc $NEWROOT/sys $NEWROOT/dev/ $NEWROOT/dev/pts
+mount --bind /proc $NEWROOT/proc
+mount --bind /sys $NEWROOT/sys
+mount --bind /dev/pts $NEWROOT/dev/pts
+
 getarg 'ramfs=pre-chroot' && temporary_shell -n switch_root "Break before switch_root"
-
-# This way, the old FS does not have any danglies
-umount /proc /sys #>/dev/null 2>&1
 
 rm -rf usr/bin
 rm -rf bin
+
+#info "Switching root"
 
 cd $NEWROOT
 

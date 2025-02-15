@@ -2,6 +2,7 @@
 Name=Sound Greeting
 GenericName=Play Greeting
 Comment=Play sound when started
-Exec=sh -c '/usr/bin/pactl set-sink-mute 0 0 ; /usr/bin/pactl set-sink-volume 0 0.5 ; /usr/bin/play /root/Utils/welcome.ogg' 
+#Exec=sh -c '/usr/bin/pactl set-sink-mute 0 0 ; /usr/bin/pactl set-sink-volume 0 0.5 ; sleep 0.1 ; /usr/bin/play /root/Utils/welcome.ogg' 
+Exec=sh -c 'sleep 0.1; /usr/bin/play /root/Utils/welcome.ogg; sleep 0.1' 
 Type=Application
 NoDisplay=true
