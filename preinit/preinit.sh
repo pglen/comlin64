@@ -5,7 +5,7 @@
 export LIBVERS="1.0.0"
 
 # Log files for startup
-export SUL="/.startuplogs"
+export SUL="/var/log/startuplogs"
 SULERR=$SUL/log_err; SULOUT=$SUL/log_out
 
 # Set the TESTME variable to non zero if you are in a
@@ -448,7 +448,7 @@ getargy() {
 make_sound_devices() {
 
     # Create the sound device nodes dynamically ...
-    #    ... (stderr warned of dir loop -- killed it)
+    #    ... (stderr warned of dir loop -- silenced it)
 
     if [ $(($VERBOSE)) -gt 1 ] ; then
         echo "make_sound_devices() " $@

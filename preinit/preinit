@@ -53,8 +53,12 @@ cd $HOME || echo "Warn:" cannot cd to $HOME >&2
 mkdir -p /var/tmp
 
 mkdir -p $SUL
-# Create blank files for log append
-echo "" > "$SULOUT" ; echo "" > "$SULERR"
+
+# Create for log append, add current date value
+date > "$SULOUT" ; date > "$SULERR"
+
+getargy 'verbose' && export VERBOSE=$FOUNDVAL
+getargx 'ibreak=all' && export BREAKALL=1
 
 # Never leave us hanging without a name
 hostname "localhost"  >>$SULOUT 2>>$SULERR
@@ -99,7 +103,7 @@ else
     if [ "$MOUNT_DISK" == "" ] ; then
         # No DATA FS found, do ram disk
         echo "Cannot find data storage. Searching free space ..."
-        exec /sbin/preinit-post
+        exec  /sbin/preinit-post
     else
         echo -e "Data storage at $MOUNT_DISK \033[32;1mOK\033[0m"
 

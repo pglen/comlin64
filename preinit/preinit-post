@@ -22,7 +22,7 @@ ifconfig lo up 127.0.0.1
 
 rm -rf /dev/snd/*
 rm -rf /var/run/*
-#rm -rf /run/dbus
+rm -rf /run/dbus/*
 
 # We create this dynamically
 export XDG_RUNTIME_DIR=/run/user/$UID
@@ -40,7 +40,7 @@ rsyslogd >> "$SULOUT" 2>> "$SULERR" &
 getargy 'isleep' && sleep "$FOUNDVAL"
 echo -e " \033[32;1mOK\033[0m"
 
-#dbus-daemon --session >/dev/null 2>&1 &
+dbus-daemon --session >/dev/null 2>&1 &
 
 # Virtual terminals and a serial port
 getargx 'ibreak=vt' && tmpshell "$FOUNDVAR $ "
@@ -75,13 +75,13 @@ getargy 'isleep' && sleep "$FOUNDVAL"
 #echo -e " \033[32;1mOK\033[0m"
 
 #echo -n "Setting sound volume  ... "
-pulseaudio --start >>$SULOUT 2>>$SULERR  &
-#pulseaudio --system >>$SULOUT 2>>$SULERR &
-sleep 0.1
-pactl set-sink-mute 0 0
-pactl set-sink-volume 0 0.5
-getargy 'isleep' && sleep "$FOUNDVAL"
-echo -e " \033[32;1mOK\033[0m"
+#pulseaudio --start >>$SULOUT 2>>$SULERR  &
+#pulseaudio --system --disallow-exit --disallow-module-loading >>$SULOUT 2>>$SULERR &
+#sleep 0.1
+#pactl set-sink-mute 0 0  >>$SULOUT 2>>$SULERR
+#pactl set-sink-volume 0 0.5  >>$SULOUT 2>>$SULERR
+#getargy 'isleep' && sleep "$FOUNDVAL"
+#echo -e " \033[32;1mOK\033[0m"
 
 getargx 'ibreak=network' && tmpshell "$FOUNDVAR $ "
 echo -n "Starting network ... "
