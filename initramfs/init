@@ -131,12 +131,10 @@ mount -t tmpfs -o tmpfs $TMPROOT  >/dev/null 2>&1
 
 mkdir -p $TMPROOT/work
 mkdir -p $TMPROOT/fs
-mkdir -p $TMPROOT/fs/orig
 
-mount --bind / $TMPROOT/fs/orig
-mount --make-private $TMPROOT/fs/orig
-
-#getarg 'ramfs=post-hd' && temporary_shell -n post-hd "Break post-hd"
+#mkdir -p $TMPROOT/fs/orig
+#mount --bind / $TMPROOT/fs/orig
+#mount --make-private $TMPROOT/fs/orig
 
 getarg 'ramfs=pre-overlay' && temporary_shell -n overlay "Break before overlay"
 
@@ -144,13 +142,11 @@ mount -t overlay  comlin_overlay  \
         -olowerdir=$CDROOT,upperdir=$TMPROOT/fs,workdir=$TMPROOT/work \
         $NEWROOT
 
-#export PS1="initramfs after overlay " ; setsid -c -w /bin/bash
-
 # This (pivot_root) was a disaster. Would not let go of the resources.
 # Maybe it does not need to, as it is not much.
 #pivot_root . $OLDROOT
 
-# So pre-init can see it
+# Copy it so pre-init can see it
 echo $CMDLINE >$NEWROOT/var/cmdline
 
 getarg 'ramfs=pre-del' && temporary_shell -n del_initram "Break before init_ram"

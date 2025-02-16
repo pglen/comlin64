@@ -4,6 +4,10 @@
 
 export LIBVERS="1.0.0"
 
+# Log files for startup
+export SUL="/.startuplogs"
+SULERR=$SUL/log_err; SULOUT=$SUL/log_out
+
 # Set the TESTME variable to non zero if you are in a
 # simulation / test environment. Warning: it will not work in real env.
 #TESTME=1
@@ -201,8 +205,6 @@ shutdownx()  {
     # We have to work out the details of this
     #downClean
 
-    # Here one can examine post - cleanup
-    getargx 'initbreak=post-cleanup' && tmpshell "Post cleanup $ "
     local AA
     sfound=0
     for AA in $sreflag ; do
@@ -443,27 +445,35 @@ getargy() {
     return $rety
 }
 
-makedevices() {
+make_sound_devices() {
 
-    # Create the device nodes dynamically ...
+    # Create the sound device nodes dynamically ...
     #    ... (stderr warned of dir loop -- killed it)
 
-    if [ $(($VERBOSE)) -gt 2 ] ; then
-        echo "makedevices() " $@
+    if [ $(($VERBOSE)) -gt 1 ] ; then
+        echo "make_sound_devices() " $@
     fi
     IFS=$'\n'
     local sfiles onef devx majorx minorx
     sfiles=$(find /sys/class/sound -follow -type f -maxdepth 2 -name dev  2>/dev/null)
-    #echo "sfiles: $sfiles"
+    if [ $(($VERBOSE)) -gt 1 ] ; then
+        echo "sfiles: $sfiles"
+    fi
 
     for onef in $sfiles ; do
-        #echo "onef: $onef"
+        if [ $(($VERBOSE)) -gt 3 ] ; then
+            echo "onef: $onef"
+        fi
         [ -f "$onef" ] && majorx=$(cat "$onef" | awk -F ":" '{print $1}')
         [ -f "$onef" ] && minorx=$(cat "$onef" | awk -F ":" '{print $2}')
         devx="/dev/snd/"$(basename "${onef%/dev}")
         if [ $(($TESTME)) -gt 0 ] ; then
             echo -e "Device: $devx \tMajor/Minor: \t $majorx : $minorx"
         else
+            # TODO rm ?
+            if [ $(($VERBOSE)) -gt 1 ] ; then
+                echo mknod "$devx" major: "$majorx" minor: "$minorx"
+            fi
             mknod -m 0660 "$devx" c "$majorx" "$minorx" >>"$SULOUT" 2>>"$SULERR"
             chown root:audio "$devx"  >>"$SULOUT" 2>>"$SULERR"
         fi

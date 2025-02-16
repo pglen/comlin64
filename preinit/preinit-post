@@ -8,6 +8,89 @@ else
     .  /sbin/preinit.sh
 fi
 
+# Determine overall flags for operation
+getargy 'verbose' && export VERBOSE=$FOUNDVAL
+getargx 'ibreak=all' && export BREAKALL=1
+
+# This way udev is functional in chroot
+export SYSTEMD_IGNORE_CHROOT=1
+
+# UP loopback network connection
+ifconfig lo up 127.0.0.1
+
+# May have residual from prev run
+
+rm -rf /dev/snd/*
+rm -rf /var/run/*
+#rm -rf /run/dbus
+
+# We create this dynamically
+export XDG_RUNTIME_DIR=/run/user/$UID
+mkdir -p $XDG_RUNTIME_DIR
+
+echo -n "Starting DBUS ... "
+mkdir -p /run/dbus
+dbus-daemon --system >>"$SULOUT" 2>>"$SULERR" &
+getargy 'isleep' && sleep "$FOUNDVAL"
+echo -e " \033[32;1mOK\033[0m"
+
+# Start logging
+echo -n "Starting rsyslogd ... "
+rsyslogd >> "$SULOUT" 2>> "$SULERR" &
+getargy 'isleep' && sleep "$FOUNDVAL"
+echo -e " \033[32;1mOK\033[0m"
+
+#dbus-daemon --session >/dev/null 2>&1 &
+
+# Virtual terminals and a serial port
+getargx 'ibreak=vt' && tmpshell "$FOUNDVAR $ "
+echo -n "Starting VTs ... "
+startvts
+getargy 'isleep' && sleep "$FOUNDVAL"
+echo -e " \033[32;1mOK\033[0m"
+
+# Polkit, udev, etc ...
+getargx 'ibreak=daemons' && tmpshell "$FOUNDVAR $ "
+echo -n "Starting daemons ... "
+
+echo -n "polkit "
+/usr/libexec/polkitd >>$SULOUT 2>>$SULERR &
+getargy 'isleep' && sleep "$FOUNDVAL"
+
+echo -n "systemd-udevd "
+/lib/systemd/systemd-udevd >>$SULOUT 2>>$SULERR &
+getargy 'isleep' && sleep "$FOUNDVAL"
+
+#echo -n "systemd-logind "
+#/lib/systemd/systemd-logind >>$SULOUT 2>>$SULERR &
+#getargy 'isleep' && sleep "$FOUNDVAL"
+
+echo -e " \033[32;1mOK\033[0m"
+
+getargx 'ibreak=sound' &&  tmpshell "$FOUNDVAR $ "
+echo -n "Starting sound system ... "
+rm -rf /dev/snd/*
+make_sound_devices
+getargy 'isleep' && sleep "$FOUNDVAL"
+#echo -e " \033[32;1mOK\033[0m"
+
+#echo -n "Setting sound volume  ... "
+pulseaudio --start >>$SULOUT 2>>$SULERR  &
+#pulseaudio --system >>$SULOUT 2>>$SULERR &
+sleep 0.1
+pactl set-sink-mute 0 0
+pactl set-sink-volume 0 0.5
+getargy 'isleep' && sleep "$FOUNDVAL"
+echo -e " \033[32;1mOK\033[0m"
+
+getargx 'ibreak=network' && tmpshell "$FOUNDVAR $ "
+echo -n "Starting network ... "
+dhclient >>$SULOUT 2>>$SULERR &
+getargy 'isleep' && sleep "$FOUNDVAL"
+echo -e " \033[32;1mOK\033[0m"
+
+getargx 'ibreak=pre-user' && tmpshell  "$FOUNDVAR $ "
+
 SDCOM="/var/tmp/.shutdowncmd"
 
 # Bye Bye root
@@ -20,33 +103,32 @@ export ICEAUTHORITY=$NEWHOME/.ICEauthority
 
 while : ; do
     rm -f $SDCOM                # Fresh start
-    getargy 'bsleep' && sleep "$FOUNDVAL"
+    getargy 'isleep' && sleep "$FOUNDVAL"
 
-    getargx 'initbreak=pre-gui' && tmpshell  "$FOUNDVAR $ "
+    getargx 'ibreak=pre-gui' && tmpshell  "$FOUNDVAR $ "
 
     # Start Xorg as a regular user
     su - user -c "./.startup.sh"
     chvt 1
 
-    # Here one can examine post - gui
-    getargx 'initbreak=post-gui' &&  tmpshell "$FOUNDVAR $ "
+    getargx 'ibreak=post-gui' &&  tmpshell "$FOUNDVAR $ "
 
     # Shutdown?
     if [ -e $SDCOM ] ; then
         shutdownx
+        getargx 'ibreak=post-cleanup' && tmpshell "Post cleanup $ "
     fi
 
     # If it got here, it is a logout or shutdown error
     #echo "Exit this shell to continue."
     tmpshell "XFCE loop iteration $ "
-    #export PS1="Comlin Post GUI \w$ $ " ; setsid -c -w /bin/bash
 
 done
 
 # Can not reach this ... just in case
 
 # Start a shell for recovery / diagnosis
-export PS1="Comlin PreInit fallback: \w $ "
+export PS1="Comlin PreInit-Post fallback: \w $ "
 while : ; do
    echo "Spawning new shell $$ \w # "
    setsid -c -w /bin/bash

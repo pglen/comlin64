@@ -24,26 +24,24 @@ else
     .  /sbin/preinit.sh
 fi
 
-#echo "Booting Community Linux, Lib version: $LIBVERS"
+# Determine overall flags for operation
+getargy 'verbose' && export VERBOSE=$FOUNDVAL
 
-# The following breakpoints are active from the kernel command line:
-#    initbreak=start    "At the start of this script $"
-#    initbreak=deemons  "Before starting daemons $ "
-#    initbreak=modules  "Before installing modules $ "
-#    initbreak=devices  "Before installing devices $ "
-#    initbreak=network  "Before starting network $ "
-#    initbreak=sound    "Before starting sound $ "
-#    initbreak=pre-gui  "Before starting GUI $ "
-#    initbreak=post-gui "After XFCE loop iteration $ "
-# Other variables:
-#    bsleep=sec         "sleep after commands for visual observation"
-#    verbose=lev        "verbosity level"
-# There are more break ITEMS, see source below
+if [ $(($VERBOSE)) -gt 0 ] ; then
+    echo "Booting Community Linux, Lib version: $LIBVERS"
+fi
+
+# Variables:
+#    isleep=sec         Sleep after commands for visual observation
+#    verbose=lev        Verbosity level
+#    ibreak=when        Break for shell
+# There are several break items, see source below (ibreak)
 
 # History:  Tue 14.Jan.2025     Sound works, created /dev entries by hand
 #           Sun 19.Jan.2025     Added TESTME subsystem + shellcheck
 #           Tue 21.Jan.2025     Cleanup (quote errors in bash are difficult)
 #           Sat 15.Feb.2025     Restructure /proc ... etc to --bind
+#           Sat 15.Feb.2025     Writable media
 
 # Patch some basic environmental vars
 export TERM=linux
@@ -54,135 +52,40 @@ cd $HOME || echo "Warn:" cannot cd to $HOME >&2
 
 mkdir -p /var/tmp
 
-# Log files for startup
-export SUL="/.startuplogs"
-
 mkdir -p $SUL
-SULERR=$SUL/log_err; SULOUT=$SUL/log_out
-
-# Create blanks for append
+# Create blank files for log append
 echo "" > "$SULOUT" ; echo "" > "$SULERR"
 
 # Never leave us hanging without a name
 hostname "localhost"  >>$SULOUT 2>>$SULERR
 
-#export PS1="ComLin \w # "
-#export COLUMNS=80 ; export ROWS=24
+getargx 'ibreak=start' && tmpshell "$FOUNDVAR $ "
 
-getargx 'initbreak=start' && tmpshell "$FOUNDVAR $ "
-
-# Determine overall flags for operation
-getargy 'verbose' && export VERBOSE=$FOUNDVAL
-getargx 'initbreak=all' && export BREAKALL=1
-
-# Remove what is left of the old root (TODO return to this later)
-# This method frees the resources without effecting other processes
-#rm -r /var/oldroot/*  >/dev/null 2>&1
-# And no more traces
-#umount /var/oldroot >/dev/null 2>&1
-
-# We create this dynamically
-export XDG_RUNTIME_DIR=/run/user/$UID
-mkdir -p $XDG_RUNTIME_DIR
-
-mkdir -p /run/dbus
-echo -n "Starting DBUS ... "
-dbus-daemon --system >>"$SULOUT" 2>>"$SULERR" &
-getargy 'bsleep' && sleep "$FOUNDVAL"
-echo -e " \033[32;1mOK\033[0m"
-
-# Start logging
-echo -n "Starting rsyslogd ... "
-rsyslogd >> "$SULOUT" 2>> "$SULERR" &
-getargy 'bsleep' && sleep "$FOUNDVAL"
-echo -e " \033[32;1mOK\033[0m"
-
-# UP loopback network connection
-ifconfig lo up 127.0.0.1
-
-#export PS1="Comlin \w$ $ " ; setsid -c -w /bin/bash
-
-# This way udev is functional in chroot
-export SYSTEMD_IGNORE_CHROOT=1
-
-# Polkit, udev, etc ...
-getargx 'initbreak=daemons' && tmpshell "$FOUNDVAR $ "
-echo -n "Starting daemons ... "
-
-echo -n "polkit "
-/usr/libexec/polkitd >>$SULOUT 2>>$SULERR &
-getargy 'bsleep' && sleep "$FOUNDVAL"
-
-echo -n "systemd-udevd "
-/lib/systemd/systemd-udevd >>$SULOUT 2>>$SULERR &
-getargy 'bsleep' && sleep "$FOUNDVAL"
-
-#echo -n "systemd-logind "
-#/lib/systemd/systemd-logind >>$SULOUT 2>>$SULERR &
-#getargy 'bsleep' && sleep "$FOUNDVAL"
-
-echo -e " \033[32;1mOK\033[0m"
-
-getargx 'initbreak=modules' && tmpshell "$FOUNDVAR $ "
-
-# Install devices specified by the user's /etc
+# Install items specified by the user's /etc
 echo -n "Installing modules ... "
 loadmods
-getargy 'bsleep' && sleep "$FOUNDVAL"
+getargy 'isleep' && sleep "$FOUNDVAL"
 echo -e " \033[32;1mOK\033[0m"
 
-getargx 'initbreak=devices' && tmpshell "$FOUNDVAR $ "
+getargx 'ibreak=devices' && tmpshell "$FOUNDVAR $ "
 
 # Install devices from PCI bus; ignore vbox additions for now
 echo -n "Installing devices ... "
 loaddevs
-getargy 'bsleep' && sleep "$FOUNDVAL"
-echo -e " \033[32;1mOK\033[0m"
-
-getargx 'initbreak=sound' &&  tmpshell "$FOUNDVAR $ "
-echo -n "Starting sound system ... "
-makedevices
-getargy 'bsleep' && sleep "$FOUNDVAL"
-echo -e " \033[32;1mOK\033[0m"
-
-echo -n "Setting sound voulume  ... "
-pulseaudio --start >>$SULOUT 2>>$SULERR
-pactl set-sink-mute 0 0
-pactl set-sink-volume 0 0.5
-getargy 'bsleep' && sleep "$FOUNDVAL"
-echo -e " \033[32;1mOK\033[0m"
-
-getargx 'initbreak=network' && tmpshell "$FOUNDVAR $ "
-echo -n "Starting network ... "
-dhclient >>$SULOUT 2>>$SULERR &
-getargy 'bsleep' && sleep "$FOUNDVAL"
-echo -e " \033[32;1mOK\033[0m"
-
-getargx 'initbreak=vt' && tmpshell "$FOUNDVAR $ "
-
-dbus-daemon --session >/dev/null 2>&1 &
-
-# Virtual terminals and a serial port
-echo -n "Starting VTs ... "
-startvts
-getargy 'bsleep' && sleep "$FOUNDVAL"
+getargy 'isleep' && sleep "$FOUNDVAL"
 echo -e " \033[32;1mOK\033[0m"
 
 # After all configured, let it write some
-#/usr/bin/sync
+/usr/bin/sync
+sleep 0.1
 
 # Mount available writable media
-# TODO
-
-getargx 'initbreak=pre-user' && tmpshell  "$FOUNDVAR $ "
 
 # Time to find the writable disk
-getargx 'initbreak=hd' && tmpshell "$FOUNDVAR $ "
+getargx 'ibreak=hd' && tmpshell "$FOUNDVAR $ "
 
-NEWROOT=/newroot
-mkdir -p $NEWROOT
-HDROOT="/hdroot"
-mkdir -p $HDROOT
+NEWROOT=/newroot; mkdir -p $NEWROOT
+HDROOT="/hdroot"; mkdir -p $HDROOT
 
 MOUNT_DISK=""
 mountHD $HDROOT
@@ -208,7 +111,7 @@ else
             -olowerdir=/,upperdir=$HDROOT/fs,workdir=$HDROOT/work \
             $NEWROOT
 
-        getargx 'initbreak=chroot' && tmpshell "$FOUNDVAR $ "
+        getargx 'ibreak=chroot' && tmpshell "$FOUNDVAR $ "
 
         mkdir -p $NEWROOT/proc $NEWROOT/sys $NEWROOT/dev/pts
         mount --bind /proc $NEWROOT/proc
@@ -221,6 +124,9 @@ else
     fi
 fi
 
-#exec /sbin/preinit-post
+while : ; do
+    getargy 'isleep' && sleep "$FOUNDVAL"
+    tmpshell "Failed chroot"
+done
 
 # EOF
