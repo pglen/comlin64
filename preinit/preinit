@@ -31,9 +31,16 @@ if [ $(($VERBOSE)) -gt 0 ] ; then
     echo "Booting Community Linux, Lib version: $LIBVERS"
 fi
 
+doinit() {
+    #
+    #exec chroot $NEWROOT setsid -c /sbin/init
+    cd "$NEWROOT" || echo "Cannot CD to $NEWROOT"
+    exec chroot $NEWROOT setsid /sbin/postinit
+}
+
 # Variables:
-#    isleep=sec         Sleep after commands for visual observation
 #    verbose=lev        Verbosity level
+#    isleep=sec         Sleep after commands for visual observation
 #    ibreak=when        Break for shell
 # There are several break items, see source below (ibreak)
 
@@ -98,12 +105,12 @@ getargy 'nodisk' && export NODISK=$FOUNDVAL
 
 if [ "$NODISK" != "" ] ; then
     # User wants no data mount
-    exec /sbin/preinit-post
+    doinit
 else
     if [ "$MOUNT_DISK" == "" ] ; then
         # No DATA FS found, do ram disk
         echo "Cannot find data storage. Searching free space ..."
-        exec  /sbin/preinit-post
+        doinit
     else
         echo -e "Data storage at $MOUNT_DISK \033[32;1mOK\033[0m"
 
@@ -123,8 +130,8 @@ else
         mount --bind /dev/pts $NEWROOT/dev/pts
         #mount -t devpts -o nosuid,noexec,nodev  devpts /dev/pts >/dev/null 2>&1
 
-        cd "$NEWROOT" || echo "Cannot CD to $NEWROOT"
-        chroot  $NEWROOT /sbin/preinit-post
+        doinit
+        #chroot  $NEWROOT /sbin/postinit
     fi
 fi
 

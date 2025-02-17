@@ -129,12 +129,16 @@ for aaa in $VALS ; do
     rm -f  "$ROOTFS/$aaa/.sudo_as_admin_successful"
     rm -f  "$ROOTFS/$aaa/.bash_history"
     rm -f  "$ROOTFS/$aaa/.ICEauthority"
+    rm -rf "$ROOTFS/$aaa/.mozilla"
+    rm -rf "$ROOTFS/$aaa/.thunderbird"
+    rm -rf "$ROOTFS/$aaa/.pyedpro"
+    rm -rf "$ROOTFS/$aaa/.config"
     rm -rf "$ROOTFS/$aaa/.local"
     rm -rf "$ROOTFS/$aaa/.cache"
     rm -rf "$ROOTFS/$aaa/tmp"
     rm -rf "$ROOTFS/$aaa/.xfce_err"
     rm -rf "$ROOTFS/$aaa/.xfce_out"
-    # No clear, we remember the settings of XFCE from prev environments
+    # -- Not clearing, we remember the settings of XFCE from prev environments
     #rm -rf "$ROOTFS/$aaa/.xfce*"
     #rm -rf "$ROOTFS/$aaa/.config/xfce4"
 done

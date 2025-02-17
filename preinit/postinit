@@ -2,6 +2,8 @@
 # shellcheck disable=SC2004,SC2009,SC2068,SC2002
 # shellcheck disable=SC1091
 
+echo "COMLIN64 in final stage"
+
 if [ $(($TESTME)) -gt 0 ] ; then
     .  ./preinit.sh
 else
@@ -72,7 +74,7 @@ echo -n "Starting sound system ... "
 rm -rf /dev/snd/*
 make_sound_devices
 getargy 'isleep' && sleep "$FOUNDVAL"
-#echo -e " \033[32;1mOK\033[0m"
+echo -e " \033[32;1mOK\033[0m"
 
 #echo -n "Setting sound volume  ... "
 #pulseaudio --start >>$SULOUT 2>>$SULERR  &
@@ -108,8 +110,11 @@ while : ; do
     getargx 'ibreak=pre-gui' && tmpshell  "$FOUNDVAR $ "
 
     # Start Xorg as a regular user
-    su - user -c "./.startup.sh"
-    chvt 1
+    #su - user -c "exec ./.startup.sh"
+    #runuser - user -- ./.startup.sh
+    /usr/bin/startxfce4 -- -keeptty vt5 >.xfce_out 2>.xfce_err
+    #chvt 1
+    #sleep 1
 
     getargx 'ibreak=post-gui' &&  tmpshell "$FOUNDVAR $ "
 
@@ -128,7 +133,7 @@ done
 # Can not reach this ... just in case
 
 # Start a shell for recovery / diagnosis
-export PS1="Comlin PreInit-Post fallback: \w $ "
+export PS1="Comlin PostInit fallback: \w $ "
 while : ; do
    echo "Spawning new shell $$ \w # "
    setsid -c -w /bin/bash

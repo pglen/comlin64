@@ -184,7 +184,7 @@ fi
 #chroot . /bin/systemd
 
 # Tried exec in chroot ... no go (script does not have this feature)
-./usr/sbin/chroot . $FOUNDCMD
+exec ./usr/sbin/chroot . $FOUNDCMD
 
 # If anything went wrong ... cycle here
 while :; do
