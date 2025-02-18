@@ -2,7 +2,6 @@
 # shellcheck disable=SC2004,SC2009,SC2068,SC2002
 # shellcheck disable=SC1091,SC2086
 
-
 if [ $(($TESTME)) -gt 0 ] ; then
     .  ./preinit.sh
 else
@@ -26,7 +25,6 @@ ifconfig lo up 127.0.0.1
 # May have residual from prev run
 
 rm -rf /dev/snd/*
-rm -rf /var/run/pulse/pid
 rm -rf /run/dbus/*
 
 # We create this dynamically
@@ -79,15 +77,20 @@ make_sound_devices
 getargy 'isleep' && sleep "$FOUNDVAL"
 echo -e " \033[32;1mOK\033[0m"
 
-#echo -n "Setting sound volume  ... "
+rm -rf /var/run/pulse/pid
+rm -rf .config/pulse/.
+
+echo -n "Pulseaudio daemon ... "
+
 #pulseaudio --start >>$SULOUT 2>>$SULERR  &
 #pulseaudio --deaemonize=no --system --realtime  >>$SULOUT 2>>$SULERR  &
-#pulseaudio --system --disallow-exit --disallow-module-loading >>$SULOUT 2>>$SULERR &
+pulseaudio --system --disallow-exit --disallow-module-loading >>$SULOUT 2>>$SULERR &
 #sleep 0.1
 #pactl set-sink-mute 0 0  >>$SULOUT 2>>$SULERR
 #pactl set-sink-volume 0 0.5  >>$SULOUT 2>>$SULERR
-#getargy 'isleep' && sleep "$FOUNDVAL"
-#echo -e " \033[32;1mOK\033[0m"
+
+getargy 'isleep' && sleep "$FOUNDVAL"
+echo -e " \033[32;1mOK\033[0m"
 
 getargx 'ibreak=network' && tmpshell "$FOUNDVAR $ "
 echo -n "Starting network ... "
@@ -106,12 +109,13 @@ cd $NEWHOME || echo "Cannot change to $NEWHOME"
 
 # Xorg needs these
 rm -f /tmp/.X*lock
+rm -f /tmp/.X11-unix
 
 export XAUTHORITY=$NEWHOME/.Xauthority
 export ICEAUTHORITY=$NEWHOME/.ICEauthority
 export DISPLAY=:0
 
-#Xorg vt5 $DISPLAY &
+# Testing ... # Xorg vt5 $DISPLAY &
 
 while : ; do
     rm -f $SDCOM                # Fresh start
@@ -143,8 +147,11 @@ while : ; do
     fi
 
     # If it got here, it is a logout or shutdown error
-    #echo "Exit this shell to continue."
-    tmpshell "XFCE loop iteration $ "
+    echo "Type 'exit' to restart your session"
+    echo "  linux_reboot to restart your computer."
+    echo "  linux_poweroff to power down your computer."
+    #tmpshell "XFCE loop iteration $ "
+    tmpshell "Reboot Prompt $ "
 
 done
 
