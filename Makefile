@@ -199,7 +199,7 @@ doall: prompt new remnt copyusb putkern syslin cpscripts uremnt
 
 # This is the 64 bit make all
 buildiso: apps checkscripts initramfs prepiso prepdown getapps iso
-	@make playsound2
+	@make playsound
 
 # Test if sound plays
 playsound:

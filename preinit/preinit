@@ -31,13 +31,6 @@ if [ $(($VERBOSE)) -gt 0 ] ; then
     echo "Booting Community Linux, Lib version: $LIBVERS"
 fi
 
-doinit() {
-    #
-    #exec chroot $NEWROOT setsid -c /sbin/init
-    cd "$NEWROOT" || echo "Cannot CD to $NEWROOT"
-    exec chroot $NEWROOT setsid /sbin/postinit
-}
-
 # Variables:
 #    verbose=lev        Verbosity level
 #    isleep=sec         Sleep after commands for visual observation
@@ -88,7 +81,7 @@ echo -e " \033[32;1mOK\033[0m"
 
 # After all configured, let it write some
 /usr/bin/sync
-sleep 0.1
+#sleep 0.1
 
 # Mount available writable media
 
@@ -105,12 +98,13 @@ getargy 'nodisk' && export NODISK=$FOUNDVAL
 
 if [ "$NODISK" != "" ] ; then
     # User wants no data mount
-    doinit
+    exec setsid /sbin/postinit
+
 else
     if [ "$MOUNT_DISK" == "" ] ; then
         # No DATA FS found, do ram disk
         echo "Cannot find data storage. Searching free space ..."
-        doinit
+        exec setsid /sbin/postinit
     else
         echo -e "Data storage at $MOUNT_DISK \033[32;1mOK\033[0m"
 
@@ -130,8 +124,8 @@ else
         mount --bind /dev/pts $NEWROOT/dev/pts
         #mount -t devpts -o nosuid,noexec,nodev  devpts /dev/pts >/dev/null 2>&1
 
-        doinit
-        #chroot  $NEWROOT /sbin/postinit
+        cd "$NEWROOT" || echo "Cannot CD to $NEWROOT"
+        exec chroot $NEWROOT setsid /sbin/postinit
     fi
 fi
 

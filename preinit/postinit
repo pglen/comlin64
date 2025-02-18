@@ -1,8 +1,7 @@
 #!/bin/bash
 # shellcheck disable=SC2004,SC2009,SC2068,SC2002
-# shellcheck disable=SC1091
+# shellcheck disable=SC1091,SC2086
 
-echo "COMLIN64 in final stage"
 
 if [ $(($TESTME)) -gt 0 ] ; then
     .  ./preinit.sh
@@ -10,9 +9,13 @@ else
     .  /sbin/preinit.sh
 fi
 
-# Determine overall flags for operation
+# Determine overall flags for operation (for this file)
 getargy 'verbose' && export VERBOSE=$FOUNDVAL
 getargx 'ibreak=all' && export BREAKALL=1
+
+if [ $(($VERBOSE)) -gt 0 ] ; then
+    echo "COMLIN64 in final stage"
+fi
 
 # This way udev is functional in chroot
 export SYSTEMD_IGNORE_CHROOT=1
@@ -23,7 +26,7 @@ ifconfig lo up 127.0.0.1
 # May have residual from prev run
 
 rm -rf /dev/snd/*
-rm -rf /var/run/*
+rm -rf /var/run/pulse/pid
 rm -rf /run/dbus/*
 
 # We create this dynamically
@@ -78,6 +81,7 @@ echo -e " \033[32;1mOK\033[0m"
 
 #echo -n "Setting sound volume  ... "
 #pulseaudio --start >>$SULOUT 2>>$SULERR  &
+#pulseaudio --deaemonize=no --system --realtime  >>$SULOUT 2>>$SULERR  &
 #pulseaudio --system --disallow-exit --disallow-module-loading >>$SULOUT 2>>$SULERR &
 #sleep 0.1
 #pactl set-sink-mute 0 0  >>$SULOUT 2>>$SULERR
@@ -87,7 +91,7 @@ echo -e " \033[32;1mOK\033[0m"
 
 getargx 'ibreak=network' && tmpshell "$FOUNDVAR $ "
 echo -n "Starting network ... "
-dhclient >>$SULOUT 2>>$SULERR &
+dhclient >>"$SULOUT" 2>>"$SULERR" &
 getargy 'isleep' && sleep "$FOUNDVAL"
 echo -e " \033[32;1mOK\033[0m"
 
@@ -96,25 +100,39 @@ getargx 'ibreak=pre-user' && tmpshell  "$FOUNDVAR $ "
 SDCOM="/var/tmp/.shutdowncmd"
 
 # Bye Bye root
-NEWHOME="/home/user"
+NEWHOME="/root"
 mkdir -p $NEWHOME
+cd $NEWHOME || echo "Cannot change to $NEWHOME"
 
 # Xorg needs these
+rm -f /tmp/.X*lock
+
 export XAUTHORITY=$NEWHOME/.Xauthority
 export ICEAUTHORITY=$NEWHOME/.ICEauthority
+export DISPLAY=:0
+
+#Xorg vt5 $DISPLAY &
 
 while : ; do
     rm -f $SDCOM                # Fresh start
     getargy 'isleep' && sleep "$FOUNDVAL"
-
     getargx 'ibreak=pre-gui' && tmpshell  "$FOUNDVAR $ "
 
+    #echo -n "Starting GUI ... "
+    #chvt 5
+
     # Start Xorg as a regular user
-    #su - user -c "exec ./.startup.sh"
+    su - user -c "exec ./.startup.sh"
+
     #runuser - user -- ./.startup.sh
-    /usr/bin/startxfce4 -- -keeptty vt5 >.xfce_out 2>.xfce_err
-    #chvt 1
-    #sleep 1
+
+    # Start Xorg as root
+    #/usr/bin/startxfce4 -- -keeptty vt5 >.xfce_out 2>.xfce_err
+    #xfce4-session >.xfce_out 2>.xfce_err
+
+    # Back to initial terminal
+    chvt 1
+    echo -e " \033[32;1mOK\033[0m"
 
     getargx 'ibreak=post-gui' &&  tmpshell "$FOUNDVAR $ "
 

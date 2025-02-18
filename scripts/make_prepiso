@@ -48,13 +48,14 @@ echo "  Copying (updating) filesystem ... "
 
 #EXC=$(basename $CURRUSB)
 
+#--exclude=/run/* \
+
 rsync -au   --info=progress2 \
             --exclude=/proc/* \
-            --exclude=/dev/* \
             --exclude=/sys/* \
             --exclude=/tmp/* \
-            --exclude=/run/* \
-            $CURRUSB/* $ROOTFS
+            --exclude=/dev/* \
+                $CURRUSB/* $ROOTFS
 
 #echo -n "Copying modules ... "
 #cp -au $MODULEDIR/* $ROOTFS/lib/modules
@@ -77,6 +78,7 @@ echo OK
 
 echo -n "  Copying shell utilities ... "
 cp -a $SHLIB $ROOTFS/lib
+chown root.root $ROOTFS/lib/*
 echo OK
 
 echo -n "  Copying dev files ... "
@@ -88,7 +90,9 @@ echo -n "  Copying user files ... "
 mkdir -p $ROOTFS/home/user
 mkdir -p $ROOTFS/home/guest
 mkdir -p $ROOTFS/root
+echo OK
 
+echo -n "  Changing user file permissions ... "
 cp -a $USERDIR/. $ROOTFS/home/user
 UIDX=$(grep user:x etc-dir/passwd  | awk -F ":" '{print $3}')
 GIDX=$(grep user:x etc-dir/passwd  | awk -F ":" '{print $4}')
@@ -114,6 +118,7 @@ echo -n "  Copying etc files ... "
 
 # The pre created pass and group
 cp -a $ETCDIR/* $ROOTFS/etc
+chown -R root.root $ROOTFS/etc/*
 
 # XFCE related
 cp -a X11/* $ROOTFS/etc/X11
@@ -125,22 +130,22 @@ echo OK
 IFS=$' \t\n'        # Restore original IFS
 VALS="root home/user home/guest"
 for aaa in $VALS ; do
-    #echo "cleaning: $aaa"
+    #echo "Cleaning: $aaa"
     rm -f  "$ROOTFS/$aaa/.sudo_as_admin_successful"
     rm -f  "$ROOTFS/$aaa/.bash_history"
     rm -f  "$ROOTFS/$aaa/.ICEauthority"
+    rm -f  "$ROOTFS/$aaa/.Xauthority"
+    rm -f  "$ROOTFS/$aaa/.pulse*"
     rm -rf "$ROOTFS/$aaa/.mozilla"
     rm -rf "$ROOTFS/$aaa/.thunderbird"
     rm -rf "$ROOTFS/$aaa/.pyedpro"
     rm -rf "$ROOTFS/$aaa/.config"
     rm -rf "$ROOTFS/$aaa/.local"
     rm -rf "$ROOTFS/$aaa/.cache"
-    rm -rf "$ROOTFS/$aaa/tmp"
     rm -rf "$ROOTFS/$aaa/.xfce_err"
     rm -rf "$ROOTFS/$aaa/.xfce_out"
-    # -- Not clearing, we remember the settings of XFCE from prev environments
-    #rm -rf "$ROOTFS/$aaa/.xfce*"
-    #rm -rf "$ROOTFS/$aaa/.config/xfce4"
+    rm -rf "$ROOTFS/$aaa/.xfce*"
+    rm -rf "$ROOTFS/$aaa/tmp"
 done
 
 echo -n "  Patching tmp and var/tmp permissions ... "
