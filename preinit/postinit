@@ -109,11 +109,11 @@ cd $NEWHOME || echo "Cannot change to $NEWHOME"
 
 # Xorg needs these
 rm -f /tmp/.X*lock
-rm -f /tmp/.X11-unix
+rm -rf /tmp/.X11-unix
 
 export XAUTHORITY=$NEWHOME/.Xauthority
 export ICEAUTHORITY=$NEWHOME/.ICEauthority
-export DISPLAY=:0
+#export DISPLAY=:0
 
 # Testing ... # Xorg vt5 $DISPLAY &
 
@@ -122,13 +122,8 @@ while : ; do
     getargy 'isleep' && sleep "$FOUNDVAL"
     getargx 'ibreak=pre-gui' && tmpshell  "$FOUNDVAR $ "
 
-    #echo -n "Starting GUI ... "
-    #chvt 5
-
-    # Start Xorg as a regular user
-    su - user -c "exec ./.startup.sh"
-
-    #runuser - user -- ./.startup.sh
+    # Start initial GUI login
+    startx
 
     # Start Xorg as root
     #/usr/bin/startxfce4 -- -keeptty vt5 >.xfce_out 2>.xfce_err
@@ -147,11 +142,11 @@ while : ; do
     fi
 
     # If it got here, it is a logout or shutdown error
-    echo "Type 'exit' to restart your session"
-    echo "  linux_reboot to restart your computer."
-    echo "  linux_poweroff to power down your computer."
+    echo "Type:     'exit' to restart your session"
+    echo "          'linux_reboot -f' to restart your computer."
+    echo "          'linux_poweroff -f' to power down your computer."
     #tmpshell "XFCE loop iteration $ "
-    tmpshell "Reboot Prompt $ "
+    tmpshell "System Control Prompt $ "
 
 done
 

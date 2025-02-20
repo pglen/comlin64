@@ -1,0 +1,56 @@
+<e><c><xxl><r>T</r>roubleshooting</xxl></c></e>
+<e><c><xxl><image name=pinguin.xpm align=center> <b>Community Linux</b>.\
+<image name=pinguin.xpm align=center></xxl></c></e>
+
+<c>\
+<link name=index.pango> [ <u>Index</u> ] </link> \
+<link name=install.pango> [ <u>Installation</u> ] </link>\
+<link name=troubleshoot.pango> [ <u>Troubleshoting</u> ] </link>\
+<link name=tech.pango> [ <u>Technical Details</u> ] </link>\
+
+<link name=install.pango> [ <u>Create ComLin Drive</u> ] </link>\
+</c>
+
+<w>    The boot process can be troubleshooted from the GRUB command line. When  \
+starting up, press the 'e' key at the grub prompt for editing the command line.  \
+Select the <u>Community Linux 64</u> boot line and press the 'e' key again.\
+Edit the command line, press enter key when done.
+Press the 'b' key to boot.
+</w>
+  The following options are available on the kernel command line:
+
+<b>Variables:</b>
+<in>\
+        verbose=lev     Verbosity level (lev) Values: 0 ... 10
+        isleep=sec      Sleep (sec) after commands for visual observation\
+</in>
+<b>Break items:</b>
+<m><w>   The break items suspend the execution of the startup process, and drop \
+to a shell. (for examination) The execution continues when exiting the shell \
+via the 'exit' command or Ctrl-D keyboard sequence.
+</w></m>
+<b>Break items;</b> (see source for more info)
+    ibreak=all         <tab> Stop at all break points
+    ibreak=start       <tab> Stop at the start of script.
+    ibreak=devices
+    ibreak=hd
+    ibreak=chroot
+    ibreak=all
+    ibreak=vt
+    ibreak=daemons
+    ibreak=sound
+    ibreak=network
+    ibreak=pre-mount
+    ibreak=pre-user
+    ibreak=pre-gui
+    ibreak=post-gui
+    ibreak=post-cleanup
+</m>
+<j><w>
+ <b>Community Linux</b> is maintained by Peter Glen. The project is funded by donations, please consider contributing. Contributions are accepted on <r>Paypal;</r> account: <i>peterglen99@gmail.com</i>
+</w></j>
+<c>The <b>ComLin</b> and <b>Community Linux</b> names are Copyright Peter Glen.<sm>
+</sm>\
+<i>This document is displayed by the pangview utility.</i>
+</c>
+

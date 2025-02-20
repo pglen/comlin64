@@ -5,8 +5,9 @@
 <c>\
 <link name=index.pango> [ <u>Index</u> ] </link> \
 <link name=install.pango> [ <u>Installation</u> ] </link>\
-<link name=install.pango> [ <u>Troubleshooting</u> ] </link>\
+<link name=troubleshoot.pango> [ <u>Troubleshoting</u> ] </link>\
 <link name=tech.pango> [ <u>Technical Details</u> ] </link>\
+
 <link name=install.pango> [ <u>Create ComLin Drive</u> ] </link>\
 </c>
 
@@ -31,11 +32,11 @@ It has all the features of hard a drive installation, boasting comparable perfor
 
 <b>Lots of apps:</b>
 
-  <i>Community Linux</i> includes most mainstream applications, including FireFox, Thunderbird, Open Office, Terminal, Secure Shell, File Manager ... etc. A host of other tools and utilities are installed by default, including the full 'C' compiler suit to be able to build programs. 
+  <i>Community Linux</i> includes most mainstream applications, including FireFox, Thunderbird, Open Office, Terminal, Secure Shell, File Manager ... etc. A host of other tools and utilities are installed by default, including the full 'C' compiler suit to be able to build programs.
 
 <b>Secure, Private:</b>
 
-  <i>Community Linux</i> is secure. We included a pre-configured encrypted folder, all you need to do is change the encryption password to your personal preference. Make sure you remember the password, as no recovery is passible, and the data is encrypted with an industrial strength encryption. 
+  <i>Community Linux</i> is secure. We included a pre-configured encrypted folder, all you need to do is change the encryption password to your personal preference. Make sure you remember the password, as no recovery is passible, and the data is encrypted with an industrial strength encryption.
 
 <b>Open Source:</b>
 

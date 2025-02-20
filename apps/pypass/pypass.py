@@ -1,8 +1,10 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import time
-import signal, os, time
-import logging
+import signal, os, sys
+import logging, warnings
+import re
+import pam
 
 import gi
 gi.require_version("Gtk", "3.0")
@@ -12,6 +14,58 @@ from gi.repository import GLib
 from gi.repository import GObject
 from gi.repository import Pango
 
+import cairo
+
+def get_disp_pos_size():
+
+    warnings.simplefilter("ignore")
+    disp2 = Gdk.Display()
+    disp = disp2.get_default()
+    #print( disp)
+    scr = disp.get_default_screen()
+    ptr = disp.get_pointer()
+    mon = scr.get_monitor_at_point(ptr[1], ptr[2])
+    geo = scr.get_monitor_geometry(mon)
+    www = geo.width; hhh = geo.height
+    xxx = geo.x;     yyy = geo.y
+    warnings.simplefilter('default')
+
+    return xxx, yyy, www, hhh
+
+class xEntry(Gtk.Entry):
+
+    def __init__(self, form, action = None):
+        super(xEntry, self).__init__()
+        self.form = form
+        self.action = action
+        self.connect("activate", self.enterkey)
+        pass
+
+    def enterkey(self, arg):
+        #print("Enter:", self.get_text())
+        if self.action:
+            self.action()
+        else:
+            self.form.child_focus(Gtk.DirectionType.TAB_FORWARD)
+
+def  microsleep(msec, flag = [0,]):
+
+    if sys.version_info[0] < 3 or \
+        (sys.version_info[0] == 3 and sys.version_info[1] < 3):
+        timefunc = time.clock
+    else:
+        timefunc = time.process_time
+
+    got_clock = timefunc() + float(msec) / 1000
+    #print( got_clock)
+    while True:
+        if timefunc() > got_clock:
+            break
+        if flag[0]:
+            break
+        #print ("Sleeping")
+        Gtk.main_iteration_do(False)
+
 class MainWin(Gtk.Window):
 
     def __init__(self, conf = None):
@@ -20,42 +74,49 @@ class MainWin(Gtk.Window):
         self.conf = conf
         self.stattime =  0
 
-        Gtk.Window.__init__(self, Gtk.WindowType.TOPLEVEL)
+        Gtk.Window.__init__(self, type=Gtk.WindowType.TOPLEVEL)
         #Gtk.Window.__init__(self, Gtk.WindowType.POPUP)
         #self = Gtk.Window(Gtk.WindowType.TOPLEVEL)
         #Gtk.register_stock_icons()
 
-        self.set_title("Please enter your user name and password")
+        self.set_title("Please enter your user name and password:")
         self.set_position(Gtk.WindowPosition.CENTER_ALWAYS)
 
-        #ic = Gtk.Image(); ic.set_from_stock(Gtk.STOCK_DIALOG_INFO, Gtk.ICON_SIZE_BUTTON)
+        self.set_decorated(False)
+
+        #self.ic = Gtk.Image();
+        #self.ic.set_from_file("icon.png")
+        #self.pixbuf = self.ic.get_pixbuf()
+
+        try:
+            self.surface = cairo.ImageSurface.create_from_png('background.png')
+        except:
+            try:
+                self.surface = cairo.ImageSurface.create_from_png('Utils/background.png')
+            except:
+                self.surface = None
+
+        #ic.set_from_stock(Gtk.STOCK_DIALOG_INFO, Gtk.ICON_SIZE_BUTTON)
         #window.set_icon(ic.get_pixbuf())
 
-        www = Gdk.Screen.width(); hhh = Gdk.Screen.height();
+        xx, yy, www, hhh = get_disp_pos_size()
 
-        disp2 = Gdk.Display()
-        disp = disp2.get_default()
-        #print( disp)
-        scr = disp.get_default_screen()
-        ptr = disp.get_pointer()
-        mon = scr.get_monitor_at_point(ptr[1], ptr[2])
-        geo = scr.get_monitor_geometry(mon)
-        www = geo.width; hhh = geo.height
-        xxx = geo.x;     yyy = geo.y
+        #self.set_default_size(4*www/8, 3*hhh/8)
+        self.set_default_size(680, 300)
 
-        # Resort to old means of getting screen w / h
-        if www == 0 or hhh == 0:
-            www = Gdk.screen_width(); hhh = Gdk.screen_height();
-
-        #self.set_default_size(4*www/8, 2*hhh/8)
+        self.set_app_paintable(True)
 
         self.connect("destroy", self.OnExit)
         self.connect("key-press-event", self.key_press_event)
         self.connect("key-release-event", self.key_release_event)
         #self.connect("button-press-event", self.button_press_event)
+        self.connect('draw', self.expose)
+        self.connect('map-event', self.done_map)
+        self.connect('delete-event', self.delete)
+        self.connect('leave-notify-event', self.leave)
 
         try:
-            self.set_icon_from_file("icon.png")
+            self.set_icon_from_file("background.png")
         except:
             pass
 
@@ -70,11 +131,13 @@ class MainWin(Gtk.Window):
         self.m1   = Gtk.Label(label="     ")
         self.m2   = Gtk.Label(label="     ")
 
-        self.userL = Gtk.Label(label=" User:   ")
-        self.userE  = Gtk.Entry()
-        self.passL = Gtk.Label(label=" Password:  ")
-        self.passE  = Gtk.Entry()
+        self.userL  = Gtk.Label.new_with_mnemonic(" _User Name:   ")
+        self.userE  = xEntry(self)
+        self.passL  = Gtk.Label.new_with_mnemonic(" Password:  ")
+        self.passE  = xEntry(self, self.check_pass)
+        self.passE.set_visibility(False)
 
+        vbox.pack_start(Gtk.Label(label="Please enter user name and password."), 0, 0, 6)
         vbox.pack_start(self.up, 1, 1, 0)
 
         grid = Gtk.Grid()
@@ -91,31 +154,39 @@ class MainWin(Gtk.Window):
         hbox.pack_start(self.l2,    1, 1, 1)
 
         vbox.pack_start(hbox, 0, 0, 6)
-        self.butt1 = Gtk.Button.new_with_mnemonic("   _Cancel  ")
-        self.butt2 = Gtk.Button.new_with_mnemonic("     _OK    ")
+        #self.butt1 = Gtk.Button.new_with_mnemonic("   _Cancel  ")
+        #self.butt2 = Gtk.Button.new_with_mnemonic("     _OK    ")
 
-        self.butt1.connect("activate", self.cancel)
-        self.butt2.connect("activate", self.ok)
+        #self.butt1.connect("clicked", self.cancel)
+        #self.butt2.connect("clicked", self.ok)
 
-        self.b1 = Gtk.Label(label="  ")
-        self.b2 = Gtk.Label(label="  ")
-        self.m3 = Gtk.Label(label="  ")
+        self.b1  = Gtk.Label(label="  ")
+        self.b11 = Gtk.Label(label="             ")
+        self.b2  = Gtk.Label(label="  ")
+        self.m3  = Gtk.Label(label="  ")
 
         hbox2.pack_start(self.b1, 1, 1, 1)
-        hbox2.pack_start(self.butt2, 0, 0, 1)
+        hbox2.pack_start(self.b11, 1, 1, 1)
+        self.result = Gtk.Label(label="...")
+        hbox2.pack_start(self.result, 0, 0, 1)
+        #hbox2.pack_start(self.butt2, 0, 0, 1)
         hbox2.pack_start(self.m3, 0, 0, 1)
-        hbox2.pack_start(self.butt1, 0, 0,1)
-        hbox2.pack_start(self.b2, 0, 0, 1)
 
+        #hbox2.pack_start(self.butt1, 0, 0,1)
+        #hbox2.pack_start(self.b2, 0, 0, 1)
+
+        vbox.pack_start(self.down, 1, 1, 0)
         vbox.pack_start(hbox2, 0, 0, 6)
 
-        #vbox.pack_start(self.down, 1, 1, 0)
+        self.www, self.hhh =  self.get_size()
 
         self.add(vbox)
         self.show_all()
 
     def key_press_event(self, arg1, arg2):
         #print("key", arg1, arg2)
+        # keyevent
+        #print(arg2.state)
         pass
 
     def key_release_event(self, arg1, arg2):
@@ -123,22 +194,197 @@ class MainWin(Gtk.Window):
         pass
 
     def ok(self, arg1):
-        print("OK pressed", arg1)
-        self.OnExit(2)
+        print("OK pressed")
+        print("user", self.userE.get_text(), self.passE.get_text())
+        #self.OnExit(2)
 
     def cancel(self, arg1):
-        print("Cancel pressed", arg1)
+        #print("Cancel pressed", arg1)
         self.OnExit(1)
 
     def  OnExit(self, arg, arg2 = None):
         Gtk.main_quit()
 
+    def check_pass(self):
+        uu = self.userE.get_text();  pp = self.passE.get_text()
+
+        if not uu or not pp:
+            self.result.set_text("User / Pass fields cannot be empty.")
+        else:
+            self.result.set_text("Checking ...")
+            microsleep(10)
+
+            ret = pam.authenticate(uu, pp)
+            if ret:
+                self.result.set_text("Authenticated.")
+                microsleep(10)
+                time.sleep(.5)
+
+                self.save_result("/var/tmp/curruser", uu)
+                self.save_result("/var/tmp/currdisp", os.environ['DISPLAY'])
+
+                sys.exit(0)
+
+            else:
+                self.result.set_text("Invalid credentials. Please try again ...")
+                microsleep(10)
+
+        microsleep(10)
+        time.sleep(2)
+        self.result.set_text("")
+
+        self.passE.set_text("")
+        self.set_focus(self.userE)
+
+
+    def expose (self, widget, cr):
+
+        #print("Expose", widget, cr)
+        ww, hh = self.get_size()
+
+        if self.surface:
+            cr.set_source_surface(self.surface)
+            cr.paint()
+
+        #cr.set_source_rgba(.8, .8, .8, 1)
+        cr.set_source_rgba(.4, .4, .4, 1)
+        cr.set_line_width(4)
+        cr.move_to(0, 0);  cr.line_to(ww, 0)
+        cr.move_to(ww, 0); cr.line_to(ww, hh)
+        cr.move_to(ww, hh); cr.line_to(0, hh)
+        cr.move_to(0, hh); cr.line_to(0, 0)
+        cr.stroke()
+
+        #cr.rectangle(0, 0, 0.9, 0.8)
+        #cr.rectangle(4, 4, ww-8, hh-8)
+        #cr.fill()
+
+        #return True
+
+    def save_result(self, fname, uu):
+        try:
+            fp = open(fname, "wt")
+            fp.write(uu + "\n")
+            fp.close()
+        except:
+            print("Error save file.", sys.exc_info())
+            pass
+
+    def delete(self, widgetx, event):
+        #print("Delete:", widgetx, event)
+        return True
+
+    def leave(self, widgetx, event):
+        #print("Leave:", widgetx, event)
+        #return True
+        pass
+
+    def done_map(self, widgetx, event):
+        wnd = self.get_window()
+        #curr = wnd.get_decorations()
+        #print ("curr", curr)
+        #print("resize", Gdk.WMDecoration.RESIZEH)
+        #wnd.set_decorations(4)
+        #self.grab_add()
+
+        #Gdk.Device.grab(wnd, Gdk.GrabOwnership.NONE,
+        #        False, Gdk.EventMask.ALL_EVENTS_MASK,
+        #               None, None, Gdk.CURRENT_TIME)
+
+
+def parse(strx):
+
+    state = 0
+    instr = 0
+    bb = []
+    stry = "" ; str1 = ""; str2 = ""; comment = ""
+    for aa in strx:
+        if state == 0:
+            if aa == "#":
+                state = 1
+                continue
+            elif aa == "\"":
+                instr = 1
+                stry += aa
+                continue
+            elif aa == "=":
+                state = 2
+                continue
+            #elif aa == " ":
+            #    pass
+            else:
+                str1 += aa
+
+        if state == 1:
+            comment += aa
+
+        if state == 2:
+            if aa == "#":
+                state = 1
+                continue
+            if aa != " ":
+                str2 += aa
+
+        if instr == 1:
+            if state == 2:
+                str2 += aa
+
+            if aa == "\"":
+                instr = 0
+                #print("str", stry)
+                #continue
+
+    if comment: print("comment:", comment)
+    if str1: print("str1:", str1); bb.append(str1)
+    if str2: print("str2:", str2) ; bb.append(str2)
+    #if stry: print("stry:", stry)
+    return bb
+
+
+def readconf(xconfig):
+    # Read config
+    fpx = None
+    try:
+        fpx = open("/etc/pypass/pypass.conf", "rt")
+    except:
+        try:
+            fpx = open("pypass.conf", "rt")
+        except:
+            print("Warn: no config, using defaults.")
+
+    if fpx:
+        conf = fpx.read()
+        for aa in conf.split("\n"):
+            #print("org:", aa)
+            #bb = re.split("=|#", aa)
+            bb = parse(aa)
+            print("line:", bb)
+            continue
+
+            if not len(bb): continue
+            if bb[0] == "#":  continue
+
+            if len(bb) > 2:
+                if bb[1] == "=":
+                    xconfig[bb[0]] = bb[2]
+            elif len(bb) > 1:
+                print("broken:", bb)
+            elif len(bb) > 0:
+                print("flag:", bb[0])
+            else:
+                pass
 
 def main():
+
+    xconfig = {}
+    readconf(xconfig)
+    print(xconfig)
+
+    #print(os.environ['DISPLAY'])
     mw = MainWin()
     Gtk.main()
 
 if __name__ == '__main__':
     main()
 
-
+# EOF

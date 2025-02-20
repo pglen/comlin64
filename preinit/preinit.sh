@@ -530,6 +530,7 @@ mountHD() {
         if test -f "$HDROOT/.comlin_data" ; then
             #echo "Found COMLIN DATA at /dev/$ii"
             MOUNT_DISK=$DEVX
+            umount "$DEVX" >/dev/null 2>&1
             return 0
         else
             umount "$DEVX" >/dev/null 2>&1

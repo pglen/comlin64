@@ -92,11 +92,16 @@ NEWROOT=/newroot; mkdir -p $NEWROOT
 HDROOT="/hdroot"; mkdir -p $HDROOT
 
 MOUNT_DISK=""
+FSCK=""
+
 mountHD $HDROOT
 
 getargy 'nodisk' && export NODISK=$FOUNDVAL
+getargy 'fsck' && export FSCK=$FOUNDVAL
 
 if [ "$NODISK" != "" ] ; then
+    echo "Starting without DATA save"
+    read
     # User wants no data mount
     exec setsid /sbin/postinit
 
@@ -107,6 +112,16 @@ else
         exec setsid /sbin/postinit
     else
         echo -e "Data storage at $MOUNT_DISK \033[32;1mOK\033[0m"
+        if [ "$FSCK" != "" ] ;  then
+            echo "Executing file system check on $MOUNT_DISK"
+            fsck -y "$MOUNT_DISK"
+        fi
+
+        getargx 'ibreak=pre-mount' && tmpshell "$FOUNDVAR $ "
+
+        mount "$MOUNT_DISK" "$HDROOT"
+
+        getargx 'ibreak=pre-overlay' && tmpshell "$FOUNDVAR $ "
 
         mkdir -p $HDROOT/fs
         mkdir -p $HDROOT/work
@@ -116,7 +131,7 @@ else
             -olowerdir=/,upperdir=$HDROOT/fs,workdir=$HDROOT/work \
             $NEWROOT
 
-        getargx 'ibreak=chroot' && tmpshell "$FOUNDVAR $ "
+        getargx 'ibreak=pre-chroot' && tmpshell "$FOUNDVAR $ "
 
         mkdir -p $NEWROOT/proc $NEWROOT/sys $NEWROOT/dev/pts
         mount --bind /proc $NEWROOT/proc
