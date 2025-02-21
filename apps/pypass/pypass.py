@@ -5,6 +5,7 @@ import signal, os, sys
 import logging, warnings
 import re
 import pam
+import argparse
 
 import gi
 gi.require_version("Gtk", "3.0")
@@ -75,8 +76,6 @@ class MainWin(Gtk.Window):
         self.stattime =  0
 
         Gtk.Window.__init__(self, type=Gtk.WindowType.TOPLEVEL)
-        #Gtk.Window.__init__(self, Gtk.WindowType.POPUP)
-        #self = Gtk.Window(Gtk.WindowType.TOPLEVEL)
         #Gtk.register_stock_icons()
 
         self.set_title("Please enter your user name and password:")
@@ -109,7 +108,6 @@ class MainWin(Gtk.Window):
         self.connect("destroy", self.OnExit)
         self.connect("key-press-event", self.key_press_event)
         self.connect("key-release-event", self.key_release_event)
-        #self.connect("button-press-event", self.button_press_event)
         self.connect('draw', self.expose)
         self.connect('map-event', self.done_map)
         self.connect('delete-event', self.delete)
@@ -136,6 +134,11 @@ class MainWin(Gtk.Window):
         self.passL  = Gtk.Label.new_with_mnemonic(" Password:  ")
         self.passE  = xEntry(self, self.check_pass)
         self.passE.set_visibility(False)
+
+        ddd = xconfig.get('defuser')
+        if ddd:
+            self.userE.set_text(ddd)
+            self.set_focus(self.passE)
 
         vbox.pack_start(Gtk.Label(label="Please enter user name and password."), 0, 0, 6)
         vbox.pack_start(self.up, 1, 1, 0)
@@ -183,10 +186,33 @@ class MainWin(Gtk.Window):
         self.add(vbox)
         self.show_all()
 
+        aaa = xconfig.get('autologin')
+        if aaa:
+            GLib.timeout_add(40, self.autoexit)
+
+    def autoexit(self):
+        aaa = xconfig.get('autologin')
+
+        if xconfig.get("verbose"):
+            print("Autologin for '%s' requested for" % aaa)
+
+        self.result.set_text("Autologin for '%s' requested ..." % aaa)
+        microsleep(20)
+        time.sleep(1)
+
+        self.save_result("/var/tmp/curruser", aaa)
+        self.save_result("/var/tmp/currdisp", os.environ['DISPLAY'])
+
+        if xconfig.get("pgdebug") > 2:
+            print("destroy")
+        self.destroy()
+
+        if xconfig.get("pgdebug") > 2:
+            print("onexit")
+        self.OnExit(0)
+
     def key_press_event(self, arg1, arg2):
-        #print("key", arg1, arg2)
-        # keyevent
-        #print(arg2.state)
+        #print("key press", arg1, arg2)
         pass
 
     def key_release_event(self, arg1, arg2):
@@ -194,8 +220,7 @@ class MainWin(Gtk.Window):
         pass
 
     def ok(self, arg1):
-        print("OK pressed")
-        print("user", self.userE.get_text(), self.passE.get_text())
+        print("OK - user", self.userE.get_text(), self.passE.get_text())
         #self.OnExit(2)
 
     def cancel(self, arg1):
@@ -211,13 +236,14 @@ class MainWin(Gtk.Window):
         if not uu or not pp:
             self.result.set_text("User / Pass fields cannot be empty.")
         else:
+
             self.result.set_text("Checking ...")
-            microsleep(10)
+            microsleep(20)
 
             ret = pam.authenticate(uu, pp)
             if ret:
                 self.result.set_text("Authenticated.")
-                microsleep(10)
+                microsleep(20)
                 time.sleep(.5)
 
                 self.save_result("/var/tmp/curruser", uu)
@@ -227,9 +253,9 @@ class MainWin(Gtk.Window):
 
             else:
                 self.result.set_text("Invalid credentials. Please try again ...")
-                microsleep(10)
+                microsleep(20)
 
-        microsleep(10)
+        microsleep(20)
         time.sleep(2)
         self.result.set_text("")
 
@@ -292,54 +318,95 @@ class MainWin(Gtk.Window):
         #               None, None, Gdk.CURRENT_TIME)
 
 
+def unbool(strx):
+
+    ''' Un bool '''
+
+    res = strx
+    cmp = strx.lower()
+    # Unquote
+    if cmp[0] == "\"":
+        cmp = cmp[1:-1]
+    if cmp[0] == "\'":
+        cmp = cmp[1:-1]
+
+    if cmp  == "false":
+        res = 0
+    elif cmp  == "no":
+        res = 0
+    elif cmp  == "true":
+        res = 1
+    elif cmp  == "yes":
+        res = 1
+    elif cmp  == "1":
+        res = 1
+
+    return res
+
 def parse(strx):
 
-    state = 0
-    instr = 0
+    state = 0; instr = 0
     bb = []
-    stry = "" ; str1 = ""; str2 = ""; comment = ""
+    str1 = ""; str2 = ""; comment = ""
     for aa in strx:
+        if instr == 1:
+            if aa == "\"":
+                instr = 0
+                #continue
+            if state == 2:
+                str2 += aa
+            elif state == 0:
+                str1 += aa
+            else:
+                pass
+            continue
+        if instr == 2:
+            if aa == "\'":
+                instr = 0
+                #continue
+            if state == 2:
+                str2 += aa
+            elif state == 0:
+                str1 += aa
+            else:
+                pass
+            continue
+        if aa == "\"":
+            instr = 1
+            #continue
+        if aa == "\'":
+            instr = 2
+            #continue
         if state == 0:
             if aa == "#":
                 state = 1
                 continue
             elif aa == "\"":
                 instr = 1
-                stry += aa
-                continue
+                str1 += aa
+                #continue
             elif aa == "=":
                 state = 2
                 continue
-            #elif aa == " ":
-            #    pass
             else:
-                str1 += aa
+                if aa != " ":
+                    str1 += aa
 
-        if state == 1:
+        elif state == 1:
             comment += aa
-
-        if state == 2:
+        elif state == 2:
             if aa == "#":
                 state = 1
                 continue
             if aa != " ":
                 str2 += aa
 
-        if instr == 1:
-            if state == 2:
-                str2 += aa
-
-            if aa == "\"":
-                instr = 0
-                #print("str", stry)
-                #continue
-
-    if comment: print("comment:", comment)
-    if str1: print("str1:", str1); bb.append(str1)
-    if str2: print("str2:", str2) ; bb.append(str2)
-    #if stry: print("stry:", stry)
+    #if comment: print("comment:", comment)
+    #if str1: print("str1:", str1)
+    #if str2: print("str2:", str2)
+    if str1: bb.append(str1)
+    if str2: bb.append(str2)
     return bb
-
 
 def readconf(xconfig):
     # Read config
@@ -355,30 +422,69 @@ def readconf(xconfig):
     if fpx:
         conf = fpx.read()
         for aa in conf.split("\n"):
+            if len(aa) == 0:
+                continue
             #print("org:", aa)
-            #bb = re.split("=|#", aa)
             bb = parse(aa)
-            print("line:", bb)
-            continue
-
-            if not len(bb): continue
-            if bb[0] == "#":  continue
-
-            if len(bb) > 2:
-                if bb[1] == "=":
-                    xconfig[bb[0]] = bb[2]
-            elif len(bb) > 1:
-                print("broken:", bb)
+            if len(bb) == 0:
+                continue
+            #print("parsed:", bb)
+            #continue
+            if len(bb) > 1:
+                xconfig[bb[0]] = unbool(bb[1])
             elif len(bb) > 0:
-                print("flag:", bb[0])
+                xconfig[bb[0]] = 0
             else:
                 pass
 
+Version = "1.0.0"
+pdesc = 'Simple login GUI. '
+pform = "Use TAB or enter to navigate between fields and submit. " \
+        "Use special user 'shutdown' for powering down system"
+
 def main():
+
+    global xconfig
+    parser = argparse.ArgumentParser( description=pdesc, epilog=pform)
+
+    parser.add_argument("-V", '--version', dest='version',
+                        default=0,  action='store_true',
+                        help='Show version number')
+
+    parser.add_argument("-p", '--pconf', dest='pconf',
+                        default=0,  action='store_true',
+                        help='Print Configuration')
+
+    parser.add_argument("-v", '--verbose', dest='verbose',
+                        default=0,  action='count',
+                        help='Verbose. Repeat -v for more information')
+
+    parser.add_argument("-a", '--auto', dest='autologin', type=str,
+                        default="",  action='store',
+                        help='Auto log in user')
+
+    parser.add_argument("-d", '--pgdebug', dest='pgdebug', type=int,
+                        default=0,  action='store',
+                        help='Show debug information')
+
+    args = parser.parse_args()
+    #print(args)
+
+    if args.version:
+        print("Version: %s" % Version)
+        sys.exit(0)
 
     xconfig = {}
     readconf(xconfig)
-    print(xconfig)
+    #merge the two:
+    for key, val in vars(args).items():
+        if not key in xconfig:
+            xconfig[key] = val
+
+    if args.pconf:
+        for aa in xconfig:
+            print(aa + " " * (14 - len(aa)), "=", xconfig[aa])
+        sys.exit()
 
     #print(os.environ['DISPLAY'])
     mw = MainWin()
