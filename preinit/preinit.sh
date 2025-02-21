@@ -513,7 +513,7 @@ loadmods() {
 
 mountHD() {
 
-    if [ "$VERBOSE" != "" ] ; then
+    if [ $(($VERBOSE)) -gt 1  ] ; then
         echo "mountHD() $*"
     fi
 
@@ -523,12 +523,16 @@ mountHD() {
     #mkdir -p "$HDROOT"  >/dev/null 2>&1
     #echo "MountCD() $DEVS"
     for ii in $DEVS; do
-        #echo "Test Drive" $ii
+        if [ $(($VERBOSE)) -gt 1 ] ; then
+            echo "Test Drive $ii"
+        fi
         sleep 0.01       # Needs to breathe
         DEVX="/dev/$ii"
         mount "$DEVX" "$HDROOT"  >/dev/null 2>&1
         if test -f "$HDROOT/.comlin_data" ; then
-            #echo "Found COMLIN DATA at /dev/$ii"
+            if [ $(($VERBOSE)) -gt 2 ] ; then
+                echo "Found COMLIN DATA at /dev/$ii"
+            fi
             MOUNT_DISK=$DEVX
             umount "$DEVX" >/dev/null 2>&1
             return 0

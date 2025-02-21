@@ -52,17 +52,17 @@ startvts
 getargy 'isleep' && sleep "$FOUNDVAL"
 echo -e " \033[32;1mOK\033[0m"
 
-# Polkit, udev, etc ...
-getargx 'ibreak=daemons' && tmpshell "$FOUNDVAR $ "
-echo -n "Starting daemons ... "
-
-echo -n "polkit "
+getargx 'ibreak=polkit' && tmpshell "$FOUNDVAR $ "
+echo -n "Starting polkit ... "
 /usr/libexec/polkitd >>$SULOUT 2>>$SULERR &
 getargy 'isleep' && sleep "$FOUNDVAL"
+echo -e " \033[32;1mOK\033[0m"
 
-echo -n "systemd-udevd "
+getargx 'ibreak=udevd' && tmpshell "$FOUNDVAR $ "
+echo -n "Starting systemd-udevd ... "
 /lib/systemd/systemd-udevd >>$SULOUT 2>>$SULERR &
 getargy 'isleep' && sleep "$FOUNDVAL"
+echo -e " \033[32;1mOK\033[0m"
 
 #echo -n "systemd-logind "
 #/lib/systemd/systemd-logind >>$SULOUT 2>>$SULERR &
@@ -80,21 +80,25 @@ echo -e " \033[32;1mOK\033[0m"
 rm -rf /var/run/pulse/pid
 rm -rf .config/pulse/.
 
-echo -n "Pulseaudio daemon ... "
-
+#echo -n "Pulseaudio daemon ... "
 #pulseaudio --start >>$SULOUT 2>>$SULERR  &
 #pulseaudio --deaemonize=no --system --realtime  >>$SULOUT 2>>$SULERR  &
-pulseaudio --system --disallow-exit --disallow-module-loading >>$SULOUT 2>>$SULERR &
+#pulseaudio --system --disallow-exit --disallow-module-loading >>$SULOUT 2>>$SULERR &
 #sleep 0.1
 #pactl set-sink-mute 0 0  >>$SULOUT 2>>$SULERR
 #pactl set-sink-volume 0 0.5  >>$SULOUT 2>>$SULERR
-
-getargy 'isleep' && sleep "$FOUNDVAL"
-echo -e " \033[32;1mOK\033[0m"
+#getargy 'isleep' && sleep "$FOUNDVAL"
+#echo -e " \033[32;1mOK\033[0m"
 
 getargx 'ibreak=network' && tmpshell "$FOUNDVAR $ "
 echo -n "Starting network ... "
 dhclient >>"$SULOUT" 2>>"$SULERR" &
+getargy 'isleep' && sleep "$FOUNDVAL"
+echo -e " \033[32;1mOK\033[0m"
+
+getargx 'ibreak=pre-sshd' && tmpshell  "$FOUNDVAR $ "
+echo -n "Starting sshd ... "
+/usr/sbin/sshd >>"$SULOUT" 2>>"$SULERR" &
 getargy 'isleep' && sleep "$FOUNDVAL"
 echo -e " \033[32;1mOK\033[0m"
 
@@ -115,19 +119,18 @@ export XAUTHORITY=$NEWHOME/.Xauthority
 export ICEAUTHORITY=$NEWHOME/.ICEauthority
 #export DISPLAY=:0
 
-# Testing ... # Xorg vt5 $DISPLAY &
+export XAUTHLOCALHOSTNAME=localhost
 
 while : ; do
     rm -f $SDCOM                # Fresh start
     getargy 'isleep' && sleep "$FOUNDVAL"
     getargx 'ibreak=pre-gui' && tmpshell  "$FOUNDVAR $ "
 
-    # Start initial GUI login
-    startx
+    # Start initial GUI for login program 'pylogin'
+    xinit # >.x_out 2>.x_err
 
     # Start Xorg as root
     #/usr/bin/startxfce4 -- -keeptty vt5 >.xfce_out 2>.xfce_err
-    #xfce4-session >.xfce_out 2>.xfce_err
 
     # Back to initial terminal
     chvt 1
@@ -142,12 +145,11 @@ while : ; do
     fi
 
     # If it got here, it is a logout or shutdown error
-    echo "Type:     'exit' to restart your session"
-    echo "          'linux_reboot -f' to restart your computer."
-    echo "          'linux_poweroff -f' to power down your computer."
+    echo "Type:     'exit' to restart the X session"
+    echo "          'linux_reboot -f' to restart computer."
+    echo "          'linux_poweroff -f' to power down computer."
     #tmpshell "XFCE loop iteration $ "
     tmpshell "System Control Prompt $ "
-
 done
 
 # Can not reach this ... just in case

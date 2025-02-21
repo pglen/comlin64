@@ -1,6 +1,6 @@
 #!/bin/bash
 # shellcheck disable=SC2004,SC2009,SC2068,SC2002
-# shellcheck disable=SC1091
+# shellcheck disable=SC1091,SC2086
 
 # Set the TESTME variable to non zero if you are in a
 # simulation / test environment. Warning: script will not work in the real env.
@@ -80,13 +80,12 @@ getargy 'isleep' && sleep "$FOUNDVAL"
 echo -e " \033[32;1mOK\033[0m"
 
 # After all configured, let it write some
-/usr/bin/sync
+
+#/usr/bin/sync
 #sleep 0.1
 
-# Mount available writable media
-
 # Time to find the writable disk
-getargx 'ibreak=hd' && tmpshell "$FOUNDVAR $ "
+getargx 'ibreak=pre-hd' && tmpshell "$FOUNDVAR $ "
 
 NEWROOT=/newroot; mkdir -p $NEWROOT
 HDROOT="/hdroot"; mkdir -p $HDROOT
@@ -94,35 +93,52 @@ HDROOT="/hdroot"; mkdir -p $HDROOT
 MOUNT_DISK=""
 FSCK=""
 
+# Find and mount available writable media
 mountHD $HDROOT
 
+getargy 'fsck'   && export FSCK=$FOUNDVAL
 getargy 'nodisk' && export NODISK=$FOUNDVAL
-getargy 'fsck' && export FSCK=$FOUNDVAL
+
+# Make is a non obvious str
+getargy 'clear-data'  && export CLEARDATA=$FOUNDVAL
 
 if [ "$NODISK" != "" ] ; then
-    echo "Starting without DATA save"
-    read
+    echo "Starting without writable DATA media. Nothing saved in this session."
+    read -r RESP
     # User wants no data mount
     exec setsid /sbin/postinit
-
 else
     if [ "$MOUNT_DISK" == "" ] ; then
         # No DATA FS found, do ram disk
-        echo "Cannot find data storage. Searching free space ..."
+        echo "Cannot find data storage. Search free space y/n "
+        read -r RESP
+        echo $RESP
         exec setsid /sbin/postinit
     else
         echo -e "Data storage at $MOUNT_DISK \033[32;1mOK\033[0m"
         if [ "$FSCK" != "" ] ;  then
             echo "Executing file system check on $MOUNT_DISK"
             fsck -y "$MOUNT_DISK"
+            sleep 2
         fi
-
         getargx 'ibreak=pre-mount' && tmpshell "$FOUNDVAR $ "
-
         mount "$MOUNT_DISK" "$HDROOT"
-
+        getargy 'isleep' && sleep "$FOUNDVAL"
         getargx 'ibreak=pre-overlay' && tmpshell "$FOUNDVAR $ "
 
+        if [ "$CLEARDATA" != "" ] ; then
+            echo "CLEARING Data storage .... "; sleep 2
+            echo -n "Are you sure you want to clear all DATA?"
+            read -r  RESP
+            if [ "$RESP" == "y" ] ; then
+                echo "Checking .... $MOUNT_DISK"
+                fsck -y "$MOUNT_DISK"
+                echo OK
+                echo "Clearing .... $HDROOT"
+                rm -rf "$HDROOT"
+                echo OK
+            fi
+        fi
         mkdir -p $HDROOT/fs
         mkdir -p $HDROOT/work
 
@@ -131,6 +147,7 @@ else
             -olowerdir=/,upperdir=$HDROOT/fs,workdir=$HDROOT/work \
             $NEWROOT
 
+        getargy 'isleep' && sleep "$FOUNDVAL"
         getargx 'ibreak=pre-chroot' && tmpshell "$FOUNDVAR $ "
 
         mkdir -p $NEWROOT/proc $NEWROOT/sys $NEWROOT/dev/pts
@@ -139,6 +156,7 @@ else
         mount --bind /dev/pts $NEWROOT/dev/pts
         #mount -t devpts -o nosuid,noexec,nodev  devpts /dev/pts >/dev/null 2>&1
 
+        getargy 'isleep' && sleep "$FOUNDVAL"
         cd "$NEWROOT" || echo "Cannot CD to $NEWROOT"
         exec chroot $NEWROOT setsid /sbin/postinit
     fi

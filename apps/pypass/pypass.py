@@ -193,7 +193,7 @@ class MainWin(Gtk.Window):
     def autoexit(self):
         aaa = xconfig.get('autologin')
 
-        if xconfig.get("verbose"):
+        if xconfig.get("verbose") > 0:
             print("Autologin for '%s' requested for" % aaa)
 
         self.result.set_text("Autologin for '%s' requested ..." % aaa)
@@ -232,6 +232,15 @@ class MainWin(Gtk.Window):
 
     def check_pass(self):
         uu = self.userE.get_text();  pp = self.passE.get_text()
+
+        if uu == "exit":
+            sys.exit(1)
+
+        if uu == "reboot":
+            sys.exit(2)
+
+        if uu == "shutdown":
+            sys.exit(3)
 
         if not uu or not pp:
             self.result.set_text("User / Pass fields cannot be empty.")
@@ -296,6 +305,8 @@ class MainWin(Gtk.Window):
             print("Error save file.", sys.exc_info())
             pass
 
+        #sys.env
+
     def delete(self, widgetx, event):
         #print("Delete:", widgetx, event)
         return True
@@ -330,6 +341,14 @@ def unbool(strx):
     if cmp[0] == "\'":
         cmp = cmp[1:-1]
 
+    # Try if number
+    try:
+       nnn = int(strx)
+       res = nnn
+    except:
+        pass
+
+    # Boolean strings
     if cmp  == "false":
         res = 0
     elif cmp  == "no":
@@ -337,8 +356,6 @@ def unbool(strx):
     elif cmp  == "true":
         res = 1
     elif cmp  == "yes":
-        res = 1
-    elif cmp  == "1":
         res = 1
 
     return res
@@ -428,10 +445,14 @@ def readconf(xconfig):
             bb = parse(aa)
             if len(bb) == 0:
                 continue
-            #print("parsed:", bb)
+            if args.pgdebug > 3:
+                print("parsed:", type(bb[1]), bb)
             #continue
             if len(bb) > 1:
                 xconfig[bb[0]] = unbool(bb[1])
+                if args.pgdebug > 3:
+                    print(bb[1], type(xconfig[bb[0]] ))
+
             elif len(bb) > 0:
                 xconfig[bb[0]] = 0
             else:
@@ -444,7 +465,7 @@ pform = "Use TAB or enter to navigate between fields and submit. " \
 
 def main():
 
-    global xconfig
+    global args, xconfig
     parser = argparse.ArgumentParser( description=pdesc, epilog=pform)
 
     parser.add_argument("-V", '--version', dest='version',
@@ -480,11 +501,15 @@ def main():
     for key, val in vars(args).items():
         if not key in xconfig:
             xconfig[key] = val
+        else:
+            # override
+            if val:
+                xconfig[key] = val
 
     if args.pconf:
         for aa in xconfig:
             print(aa + " " * (14 - len(aa)), "=", xconfig[aa])
-        sys.exit()
+        sys.exit(0)
 
     #print(os.environ['DISPLAY'])
     mw = MainWin()
@@ -492,5 +517,6 @@ def main():
 
 if __name__ == '__main__':
     main()
+    sus.exit(0)
 
 # EOF
