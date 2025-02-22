@@ -4,6 +4,8 @@
 
 export LIBVERS="1.0.0"
 
+COMLIN_DATAFILE=.comlin_data
+
 # Log files for startup
 export SUL="/var/log/startuplogs"
 SULERR=$SUL/log_err; SULOUT=$SUL/log_out
@@ -11,6 +13,23 @@ SULERR=$SUL/log_err; SULOUT=$SUL/log_out
 # Set the TESTME variable to non zero if you are in a
 # simulation / test environment. Warning: it will not work in real env.
 #TESTME=1
+
+prompt() {
+    local keyx respx
+    respx = 0
+    while : ; do
+        echo -n $1 $2 $3 $4 $5 $6 $7 $8
+        read -r keyx
+        if [ "$keyx" == "y" ] || [ "$keyx" == "Y" ] ; then
+            respx=1
+            break
+        fi
+        if [ "$keyx" == "n" ]  || [ "$keyx" == "N" ] ; then
+            break
+        fi
+    done
+    return $respx
+}
 
 # COMLIN Linux boot lib
 
@@ -106,9 +125,9 @@ loadmods() {
 
     # Load modules intended for this system
 
-    #if [ $(($VERBOSE)) -gt 1 ] ; then
+    if [ $(($VERBOSE)) -gt 1 ] ; then
         echo "loadmods() " $@
-    #fi
+    fi
 
     local modx filex unsp
     IFS=$'\n'
@@ -491,7 +510,6 @@ loadmods() {
     if [ $(($VERBOSE)) -gt 1 ] ; then
         echo "loadmods() $* "
     fi
-
     local modx filex unsp
     IFS=$'\n'
     filex=$(cat /etc/modules)
@@ -511,7 +529,7 @@ loadmods() {
     done
 }
 
-mountHD() {
+findHD() {
 
     if [ $(($VERBOSE)) -gt 1  ] ; then
         echo "mountHD() $*"
@@ -524,12 +542,12 @@ mountHD() {
     #echo "MountCD() $DEVS"
     for ii in $DEVS; do
         if [ $(($VERBOSE)) -gt 1 ] ; then
-            echo "Test Drive $ii"
+            echo "Testing Drive $ii"
         fi
         sleep 0.01       # Needs to breathe
         DEVX="/dev/$ii"
         mount "$DEVX" "$HDROOT"  >/dev/null 2>&1
-        if test -f "$HDROOT/.comlin_data" ; then
+        if test -f "$HDROOT/$COMLIN_DATAFILE" ; then
             if [ $(($VERBOSE)) -gt 2 ] ; then
                 echo "Found COMLIN DATA at /dev/$ii"
             fi
@@ -540,6 +558,11 @@ mountHD() {
             umount "$DEVX" >/dev/null 2>&1
         fi
         done
+
+    if [ $(($VERBOSE)) -gt 1 ] ; then
+        echo "No writable drive found"
+    fi
+
     return 1
 }
 

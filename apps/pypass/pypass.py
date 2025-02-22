@@ -74,14 +74,21 @@ class MainWin(Gtk.Window):
         self.cnt = 0
         self.conf = conf
         self.stattime =  0
+        self.busy = False
 
         Gtk.Window.__init__(self, type=Gtk.WindowType.TOPLEVEL)
         #Gtk.register_stock_icons()
 
         self.set_title("Please enter your user name and password:")
         self.set_position(Gtk.WindowPosition.CENTER_ALWAYS)
+        self.set_events(Gdk.EventMask.ALL_EVENTS_MASK)
 
         self.set_decorated(False)
+        self.wait_cursor = Gdk.Cursor(Gdk.CursorType.WATCH)
+        self.hand_cursor = Gdk.Cursor(Gdk.CursorType.HAND2)
+        self.regular_cursor = Gdk.Cursor(Gdk.CursorType.XTERM)
+
+        #self.set_cursor_visible(True)
 
         #self.ic = Gtk.Image();
         #self.ic.set_from_file("icon.png")
@@ -111,7 +118,7 @@ class MainWin(Gtk.Window):
         self.connect('draw', self.expose)
         self.connect('map-event', self.done_map)
         self.connect('delete-event', self.delete)
-        self.connect('leave-notify-event', self.leave)
+        self.connect('motion-notify-event', self.motionx)
 
         try:
             self.set_icon_from_file("background.png")
@@ -211,6 +218,16 @@ class MainWin(Gtk.Window):
             print("onexit")
         self.OnExit(0)
 
+    def motionx(self, widget, event):
+        #print("motion", widget, event)
+        if self.busy:
+            print("Busy cursor", event)
+            #self.get_window().set_cursor(self.wait_cursor)
+        else:
+            #self.get_window().set_cursor(self.wait_cursor)
+            #self.get_window().set_cursor(self.regular_cursor)
+            pass
+
     def key_press_event(self, arg1, arg2):
         #print("key press", arg1, arg2)
         pass
@@ -242,10 +259,12 @@ class MainWin(Gtk.Window):
         if uu == "shutdown":
             sys.exit(3)
 
+        self.busy = True
+        self.get_window().set_cursor(self.wait_cursor)
+
         if not uu or not pp:
             self.result.set_text("User / Pass fields cannot be empty.")
         else:
-
             self.result.set_text("Checking ...")
             microsleep(20)
 
@@ -254,10 +273,9 @@ class MainWin(Gtk.Window):
                 self.result.set_text("Authenticated.")
                 microsleep(20)
                 time.sleep(.5)
-
+                self.busy = False
                 self.save_result("/var/tmp/curruser", uu)
                 self.save_result("/var/tmp/currdisp", os.environ['DISPLAY'])
-
                 sys.exit(0)
 
             else:
@@ -266,11 +284,12 @@ class MainWin(Gtk.Window):
 
         microsleep(20)
         time.sleep(2)
+        self.busy = False
+        self.get_window().set_cursor(self.regular_cursor)
         self.result.set_text("")
 
         self.passE.set_text("")
         self.set_focus(self.userE)
-
 
     def expose (self, widget, cr):
 
@@ -318,6 +337,9 @@ class MainWin(Gtk.Window):
 
     def done_map(self, widgetx, event):
         wnd = self.get_window()
+        #self.get_window().set_cursor(self.regular_cursor)
+        #self.get_window().set_cursor(self.wait_cursor)
+
         #curr = wnd.get_decorations()
         #print ("curr", curr)
         #print("resize", Gdk.WMDecoration.RESIZEH)

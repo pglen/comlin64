@@ -67,8 +67,7 @@ echo -e " \033[32;1mOK\033[0m"
 #echo -n "systemd-logind "
 #/lib/systemd/systemd-logind >>$SULOUT 2>>$SULERR &
 #getargy 'isleep' && sleep "$FOUNDVAL"
-
-echo -e " \033[32;1mOK\033[0m"
+#echo -e " \033[32;1mOK\033[0m"
 
 getargx 'ibreak=sound' &&  tmpshell "$FOUNDVAR $ "
 echo -n "Starting sound system ... "
@@ -81,10 +80,7 @@ rm -rf /var/run/pulse/pid
 rm -rf .config/pulse/.
 
 #echo -n "Pulseaudio daemon ... "
-#pulseaudio --start >>$SULOUT 2>>$SULERR  &
 #pulseaudio --deaemonize=no --system --realtime  >>$SULOUT 2>>$SULERR  &
-#pulseaudio --system --disallow-exit --disallow-module-loading >>$SULOUT 2>>$SULERR &
-#sleep 0.1
 #pactl set-sink-mute 0 0  >>$SULOUT 2>>$SULERR
 #pactl set-sink-volume 0 0.5  >>$SULOUT 2>>$SULERR
 #getargy 'isleep' && sleep "$FOUNDVAL"

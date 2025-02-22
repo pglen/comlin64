@@ -79,11 +79,6 @@ loaddevs
 getargy 'isleep' && sleep "$FOUNDVAL"
 echo -e " \033[32;1mOK\033[0m"
 
-# After all configured, let it write some
-
-#/usr/bin/sync
-#sleep 0.1
-
 # Time to find the writable disk
 getargx 'ibreak=pre-hd' && tmpshell "$FOUNDVAR $ "
 
@@ -93,78 +88,136 @@ HDROOT="/hdroot"; mkdir -p $HDROOT
 MOUNT_DISK=""
 FSCK=""
 
-# Find and mount available writable media
-mountHD $HDROOT
+if [ "$NODISK" != "" ] ; then
+    echo -n "Starting without writable DATA media. Enter key to continue. "
+    read -r
+    # User wants no data mount
+    exec setsid /sbin/postinit
+fi
 
+# Make clear data command name a non obvious one
+getargy 'clear-data'  && export CLEARDATA=$FOUNDVAL
+getargy 'clear-disk'  && export CLEARDISK=$FOUNDVAL
 getargy 'fsck'   && export FSCK=$FOUNDVAL
 getargy 'nodisk' && export NODISK=$FOUNDVAL
 
-# Make is a non obvious str
-getargy 'clear-data'  && export CLEARDATA=$FOUNDVAL
+# Find and mount available writable media
+findHD $HDROOT
 
-if [ "$NODISK" != "" ] ; then
-    echo "Starting without writable DATA media. Nothing saved in this session."
-    read -r RESP
-    # User wants no data mount
-    exec setsid /sbin/postinit
-else
+if [ "$CLEARDATA" != "" ] ; then
+    echo "CLEARING Data storage ... "; sleep 2
     if [ "$MOUNT_DISK" == "" ] ; then
-        # No DATA FS found, do ram disk
-        echo "Cannot find data storage. Search free space y/n "
-        read -r RESP
-        echo $RESP
-        exec setsid /sbin/postinit
+        echo "No data to clear ... "; sleep 2
     else
-        echo -e "Data storage at $MOUNT_DISK \033[32;1mOK\033[0m"
-        if [ "$FSCK" != "" ] ;  then
-            echo "Executing file system check on $MOUNT_DISK"
+        prompt "Are you sure you want to clear all DATA? (y/n) "
+        if [ "$?" == "1" ] ; then
+            echo "Checking ... $MOUNT_DISK"
             fsck -y "$MOUNT_DISK"
-            sleep 2
+
+            mount "$MOUNT_DISK" "$HDROOT"
+            echo -e " \033[32;1mOK\033[0m"
+            echo "Clearing ... $HDROOT"
+            rm -rf "$HDROOT/fs/*"
+            rm -rf "$HDROOT/work/*"
+            umount "$HDROOT"
+            echo -e " \033[32;1mOK\033[0m"
         fi
-        getargx 'ibreak=pre-mount' && tmpshell "$FOUNDVAR $ "
-        mount "$MOUNT_DISK" "$HDROOT"
-        getargy 'isleep' && sleep "$FOUNDVAL"
-        getargx 'ibreak=pre-overlay' && tmpshell "$FOUNDVAR $ "
-
-        if [ "$CLEARDATA" != "" ] ; then
-            echo "CLEARING Data storage .... "; sleep 2
-            echo -n "Are you sure you want to clear all DATA?"
-            read -r  RESP
-            if [ "$RESP" == "y" ] ; then
-                echo "Checking .... $MOUNT_DISK"
-                fsck -y "$MOUNT_DISK"
-                echo OK
-                echo "Clearing .... $HDROOT"
-                rm -rf "$HDROOT"
-                echo OK
-            fi
-        fi
-        mkdir -p $HDROOT/fs
-        mkdir -p $HDROOT/work
-
-        # Done here, mount overlay
-        mount -t overlay  comlin_data  \
-            -olowerdir=/,upperdir=$HDROOT/fs,workdir=$HDROOT/work \
-            $NEWROOT
-
-        getargy 'isleep' && sleep "$FOUNDVAL"
-        getargx 'ibreak=pre-chroot' && tmpshell "$FOUNDVAR $ "
-
-        mkdir -p $NEWROOT/proc $NEWROOT/sys $NEWROOT/dev/pts
-        mount --bind /proc $NEWROOT/proc
-        mount --bind /sys $NEWROOT/sys
-        mount --bind /dev/pts $NEWROOT/dev/pts
-        #mount -t devpts -o nosuid,noexec,nodev  devpts /dev/pts >/dev/null 2>&1
-
-        getargy 'isleep' && sleep "$FOUNDVAL"
-        cd "$NEWROOT" || echo "Cannot CD to $NEWROOT"
-        exec chroot $NEWROOT setsid /sbin/postinit
     fi
 fi
 
-while : ; do
-    getargy 'isleep' && sleep "$FOUNDVAL"
-    tmpshell "Failed chroot"
-done
+if [ "$CLEARDISK" != "" ] ; then
+    echo "CLEARING Data Device ... "
+    prompt "Are you sure you want to clear data DISK? y/n "
+    if [ "$?" == "1" ] ; then
+        if [ "$MOUNT_DISK" == "" ] ; then
+            echo "No disk to clear"; sleep 2
+        else
+            PARTX=$(echo $MOUNT_DISK | awk '{ printf("%s", substr($1, 0, length($1)-1) ); }')
+            PARTNUM=$(echo $MOUNT_DISK | awk '{ printf("%s", substr($1, length($1)) ); }')
+            echo "Clearing part $PARTX partnum $PARTNUM"
+            sfdisk $PARTX --delete $PARTNUM
+            sync ; partprobe $PARTX
+            findHD $HDROOT
+            getargx 'ibreak=post-nuke' && tmpshell "$FOUNDVAR $ "
+        fi
+    fi
+fi
+
+if [ "$MOUNT_DISK" == "" ] ; then
+    # No DATA FS found, do FS creation or ram disk
+    prompt "Cannot find data storage. Search free space for autocreate ? (y/n) "
+    if [ "$?" == "1" ] ; then
+        echo "Auto creating space for data." ; sleep 1
+        DEVF=$(sfdisk -F | grep Unpartitioned | awk '{print $3;}' | head -1 | tr -d ":")
+        echo "Found space: \"$DEVF\" "
+        if [ "$DEVF" == "" ] ; then
+            echo "No free space found. Starting in nosave mode."
+            sleep 2
+            exec setsid /sbin/postinit
+        fi
+        OUTF=$(echo ,,, | sfdisk "$DEVF" | grep "new partition" | awk '{print $1;}' | head -1 | tr -d ":")
+        if [ "$OUTF" == "" ] ; then
+            echo "Could not create partition. Starting in nosave mode."
+            sleep 2
+            exec setsid /sbin/postinit
+        fi
+        #echo "Created $OUTF"
+        sync ; partprobe "$DEVF"
+        getargx 'ibreak=pre-format' && tmpshell "$FOUNDVAR $ "
+        mkfs.ext4 -F "$OUTF"  || (echo "Error on mkfs"; sleep 2)
+        mount "$OUTF" "$HDROOT"  || (echo "Error on mount"; sleep2)
+        touch  "$HDROOT/$COMLIN_DATAFILE" # Mark volume
+        umount $HDROOT
+        findHD $HDROOT
+        getargx 'ibreak=post-create' && tmpshell "$FOUNDVAR $ "
+        if [ "$MOUNT_DISK" == "" ] ; then
+            echo "Failed auto creating space for data. Starting in nosave mode."
+            sleep 2
+            exec setsid /sbin/postinit
+        fi
+    fi
+fi
+
+echo -e "Data storage at $MOUNT_DISK \033[32;1mOK\033[0m"
+if [ "$FSCK" != "" ] ;  then
+    echo "Executing file system check on $MOUNT_DISK"
+    fsck -y "$MOUNT_DISK"
+    sleep 2
+fi
+getargx 'ibreak=pre-mount' && tmpshell "$FOUNDVAR $ "
+mount "$MOUNT_DISK" "$HDROOT"
+getargy 'isleep' && sleep "$FOUNDVAL"
+getargx 'ibreak=pre-overlay' && tmpshell "$FOUNDVAR $ "
+
+mkdir -p $HDROOT/fs
+mkdir -p $HDROOT/work
+
+# Done here, mount overlay
+mount -t overlay  comlin_data  \
+    -olowerdir=/,upperdir=$HDROOT/fs,workdir=$HDROOT/work \
+    $NEWROOT
+
+getargy 'isleep' && sleep "$FOUNDVAL"
+getargx 'ibreak=pre-chroot' && tmpshell "$FOUNDVAR $ "
+
+mkdir -p $NEWROOT/proc $NEWROOT/sys $NEWROOT/dev/pts
+mount --bind /proc $NEWROOT/proc
+mount --bind /sys $NEWROOT/sys
+mount --bind /dev/pts $NEWROOT/dev/pts
+#mount -t devpts -o nosuid,noexec,nodev  devpts /dev/pts >/dev/null 2>&1
+
+# Clear environment
+unset  FOUNDVAL FOUNDVAR FOUNDCMD
+unset  MOUNT_DISK MOUNT_DATA SUL
+unset  CLEARDISK CLEARDATA LIBVERS
+
+getargy 'isleep' && sleep "$FOUNDVAL"
+cd "$NEWROOT" || echo "Cannot CD to $NEWROOT"
+exec chroot $NEWROOT setsid /sbin/postinit
+
+#while : ; do
+#    getargy 'isleep' && sleep "$FOUNDVAL"
+#    tmpshell "Failed chroot"
+#done
 
 # EOF
