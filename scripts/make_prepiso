@@ -41,21 +41,33 @@ if [ ! -f $KERNELDIR/initramfs ] ; then
 fi
 
 # Pre - Clean some config (to be refilled from target)
-rm -f $ROOTFS/usr/share/X11/xorg.conf.d/*
+#rm -f $ROOTFS/usr/share/X11/xorg.conf.d/*
+#rm -f $ROOTFS/root/.config/*
 
 echo "  Copying (updating) filesystem ... "
 #cp -au $CURRUSB/* $ROOTFS
 
 #EXC=$(basename $CURRUSB)
 
-#--exclude=/run/* \
+// Clear target stuff
 
-rsync -au   --info=progress2 \
+restglob=$(shopt -p dotglob)
+shopt -s dotglob
+
+DIRVALS="root home/user home/guest"
+for aaa in $DIRVALS ; do
+    rm -rf $ROOTFS/$aaa
+done
+
+sudo rsync -au  \
+            --info=progress2 \
             --exclude=/proc/* \
             --exclude=/sys/* \
             --exclude=/tmp/* \
             --exclude=/dev/* \
-                $CURRUSB/* $ROOTFS
+            $CURRUSB/* $ROOTFS
+
+$restglob
 
 #echo -n "Copying modules ... "
 #cp -au $MODULEDIR/* $ROOTFS/lib/modules
@@ -86,26 +98,28 @@ mkdir -p $ROOTFS/dev
 cp -a $DEVDIR/* $ROOTFS/dev
 echo OK
 
-echo -n "  Copying user files ... "
-mkdir -p $ROOTFS/home/user
-mkdir -p $ROOTFS/home/guest
-mkdir -p $ROOTFS/root
-echo OK
+#echo -n "  Copying user files ... "
+#mkdir -p $ROOTFS/home/user
+#mkdir -p $ROOTFS/home/guest
+#mkdir -p $ROOTFS/root
+#cp -a $USERDIR/. $ROOTFS/home/user
+#cp -a $GUESTDIR/. $ROOTFS/home/guest
+#cp -a $ROOTUSERDIR/. $ROOTFS/root
+#echo OK
+
+ETCDIR=$CURRUSB/etc
 
 echo -n "  Changing user file permissions ... "
-cp -a $USERDIR/. $ROOTFS/home/user
-UIDX=$(grep user:x etc-dir/passwd  | awk -F ":" '{print $3}')
-GIDX=$(grep user:x etc-dir/passwd  | awk -F ":" '{print $4}')
+UIDX=$(grep user:x $ETCDIR/passwd  | awk -F ":" '{print $3}')
+GIDX=$(grep user:x $ETCDIR/passwd  | awk -F ":" '{print $4}')
 chown -R $UIDX.$GIDX $ROOTFS/home/user/.
 
-cp -a $GUESTDIR/. $ROOTFS/home/guest
-UIDG=$(grep guest:x etc-dir/passwd  | awk -F ":" '{print $3}')
-GIDG=$(grep guest:x etc-dir/passwd  | awk -F ":" '{print $4}')
+UIDG=$(grep guest:x $ETCDIR/passwd  | awk -F ":" '{print $3}')
+GIDG=$(grep guest:x $ETCDIR/passwd  | awk -F ":" '{print $4}')
 chown -R $UIDG.$GIDG $ROOTFS/home/guest/.
 
-cp -a $ROOTUSERDIR/. $ROOTFS/root
-UIDR=$(grep root:x etc-dir/passwd  | awk -F ":" '{print $3}')
-GIDR=$(grep root:x etc-dir/passwd  | awk -F ":" '{print $4}')
+UIDR=$(grep root:x $ETCDIR/passwd  | awk -F ":" '{print $3}')
+GIDR=$(grep root:x $ETCDIR/passwd  | awk -F ":" '{print $4}')
 chown -R $UIDR.$GIDR $ROOTFS/root/.
 
 unset UIDX GIDX UIDG GIDG UIDR GIDR
@@ -114,38 +128,36 @@ echo OK
 # Single user, needs permission
 chmod u+s $ROOTFS/bin/chvt
 
-echo -n "  Copying etc files ... "
-
-# The pre created pass and group
-cp -a $ETCDIR/* $ROOTFS/etc
-chown -R root.root $ROOTFS/etc/*
-
-# XFCE related
-cp -a X11/* $ROOTFS/etc/X11
-cp -a backgrounds/ $ROOTFS/usr/share/
-
-echo OK
+#echo -n "  Copying etc files ... "
+## The pre created pass and group
+#cp -a $ETCDIR/* $ROOTFS/etc
+#chown -R root.root $ROOTFS/etc/*
+## XFCE related
+#cp -a X11/* $ROOTFS/etc/X11
+#cp -a backgrounds/ $ROOTFS/usr/share/
+#echo OK
 
 # Remove incidentals (created during testing)
 IFS=$' \t\n'        # Restore original IFS
-VALS="root home/user home/guest"
-for aaa in $VALS ; do
+for aaa in $DIRVALS ; do
     #echo "Cleaning: $aaa"
     rm -f  "$ROOTFS/$aaa/.sudo_as_admin_successful"
     rm -f  "$ROOTFS/$aaa/.bash_history"
+    rm -f  "$ROOTFS/$aaa/.lesshst"
+    #rm -f  "$ROOTFS/$aaa/.dbus"
     rm -f  "$ROOTFS/$aaa/.ICEauthority"
     rm -f  "$ROOTFS/$aaa/.Xauthority"
     rm -f  "$ROOTFS/$aaa/.pulse*"
     rm -rf "$ROOTFS/$aaa/.mozilla"
     rm -rf "$ROOTFS/$aaa/.thunderbird"
     rm -rf "$ROOTFS/$aaa/.pyedpro"
-    rm -rf "$ROOTFS/$aaa/.config"
-    rm -rf "$ROOTFS/$aaa/.local"
-    rm -rf "$ROOTFS/$aaa/.cache"
     rm -rf "$ROOTFS/$aaa/.xfce_err"
     rm -rf "$ROOTFS/$aaa/.xfce_out"
-    rm -rf "$ROOTFS/$aaa/.xfce*"
     rm -rf "$ROOTFS/$aaa/tmp"
+    #rm -rf "$ROOTFS/$aaa/.xfce*"
+    #rm -rf "$ROOTFS/$aaa/.config"
+    #rm -rf "$ROOTFS/$aaa/.local"
+    #rm -rf "$ROOTFS/$aaa/.cache"
 done
 
 echo -n "  Patching tmp and var/tmp permissions ... "
@@ -169,8 +181,8 @@ mkdir -p $ROOTFS/var/oldroot
 cp $COMLINVERFILE $ROOTFS/etc/COMLINUX_VERSION
 
 # Patch sound devices (done dynamically on init, just clear it)
-mkdir -p $ROOTFS/dev/snd
 rm -rf $ROOTFS/dev/snd/*
+mkdir -p $ROOTFS/dev/snd
 
 echo "Done prepping ISO."
 

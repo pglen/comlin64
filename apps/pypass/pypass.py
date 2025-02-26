@@ -199,15 +199,18 @@ class MainWin(Gtk.Window):
 
     def autoexit(self):
         aaa = xconfig.get('autologin')
+        bbb = xconfig.get('autoexec')
 
         if xconfig.get("verbose") > 0:
             print("Autologin for '%s' requested for" % aaa)
+            print("Autoexec for '%s' requested for" % bbb)
 
         self.result.set_text("Autologin for '%s' requested ..." % aaa)
         microsleep(20)
         time.sleep(1)
 
         self.save_result("/var/tmp/curruser", aaa)
+        self.save_result("/var/tmp/currexec", bbb)
         self.save_result("/var/tmp/currdisp", os.environ['DISPLAY'])
 
         if xconfig.get("pgdebug") > 2:
@@ -505,6 +508,10 @@ def main():
     parser.add_argument("-a", '--auto', dest='autologin', type=str,
                         default="",  action='store',
                         help='Auto log in user')
+
+    parser.add_argument("-e", '--exec', dest='exec', type=str,
+                        default="",  action='store',
+                        help='Auto exec program.')
 
     parser.add_argument("-d", '--pgdebug', dest='pgdebug', type=int,
                         default=0,  action='store',

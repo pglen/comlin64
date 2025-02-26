@@ -16,9 +16,9 @@ SULERR=$SUL/log_err; SULOUT=$SUL/log_out
 
 prompt() {
     local keyx respx
-    respx = 0
+    respx=0
     while : ; do
-        echo -n $1 $2 $3 $4 $5 $6 $7 $8
+        echo -n "$*"
         read -r keyx
         if [ "$keyx" == "y" ] || [ "$keyx" == "Y" ] ; then
             respx=1

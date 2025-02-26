@@ -105,7 +105,7 @@ getargy 'nodisk' && export NODISK=$FOUNDVAL
 findHD $HDROOT
 
 if [ "$CLEARDATA" != "" ] ; then
-    echo "CLEARING Data storage ... "; sleep 2
+    echo "CLEARING ALL Data storage ... ";
     if [ "$MOUNT_DISK" == "" ] ; then
         echo "No data to clear ... "; sleep 2
     else
@@ -127,6 +127,7 @@ fi
 
 if [ "$CLEARDISK" != "" ] ; then
     echo "CLEARING Data Device ... "
+    echo "Warning: this option is for development / testing."
     prompt "Are you sure you want to clear data DISK? y/n "
     if [ "$?" == "1" ] ; then
         if [ "$MOUNT_DISK" == "" ] ; then
@@ -152,7 +153,8 @@ if [ "$MOUNT_DISK" == "" ] ; then
         echo "Found space: \"$DEVF\" "
         if [ "$DEVF" == "" ] ; then
             echo "No free space found. Starting in nosave mode."
-            sleep 2
+            echo -n "Press Enter to continue ... "
+            read -r
             exec setsid /sbin/postinit
         fi
         OUTF=$(echo ,,, | sfdisk "$DEVF" | grep "new partition" | awk '{print $1;}' | head -1 | tr -d ":")
@@ -175,6 +177,8 @@ if [ "$MOUNT_DISK" == "" ] ; then
             sleep 2
             exec setsid /sbin/postinit
         fi
+    else
+        exec setsid /sbin/postinit
     fi
 fi
 

@@ -19,7 +19,7 @@ cdrom:x:24:user,guest
 floppy:x:25:
 tape:x:26:
 sudo:x:27:user
-audio:x:29:pulse,user
+audio:x:29:pulse,user,root
 dip:x:30:user
 www-data:x:33:user
 backup:x:34:user
@@ -66,7 +66,7 @@ whoopsie:x:126:
 scanner:x:127:saned
 saned:x:128:
 colord:x:129:
-pulse:x:130:
+pulse:x:130:root,user,guest
 lxd:x:132:user
 user:x:1000:
 sambashare:x:133:user
@@ -108,7 +108,7 @@ opensmtpq:x:165:
 postfix:x:139:user
 postdrop:x:140:
 power:x:1003:user
-pulse-access:x:131:
+pulse-access:x:131:root,user,guest
 nvidia-persistenced:x:166:
 polkituser:x:201:user
 haldaemon:x:202:user
