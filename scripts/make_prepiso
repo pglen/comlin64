@@ -49,16 +49,13 @@ echo "  Copying (updating) filesystem ... "
 
 #EXC=$(basename $CURRUSB)
 
-// Clear target stuff
-
+# Clear target stuff
 restglob=$(shopt -p dotglob)
 shopt -s dotglob
-
 DIRVALS="root home/user home/guest"
 for aaa in $DIRVALS ; do
     rm -rf $ROOTFS/$aaa
 done
-
 sudo rsync -au  \
             --info=progress2 \
             --exclude=/proc/* \
@@ -66,7 +63,6 @@ sudo rsync -au  \
             --exclude=/tmp/* \
             --exclude=/dev/* \
             $CURRUSB/* $ROOTFS
-
 $restglob
 
 #echo -n "Copying modules ... "
@@ -82,10 +78,8 @@ cp -a $KERNELDIR/* $ROOTFS/boot
 echo OK
 
 echo -n "  Copying sbin inits ... "
-
 cp -a $INITDIR/* $ROOTFS/sbin
 chown root.root $ROOTFS/sbin/*
-
 echo OK
 
 echo -n "  Copying shell utilities ... "

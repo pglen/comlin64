@@ -13,6 +13,9 @@ if [ ! -f $KEYGET ] ; then
 fi
 
 mkdir -p $ROOTFS/bin
+mkdir -p $ROOTFS/usr/bin
+mkdir -p $ROOTFS/root/Utils
+
 echo -n "Copying APPS ... "
 
 cp $APPDIR/keyget/keyget $ROOTFS/bin

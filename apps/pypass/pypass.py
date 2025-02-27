@@ -40,6 +40,12 @@ class xEntry(Gtk.Entry):
         self.form = form
         self.action = action
         self.connect("activate", self.enterkey)
+        self.connect("focus-out-event", self.focus_out)
+        pass
+
+    def focus_out(self, arg, foc):
+        #print("Focus out", arg, foc)
+        self.select_region(0,0)
         pass
 
     def enterkey(self, arg):
@@ -136,13 +142,19 @@ class MainWin(Gtk.Window):
         self.m1   = Gtk.Label(label="     ")
         self.m2   = Gtk.Label(label="     ")
 
-        self.userL  = Gtk.Label.new_with_mnemonic(" _User Name:   ")
         self.userE  = xEntry(self)
-        self.passL  = Gtk.Label.new_with_mnemonic(" Password:  ")
         self.passE  = xEntry(self, self.check_pass)
-        self.passE.set_visibility(False)
 
-        ddd = xconfig.get('defuser')
+        self.userL  = Gtk.Label.new_with_mnemonic(" U_ser Name:   ")
+        self.userL.set_mnemonic_widget(self.userE)
+        self.userL.set_tooltip_text("Tab or Enter to move between fields.")
+
+        self.passL  = Gtk.Label.new_with_mnemonic(" P_assword:  ")
+        self.passE.set_visibility(False)
+        self.passL.set_mnemonic_widget(self.passE)
+        self.passL.set_tooltip_text("Tab to move between fields, Enter to submit.")
+
+        ddd = xconfig.get('defuser', "")
         if ddd:
             self.userE.set_text(ddd)
             self.set_focus(self.passE)
@@ -178,6 +190,8 @@ class MainWin(Gtk.Window):
         hbox2.pack_start(self.b1, 1, 1, 1)
         hbox2.pack_start(self.b11, 1, 1, 1)
         self.result = Gtk.Label(label="...")
+        self.result.set_tooltip_text("Temporary status message appears here.")
+
         hbox2.pack_start(self.result, 0, 0, 1)
         #hbox2.pack_start(self.butt2, 0, 0, 1)
         hbox2.pack_start(self.m3, 0, 0, 1)
@@ -193,15 +207,15 @@ class MainWin(Gtk.Window):
         self.add(vbox)
         self.show_all()
 
-        aaa = xconfig.get('autologin')
+        aaa = xconfig.get('autologin', "")
         if aaa:
             GLib.timeout_add(40, self.autoexit)
 
     def autoexit(self):
-        aaa = xconfig.get('autologin')
-        bbb = xconfig.get('autoexec')
+        aaa = xconfig.get('autologin', "")
+        bbb = xconfig.get('autoexec', "")
 
-        if xconfig.get("verbose") > 0:
+        if xconfig.get("verbose", 0) > 0:
             print("Autologin for '%s' requested for" % aaa)
             print("Autoexec for '%s' requested for" % bbb)
 
@@ -213,11 +227,11 @@ class MainWin(Gtk.Window):
         self.save_result("/var/tmp/currexec", bbb)
         self.save_result("/var/tmp/currdisp", os.environ['DISPLAY'])
 
-        if xconfig.get("pgdebug") > 2:
+        if xconfig.get("pgdebug", 0) > 2:
             print("destroy")
         self.destroy()
 
-        if xconfig.get("pgdebug") > 2:
+        if xconfig.get("pgdebug", 0) > 2:
             print("onexit")
         self.OnExit(0)
 
@@ -277,6 +291,8 @@ class MainWin(Gtk.Window):
                 microsleep(20)
                 time.sleep(.5)
                 self.busy = False
+                bbb = xconfig.get('autoexec', "")
+                self.save_result("/var/tmp/currexec", bbb)
                 self.save_result("/var/tmp/curruser", uu)
                 self.save_result("/var/tmp/currdisp", os.environ['DISPLAY'])
                 sys.exit(0)
@@ -324,7 +340,7 @@ class MainWin(Gtk.Window):
             fp.write(uu + "\n")
             fp.close()
         except:
-            print("Error save file.", sys.exc_info())
+            print("Error on saving file:", fname, sys.exc_info())
             pass
 
         #sys.env
@@ -339,7 +355,7 @@ class MainWin(Gtk.Window):
         pass
 
     def done_map(self, widgetx, event):
-        wnd = self.get_window()
+        #wnd = self.get_window()
         #self.get_window().set_cursor(self.regular_cursor)
         #self.get_window().set_cursor(self.wait_cursor)
 
@@ -352,6 +368,7 @@ class MainWin(Gtk.Window):
         #Gdk.Device.grab(wnd, Gdk.GrabOwnership.NONE,
         #        False, Gdk.EventMask.ALL_EVENTS_MASK,
         #               None, None, Gdk.CURRENT_TIME)
+        pass
 
 
 def unbool(strx):
