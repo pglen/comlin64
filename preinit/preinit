@@ -12,7 +12,7 @@
 # Silence comments and commands on terminal
 set +x; set +v
 
-export PATH="/sbin:/bin:/usr/sbin:/usr/bin"
+export PATH="/sbin:/bin:/usr/sbin:/usr/bin:/usr/local/bin"
 export LC_ALL=en_US.UTF-8
 
 # ------------------------------------------------------------------------
@@ -96,8 +96,11 @@ if [ "$NODISK" != "" ] ; then
 fi
 
 # Make clear data command name a non obvious one
-getargy 'clear-data'  && export CLEARDATA=$FOUNDVAL
-getargy 'clear-disk'  && export CLEARDISK=$FOUNDVAL
+
+# Used to be clear-data ... but I kep typing clean .. delete nails it.
+getargy 'delete-data'  && export CLEARDATA=$FOUNDVAL
+getargy 'delete-disk'  && export CLEARDISK=$FOUNDVAL
+
 getargy 'fsck'   && export FSCK=$FOUNDVAL
 getargy 'nodisk' && export NODISK=$FOUNDVAL
 

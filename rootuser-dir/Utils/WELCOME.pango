@@ -1,0 +1,45 @@
+<c><xxl>Welcome to <b>Community Linux 64.</b></xxl></c>
+<j><w>
+  <i><l>Community Linux</l></i> is a <e>Personal Class</e> and <e>Installation-less</e> \
+64 bit Linux Distribution. It boots from a <b>USB</b> drive. \
+It has all the features of hard a drive installation, boasting near identical \
+performance. <i>Community Linux</i> is derived from sources freely available, \
+as provided by the Linux community. Where applicable, ComLin conforms  \
+to <#008800>existing</#> Linux standards.</w></j>
+<j><w>
+  <i><l>Community Linux</l></i> is simple. Just insert the jump drive into a \
+<b>USB</b> slot, and within 21 seconds a fully functional XFCE Graphical User \
+Interface appears. (measured on an i7 Dell laptop)
+</w></j>
+<b><l>Quick start:</l></b>
+<j><w> Configure user authentication, autostart, autologin.
+  </w></j>
+<b><l>Securing the system:</l></b>
+<j><w> \
+  Community Linux has three built in users: 'root' 'user' 'guest'. The passwords \
+  are, respectively: root user guest. \
+  Changing the passwords can be done conveniently via the passwd command, \
+  from the command line, or any other standard passs word configuration \
+  utility. To creat a new user use the 'useradd' command.
+  </w></j>
+<b><l>Customize:</l></b>
+<j><w> \
+   Community Linux can be configured to auto login and run an application on \
+   boot. The file /etc/pypass/pypass.conf contains entries to do so. \
+   This feature is useful if the system is deployed -- for example -- as a kiosk \
+   or as a point of sale (POS).
+   </w></j>
+<b><l>Update:</l></b>
+<j><w> \
+Comlin 64 Linux is derived from Ubuntu 22.04 LTS. The 'apt' family of utilities \
+work as expected. Please exercise caution on upgrade.
+</w></j>
+<b><l>Configure:</l></b>
+<j><w>Download ComLin 64 source distribution, extract it. Then chroot to the extracted \
+archive's comlin64-lite-000 directory.  (helpers in the 'var' subdirectory)
+Start xfce4-session with Xephir (on display :100). Hack away. When done, \
+from the archive's root execute 'make buildiso' to create your version of COMLIN 64.
+</w></j>
+// END
+
+## EOF

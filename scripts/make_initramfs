@@ -41,14 +41,11 @@ if [ "$ERR" != "0" ] ; then
     exit 1
 fi
 
-# Gather apps into initramfs
+# Gather some COMLIN apps into initramfs
 
 cp -a $APPDIR/keyget/keyget $INITRAMFSDIR/bin
 cp -a $APPDIR/reboot/linux_reboot $INITRAMFSDIR/bin
 cp -a $APPDIR/reboot/linux_poweroff $INITRAMFSDIR/bin
-cp -a $APPDIR/pangview/pangview.py $INITRAMFSDIR/bin
-cp -a $APPDIR/pangview/panglib/ $INITRAMFSDIR/bin
-
 
 # Create a root owned copy
 RTMP=$TMPDIR/initramfs

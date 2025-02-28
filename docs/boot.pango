@@ -1,0 +1,24 @@
+getargy 'verbose' && export VERBOSE=$FOUNDVAL
+getargy 'verbose' && export VERBOSE=$FOUNDVAL
+getargx 'ibreak=all' && export BREAKALL=1
+getargx 'ibreak=start' && tmpshell "$FOUNDVAR $ "
+getargy 'isleep' && sleep "$FOUNDVAL"
+getargx 'ibreak=devices' && tmpshell "$FOUNDVAR $ "
+getargy 'isleep' && sleep "$FOUNDVAL"
+getargx 'ibreak=pre-hd' && tmpshell "$FOUNDVAR $ "
+getargy 'delete-data'  && export CLEARDATA=$FOUNDVAL
+getargy 'delete-disk'  && export CLEARDISK=$FOUNDVAL
+---- current cursor position ----
+getargy 'fsck'   && export FSCK=$FOUNDVAL
+getargy 'nodisk' && export NODISK=$FOUNDVAL
+            getargx 'ibreak=post-nuke' && tmpshell "$FOUNDVAR $ "
+        getargx 'ibreak=pre-format' && tmpshell "$FOUNDVAR $ "
+        getargx 'ibreak=post-create' && tmpshell "$FOUNDVAR $ "
+getargx 'ibreak=pre-mount' && tmpshell "$FOUNDVAR $ "
+getargy 'isleep' && sleep "$FOUNDVAL"
+getargx 'ibreak=pre-overlay' && tmpshell "$FOUNDVAR $ "
+getargy 'isleep' && sleep "$FOUNDVAL"
+getargx 'ibreak=pre-chroot' && tmpshell "$FOUNDVAR $ "
+getargy 'isleep' && sleep "$FOUNDVAL"
+#    getargy 'isleep' && sleep "$FOUNDVAL"
+

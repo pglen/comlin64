@@ -26,9 +26,6 @@ cp $APPDIR/pypass/passcheck $ROOTFS/usr/bin
 cp $APPDIR/pypass/pypass.py $ROOTFS/usr/bin
 cp $APPDIR/pypass/Utils/background.png $ROOTFS/root/Utils
 
-cp -au $APPDIR/pangview $ROOTFS/root/Utils
-cp -au $APPDIR/pyedpro  $ROOTFS/root/Utils
-
 echo OK
 
 # EOF
