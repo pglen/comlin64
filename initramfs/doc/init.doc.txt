@@ -1,0 +1,40 @@
+#
+# Breakpoint flags that may be introduced from the kernel command line:
+#    ramfs=cmdline       cmdline       "Break at the beginning of script"
+#    ramfs=initqueue     initqueue     "Break before initqueue"
+#    ramfs=pre-mount     pre-mount     "Break pre-mount"
+#    ramfs=pre-overlay   overlay       "Break before overlay"
+#    ramfs=pre-chroot    switch_root   "Break before switch_root"
+#
+# Arguments that may be introduced from the kernel command line:
+#
+#    preinit=initprog    program name   "The pre-init program to execute"
+#
+# History:
+#           Tue 24.Dec.2024     Reworked 64 bit
+#           Sun 29.Dec.2024     Mount CD simplified
+#           Thu 16.Jan.2025     PreInit command line arguments added
+#           Sat 08.Mar.2025     Booting from live USB
+
+
+getarg 'ramfs=cmdline' && temporary_shell -n cmdline "Break at the beginning of script"
+---- current cursor position ----
+getarg 'ramfs=systemd' && temporary_shell -n systemd "Break before systemd"
+getarg 'ramfs=pre-mount' && temporary_shell -n pre-mount "Break pre-mount"
+    temporary_shell -n check_init "ramfs CD No Init "
+getarg 'ramfs=pre-overlay' && temporary_shell -n overlay "Break before overlay"
+getarg 'ramfs=pre-del' && temporary_shell -n del_initram "Break before init_ram"
+getarg 'ramfs=pre-chroot' && temporary_shell -n switch_root "Break before switch_root"
+   export PS1="initramfs error $ " ; setsid -c -w /bin/bash
+
+getarg 'ramfs=cmdline' && temporary_shell -n cmdline "Break at the beginning of script"
+getarg 'ramfs=systemd' && temporary_shell -n systemd "Break before systemd"
+getarg 'ramfs=pre-mount' && temporary_shell -n pre-mount "Break pre-mount"
+    temporary_shell -n check_init "ramfs CD No Init "
+---- current cursor position ----
+#export PS1="initramfs before overlay " ; setsid -c -w /bin/bash
+getarg 'ramfs=pre-overlay' && temporary_shell -n overlay "Break before overlay"
+getarg 'ramfs=pre-del' && temporary_shell -n del_initram "Break before init_ram"
+getarg 'ramfs=pre-chroot' && temporary_shell -n switch_root "Break before switch_root"
+   export PS1="initramfs error $ " ; setsid -c -w /bin/bash
+

@@ -8,3 +8,7 @@ all: notify
 notify: notify.c
 	gcc notify.c -ldl -o notify
 
+clean:
+	rm -f notify *.o
+
+# EOF

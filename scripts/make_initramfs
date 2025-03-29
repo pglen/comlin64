@@ -24,22 +24,29 @@ if [ ! -f $KEYGET ] ; then
     exit 1;
 fi
 
+# Exit if check fails
+
+exit_if_fail() {
+
+    $1 $2; ERR=$?
+
+    if [ "$ERR" != "0" ] ; then
+        echo "Error in $2"
+        exit 1
+    fi
+}
+
 if [ ! -d $INITRAMFSDIR ]; then
     echo "No initramfs files yet."
     exit 1
 fi
 
-# Syntax check init
-bash -n $INITRAMFSDIR/init; ERR=$?
-if [ "$ERR" != "0" ] ; then
-    echo "Syntax error in init"
-    exit 1
-fi
-bash -n $INITRAMFSDIR/lib/shlib/comlin.sh; ERR=$?
-if [ "$ERR" != "0" ] ; then
-    echo "Syntax error in comlin.sh"
-    exit 1
-fi
+# Syntax check
+exit_if_fail "bash -n" $INITRAMFSDIR/init
+exit_if_fail "bash -n" $INITRAMFSDIR/lib/shlib/comlin.sh
+
+exit_if_fail shellcheck $INITRAMFSDIR/init
+exit_if_fail shellcheck $INITRAMFSDIR/lib/shlib/comlin.sh
 
 # Gather some COMLIN apps into initramfs
 

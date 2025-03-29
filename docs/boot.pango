@@ -1,24 +1,21 @@
-getargy 'verbose' && export VERBOSE=$FOUNDVAL
-getargy 'verbose' && export VERBOSE=$FOUNDVAL
-getargx 'ibreak=all' && export BREAKALL=1
-getargx 'ibreak=start' && tmpshell "$FOUNDVAR $ "
-getargy 'isleep' && sleep "$FOUNDVAL"
-getargx 'ibreak=devices' && tmpshell "$FOUNDVAR $ "
-getargy 'isleep' && sleep "$FOUNDVAL"
-getargx 'ibreak=pre-hd' && tmpshell "$FOUNDVAR $ "
-getargy 'delete-data'  && export CLEARDATA=$FOUNDVAL
-getargy 'delete-disk'  && export CLEARDISK=$FOUNDVAL
----- current cursor position ----
-getargy 'fsck'   && export FSCK=$FOUNDVAL
-getargy 'nodisk' && export NODISK=$FOUNDVAL
-            getargx 'ibreak=post-nuke' && tmpshell "$FOUNDVAR $ "
-        getargx 'ibreak=pre-format' && tmpshell "$FOUNDVAR $ "
-        getargx 'ibreak=post-create' && tmpshell "$FOUNDVAR $ "
-getargx 'ibreak=pre-mount' && tmpshell "$FOUNDVAR $ "
-getargy 'isleep' && sleep "$FOUNDVAL"
-getargx 'ibreak=pre-overlay' && tmpshell "$FOUNDVAR $ "
-getargy 'isleep' && sleep "$FOUNDVAL"
-getargx 'ibreak=pre-chroot' && tmpshell "$FOUNDVAR $ "
-getargy 'isleep' && sleep "$FOUNDVAL"
-#    getargy 'isleep' && sleep "$FOUNDVAL"
+<e><c><xxl><image name=pinguin.xpm align=center> <b>Community Linux</b>.\
+<image name=pinguin.xpm align=center></xxl></c></e>
+<c><xxl> Boot troubleshooting </xxl>
 
+<c>\
+<link name=index.pango> [ <u>Index</u> ] </link> \
+<link name=install.pango> [ <u>Installation</u> ] </link>\
+<link name=troubleshoot.pango> [ <u>Troubleshoting</u> ] </link>\
+<link name=tech.pango> [ <u>Technical Details</u> ] </link>
+<link name=install.pango> [ <u>Create ComLin Drive</u> ] </link>\
+</c>
+
+'verbose' && export VERBOSE=$FOUNDVAL
+'verbose' && export VERBOSE=$FOUNDVAL
+'isleep' && sleep "$FOUNDVAL"
+'nodisk' && export NODISK=$FOUNDVAL
+'delete-data'  && export CLEARDATA=$FOUNDVAL
+'delete-disk'  && export CLEARDISK=$FOUNDVAL
+'fsck'   && export FSCK=$FOUNDVAL
+
+# EOF

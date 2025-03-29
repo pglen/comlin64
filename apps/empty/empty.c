@@ -376,7 +376,7 @@ int main (int argc, char *argv[]) {
 		tv.tv_sec = timeout;
 		tv.tv_usec = 0;
 
-		cc = -1; 
+		cc = -1;
 		while (cc != 0) {
 			FD_SET(ifd, &rfd);
 			n = select(ifd + 1, &rfd, 0, 0, &tv);
@@ -619,7 +619,7 @@ int main (int argc, char *argv[]) {
 	/* This is the parent process to contol traffic on pty */
 	FD_ZERO(&rfd);
 
-	/* Save forked process' pid - usman@usmans.info */	
+	/* Save forked process' pid - usman@usmans.info */
 	if (child > 0 && xflg) {
 		if ((xfd = open(xfile, O_CREAT|O_WRONLY, S_IRWXU)) == -1)
 			(void)syslog(LOG_NOTICE, "Warning: Can't write forked pid-file %s %m", xfile);
@@ -778,7 +778,7 @@ void clean(void) {
 	(void)close(lfd);
 	(void)close(ifd);
 	(void)unlink(in);
-	
+
 	if (eflg) {
 		pofd.fd = ofd;
 		pofd.events = POLLIN;

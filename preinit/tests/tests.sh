@@ -12,6 +12,10 @@
 # simulation / test environment.
 
 #echo {1..10} ; exit
+#UDEVVERSION=$(udevadm --version)
+#if [ $UDEVVERSION -lt 140 ]; then
+#   UDEV_LOG_PRIO_ARG=--log_priority
+#fi
 
 if [ "$1" = "" ] ; then
     echo "Use: $(basename "$0") [all] [1...c]"
@@ -31,7 +35,7 @@ TESTME=1
 
 # Pass individual test numbers per argument to see results
 
-VERBOSE=0
+VERBOSE=3
 
 for itemx in $ALL ; do
     #echo Item: $itemx

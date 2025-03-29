@@ -9,7 +9,7 @@ echo
 mount > aa
 
 echo "Insert the NEW Jump Drive  (USB drive) now."
-echo -n "Wait for the automount to settle (if any), and then press a key ... "
+echo -n "Wait for the USB detect to settle (if any), and then press a key ... "
 $KEYGET >/dev/null
 echo
 echo "OK, testing for new mount ..."

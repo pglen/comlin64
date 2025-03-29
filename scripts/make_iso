@@ -34,19 +34,25 @@ if [ ! -f $KERNELDIR/initramfs ] ; then
     exit 1
 fi
 
-if [ ! -f ./boot/grub/grub.conf ] ; then
+if [ ! -f ./boot/grub/grub.cfg ] ; then
     echo "Execute 'make getboot' first."
     exit 1
 fi
 
 rm -f $ROOTISOFILE.part
 touch $ROOTISOFILE.part
-scripts/progress.sh $ROOTISOFILE.part &
+#scripts/progress.sh $ROOTISOFILE.part &
 
-echo -n "Making $ROOTISOFILE ($ROOTISOFILE.part) ... "
-mkisofs -input-charset utf-8 -R -b boot/grub/stage2_eltorito -no-emul-boot  \
-         -boot-load-size 4 -boot-info-table -o $ROOTISOFILE.part \
-         -quiet $ROOTFS  || fail
+#echo -n "Making $ROOTISOFILE ($ROOTISOFILE.part) ... "
+#mkisofs  -input-charset utf-8 -R -b boot/grub/stage2_eltorito -no-emul-boot  \
+#         -boot-load-size 4 -boot-info-table -o $ROOTISOFILE.part \
+#         -quiet $ROOTFS  || fail
+#echo
+#echo OK
+
+echo -n "Making ISO grub rescue $ROOTISOFILE ($ROOTISOFILE.part) ... "
+grub-mkrescue  --product-name "Comlin64" -o $ROOTISOFILE.part $ROOTFS
+
 echo
 echo OK
 

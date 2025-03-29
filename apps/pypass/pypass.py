@@ -17,6 +17,12 @@ from gi.repository import Pango
 
 import cairo
 
+helper = "Use special users 'exit', 'reboot', and 'shutdown' for those actions."
+
+CUSER = "/var/tmp/curruser"
+CEXEC = "/var/tmp/currexec"
+CDISP = "/var/tmp/currdisp"
+
 def get_disp_pos_size():
 
     warnings.simplefilter("ignore")
@@ -81,37 +87,46 @@ class MainWin(Gtk.Window):
         self.conf = conf
         self.stattime =  0
         self.busy = False
+        self.movex = False
+        self.dx = 0
+        self.dy = 0
+        self.fired = False
 
         Gtk.Window.__init__(self, type=Gtk.WindowType.TOPLEVEL)
         #Gtk.register_stock_icons()
 
-        self.set_title("Please enter your user name and password:")
+        self.save_result(CUSER, "")
+        self.save_result(CEXEC, "")
+        self.save_result(CDISP, "")
+
+        #self.set_title("Please enter your user name and password:")
+
         self.set_position(Gtk.WindowPosition.CENTER_ALWAYS)
-        self.set_events(Gdk.EventMask.ALL_EVENTS_MASK)
+        #self.set_events(Gdk.EventMask.ALL_EVENTS_MASK)
 
         self.set_decorated(False)
         self.wait_cursor = Gdk.Cursor(Gdk.CursorType.WATCH)
         self.hand_cursor = Gdk.Cursor(Gdk.CursorType.HAND2)
         self.regular_cursor = Gdk.Cursor(Gdk.CursorType.XTERM)
-
         #self.set_cursor_visible(True)
-
-        #self.ic = Gtk.Image();
-        #self.ic.set_from_file("icon.png")
-        #self.pixbuf = self.ic.get_pixbuf()
-
+        self.ic = Gtk.Image()
         try:
-            self.surface = cairo.ImageSurface.create_from_png('background.png')
+            self.ic.set_from_file("Utils/icon.png")
+            pixb = self.ic.get_pixbuf()
+            self.set_default_icon(pixb)
         except:
-            try:
-                self.surface = cairo.ImageSurface.create_from_png('Utils/background.png')
-            except:
-                self.surface = None
+            #print(sys.exc_info())
+            pass
+        try:
+            self.surface = cairo.ImageSurface.create_from_png('Utils/background.png')
+        except:
+            self.surface = None
 
         #ic.set_from_stock(Gtk.STOCK_DIALOG_INFO, Gtk.ICON_SIZE_BUTTON)
         #window.set_icon(ic.get_pixbuf())
 
         xx, yy, www, hhh = get_disp_pos_size()
+        self.movex = False
 
         #self.set_default_size(4*www/8, 3*hhh/8)
         self.set_default_size(680, 300)
@@ -125,6 +140,8 @@ class MainWin(Gtk.Window):
         self.connect('map-event', self.done_map)
         self.connect('delete-event', self.delete)
         self.connect('motion-notify-event', self.motionx)
+        self.connect('button-press-event', self.pressx)
+        self.connect('button-release-event', self.releasex)
 
         try:
             self.set_icon_from_file("background.png")
@@ -133,7 +150,10 @@ class MainWin(Gtk.Window):
 
         vbox = Gtk.VBox(); hbox = Gtk.HBox(); hbox2 = Gtk.HBox();
 
-        self.up   = Gtk.Label(label="  ")
+        self.title = Gtk.Label(label="Please enter your user name and password:")
+        self.title.set_tooltip_text(helper)
+
+        self.up   = Gtk.Label(label="   ")
         self.down = Gtk.Label(label="   ")
 
         self.l1   = Gtk.Label(label="   ")
@@ -159,7 +179,7 @@ class MainWin(Gtk.Window):
             self.userE.set_text(ddd)
             self.set_focus(self.passE)
 
-        vbox.pack_start(Gtk.Label(label="Please enter user name and password."), 0, 0, 6)
+        vbox.pack_start(self.title, 0, 0, 6)
         vbox.pack_start(self.up, 1, 1, 0)
 
         grid = Gtk.Grid()
@@ -187,8 +207,31 @@ class MainWin(Gtk.Window):
         self.b2  = Gtk.Label(label="  ")
         self.m3  = Gtk.Label(label="  ")
 
-        hbox2.pack_start(self.b1, 1, 1, 1)
-        hbox2.pack_start(self.b11, 1, 1, 1)
+        #hbox2.pack_start(self.b1, 1, 1, 1)
+        #hbox2.pack_start(self.b11, 1, 1, 1)
+
+        self.helper = Gtk.Label(label=" Hover mouse here for userlist.")
+
+        #self.helper2 = Gtk.Label(label=" Hover mouse here help / info.")
+
+        ulist = ""
+        fp = open("/etc/passwd", "rt")
+        fff = fp.read(); fp.close()
+        for aa in fff.split("\n"):
+            bb = aa.split(":")
+            if len(bb) > 1:
+                if int(bb[2]) >= 1000 and int(bb[2]) < 32000:
+                    #print(bb[0], bb[2])
+                    ulist += bb[0] + ", "
+        self.helper.set_tooltip_text(ulist)
+        #self.helper2.set_tooltip_text(helper)
+
+        hbox2.pack_start(self.helper, 0, 0, 1)
+        #hbox2.pack_start(self.helper2, 0, 0, 1)
+
+        spx = Gtk.Label(label=" ")
+        hbox2.pack_start(spx, 1, 1, 1)
+
         self.result = Gtk.Label(label="...")
         self.result.set_tooltip_text("Temporary status message appears here.")
 
@@ -209,9 +252,9 @@ class MainWin(Gtk.Window):
 
         aaa = xconfig.get('autologin', "")
         if aaa:
-            GLib.timeout_add(40, self.autoexit)
+            GLib.timeout_add(40, self.autologin)
 
-    def autoexit(self):
+    def autologin(self):
         aaa = xconfig.get('autologin', "")
         bbb = xconfig.get('autoexec', "")
 
@@ -223,9 +266,9 @@ class MainWin(Gtk.Window):
         microsleep(20)
         time.sleep(1)
 
-        self.save_result("/var/tmp/curruser", aaa)
-        self.save_result("/var/tmp/currexec", bbb)
-        self.save_result("/var/tmp/currdisp", os.environ['DISPLAY'])
+        self.save_result(CUSER, aaa)
+        self.save_result(CEXEC, bbb)
+        self.save_result(CDISP, os.environ['DISPLAY'])
 
         if xconfig.get("pgdebug", 0) > 2:
             print("destroy")
@@ -235,10 +278,33 @@ class MainWin(Gtk.Window):
             print("onexit")
         self.OnExit(0)
 
+    def releasex(self, arg2, event):
+        #print("releasex", event.x, event.y)
+        self.butpos = self.get_window().get_device_position(event.device)
+
+    def pressx(self, arg2, event):
+        #print("pressx", event.x, event.y)
+        self.butpos = self.get_window().get_device_position(event.device)
+
+    def moveme(self, dx, dy):
+        #print("moveme state", dx, dy)
+        self.get_window().move(self.posxy.x - dx, self.posxy.y - dy)
+        self.fired = False
+
     def motionx(self, widget, event):
-        #print("motion", widget, event)
+        #print("motion", self.get_window(), widget, event.state)
+        state = self.get_window().get_device_position(event.device)
+        if state.mask & Gdk.ModifierType.BUTTON1_MASK:
+            if not self.fired:
+                self.fired = True
+                self.posxy = self.get_window().get_position()
+                dx = self.butpos.x - state.x; dy = self.butpos.y - state.y
+                #self.butpos = self.get_window().get_device_position(event.device)
+                GLib.timeout_add(20, self.moveme, dx, dy)
+
         if self.busy:
-            print("Busy cursor", event)
+            pass
+            #print("Busy cursor", event)
             #self.get_window().set_cursor(self.wait_cursor)
         else:
             #self.get_window().set_cursor(self.wait_cursor)
@@ -292,9 +358,9 @@ class MainWin(Gtk.Window):
                 time.sleep(.5)
                 self.busy = False
                 bbb = xconfig.get('autoexec', "")
-                self.save_result("/var/tmp/currexec", bbb)
-                self.save_result("/var/tmp/curruser", uu)
-                self.save_result("/var/tmp/currdisp", os.environ['DISPLAY'])
+                self.save_result(CEXEC, bbb)
+                self.save_result(CUSER, uu)
+                self.save_result(CDISP, os.environ['DISPLAY'])
                 sys.exit(0)
 
             else:
@@ -355,6 +421,9 @@ class MainWin(Gtk.Window):
         pass
 
     def done_map(self, widgetx, event):
+
+        self.posxy = self.get_window().get_position()
+
         #wnd = self.get_window()
         #self.get_window().set_cursor(self.regular_cursor)
         #self.get_window().set_cursor(self.wait_cursor)
@@ -368,6 +437,10 @@ class MainWin(Gtk.Window):
         #Gdk.Device.grab(wnd, Gdk.GrabOwnership.NONE,
         #        False, Gdk.EventMask.ALL_EVENTS_MASK,
         #               None, None, Gdk.CURRENT_TIME)
+
+        self.userE.grab_focus()
+        #self.passE.grab_focus()
+
         pass
 
 
@@ -563,6 +636,6 @@ def main():
 
 if __name__ == '__main__':
     main()
-    sus.exit(0)
+    sys.exit(0)
 
 # EOF

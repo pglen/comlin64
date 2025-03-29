@@ -1,16 +1,16 @@
 #!/bin/bash
-# shellcheck disable=SC2004,SC2009,SC2068,SC2002
-# shellcheck disable=SC1091,SC2086
+# shellcheck disable=SC1091
+#SC2004,SC2009,SC2068,SC2002,,SC2086
 
-# Set the TESTME variable to non zero if you are in a
-# simulation / test environment. Warning: script will not work in the real env.
+# Set the TESTME variable to non zero if you are in a sim / test environment.
+# Warning: script tests will not work in the real env.
 #TESTME=1
 
 # Silence async messages on terminal
 /usr/bin/setterm --msg off
 
 # Silence comments and commands on terminal
-set +x; set +v
+#set +x; set +v
 
 export PATH="/sbin:/bin:/usr/sbin:/usr/bin:/usr/local/bin"
 export LC_ALL=en_US.UTF-8
@@ -18,18 +18,18 @@ export LC_ALL=en_US.UTF-8
 # ------------------------------------------------------------------------
 # Ended up with ONE separate file. (for unit tests and shellcheck):
 
-if [ $(($TESTME)) -gt 0 ] ; then
+if [ $((TESTME)) -gt 0 ] ; then
     .  ./preinit.sh
 else
     .  /sbin/preinit.sh
 fi
 
+loginfo Preinit stage ...
+
 # Determine overall flags for operation
 getargy 'verbose' && export VERBOSE=$FOUNDVAL
 
-if [ $(($VERBOSE)) -gt 0 ] ; then
-    echo "Booting Community Linux, Lib version: $LIBVERS"
-fi
+loginfo "Booting Community Linux, Lib version: $LIBVERS"
 
 # Variables:
 #    verbose=lev        Verbosity level
@@ -52,7 +52,7 @@ cd $HOME || echo "Warn:" cannot cd to $HOME >&2
 
 mkdir -p /var/tmp
 
-mkdir -p $SUL
+mkdir -p "$SUL"
 
 # Create for log append, add current date value
 date > "$SULOUT" ; date > "$SULERR"
@@ -61,7 +61,7 @@ getargy 'verbose' && export VERBOSE=$FOUNDVAL
 getargx 'ibreak=all' && export BREAKALL=1
 
 # Never leave us hanging without a name
-hostname "localhost"  >>$SULOUT 2>>$SULERR
+hostname "$(cat /etc/hostname)"  >>"$SULOUT" 2>>"$SULERR"
 
 getargx 'ibreak=start' && tmpshell "$FOUNDVAR $ "
 
@@ -75,9 +75,31 @@ getargx 'ibreak=devices' && tmpshell "$FOUNDVAR $ "
 
 # Install devices from PCI bus; ignore vbox additions for now
 echo -n "Installing devices ... "
+udevadm settle
+udevadm trigger -c add -t subsystems   >/dev/null 2>&1
+udevadm settle
+udevadm trigger -c add -t devices      >/dev/null 2>&1
+udevadm settle
+
 loaddevs
+
 getargy 'isleep' && sleep "$FOUNDVAL"
 echo -e " \033[32;1mOK\033[0m"
+
+# Remount real devices
+mkdir -p /proc ; mount -t proc proc /proc
+mkdir -p /sys ; mount -t sysfs sysfs /sys
+#mkdir -p /dev ; mount -t devtmpfs devtmpfs /dev
+#udevadm settle
+#mkdir -p /dev/pts ; mount -t devpts devpts /dev/pts
+# Virtual terminals and a serial port
+getargx 'ibreak=vt' && tmpshell "$FOUNDVAR $ "
+echo -n "Starting VTs ... "
+startvts
+getargy 'isleep' && sleep "$FOUNDVAL"
+echo -e " \033[32;1mOK\033[0m"
+
+loginfo "Created mounts."
 
 # Time to find the writable disk
 getargx 'ibreak=pre-hd' && tmpshell "$FOUNDVAR $ "
@@ -88,6 +110,8 @@ HDROOT="/hdroot"; mkdir -p $HDROOT
 MOUNT_DISK=""
 FSCK=""
 
+getargy 'nodisk' && export NODISK=$FOUNDVAL
+
 if [ "$NODISK" != "" ] ; then
     echo -n "Starting without writable DATA media. Enter key to continue. "
     read -r
@@ -95,24 +119,23 @@ if [ "$NODISK" != "" ] ; then
     exec setsid /sbin/postinit
 fi
 
-# Make clear data command name a non obvious one
+# Make the clear data command's name a non obvious one
 
 # Used to be clear-data ... but I kep typing clean .. delete nails it.
 getargy 'delete-data'  && export CLEARDATA=$FOUNDVAL
 getargy 'delete-disk'  && export CLEARDISK=$FOUNDVAL
 
 getargy 'fsck'   && export FSCK=$FOUNDVAL
-getargy 'nodisk' && export NODISK=$FOUNDVAL
 
 # Find and mount available writable media
 findHD $HDROOT
 
 if [ "$CLEARDATA" != "" ] ; then
-    echo "CLEARING ALL Data storage ... ";
+    echo "About to delete ALL files from data storage ... ";
     if [ "$MOUNT_DISK" == "" ] ; then
         echo "No data to clear ... "; sleep 2
     else
-        prompt "Are you sure you want to clear all DATA? (y/n) "
+        prompt "Are you sure you want to clear all DATA? (yes/no) "
         if [ "$?" == "1" ] ; then
             echo "Checking ... $MOUNT_DISK"
             fsck -y "$MOUNT_DISK"
@@ -129,19 +152,19 @@ if [ "$CLEARDATA" != "" ] ; then
 fi
 
 if [ "$CLEARDISK" != "" ] ; then
-    echo "CLEARING Data Device ... "
-    echo "Warning: this option is for development / testing."
-    prompt "Are you sure you want to clear data DISK? y/n "
+    echo "About to DELETE Data Device ... "
+    echo "Warning: this option is mainly for development / testing."
+    prompt "Are you sure you want to clear data DISK? yes/no "
     if [ "$?" == "1" ] ; then
         if [ "$MOUNT_DISK" == "" ] ; then
             echo "No disk to clear"; sleep 2
         else
-            PARTX=$(echo $MOUNT_DISK | awk '{ printf("%s", substr($1, 0, length($1)-1) ); }')
-            PARTNUM=$(echo $MOUNT_DISK | awk '{ printf("%s", substr($1, length($1)) ); }')
+            PARTX=$(echo "$MOUNT_DISK" | awk '{ printf("%s", substr($1, 0, length($1)-1) ); }')
+            PARTNUM=$(echo "$MOUNT_DISK" | awk '{ printf("%s", substr($1, length($1)) ); }')
             echo "Clearing part $PARTX partnum $PARTNUM"
-            sfdisk $PARTX --delete $PARTNUM
-            sync ; partprobe $PARTX
-            findHD $HDROOT
+            sfdisk "$PARTX" --delete "$PARTNUM"
+            sync ; partprobe "$PARTX"
+            findHD "$HDROOT"
             getargx 'ibreak=post-nuke' && tmpshell "$FOUNDVAR $ "
         fi
     fi
@@ -149,7 +172,8 @@ fi
 
 if [ "$MOUNT_DISK" == "" ] ; then
     # No DATA FS found, do FS creation or ram disk
-    prompt "Cannot find data storage. Search free space for autocreate ? (y/n) "
+    #prompt "Cannot find data storage. Search free space for autocreate ? (yes/no) "
+    keypeek "No R/W storage. Search free space for autocreate ? (y/n/ret/esc) "
     if [ "$?" == "1" ] ; then
         echo "Auto creating space for data." ; sleep 1
         DEVF=$(sfdisk -F | grep Unpartitioned | awk '{print $3;}' | head -1 | tr -d ":")
@@ -160,7 +184,8 @@ if [ "$MOUNT_DISK" == "" ] ; then
             read -r
             exec setsid /sbin/postinit
         fi
-        OUTF=$(echo ,,, | sfdisk "$DEVF" | grep "new partition" | awk '{print $1;}' | head -1 | tr -d ":")
+        OUTF=$(echo ,,, | sfdisk -a --no-reread "$DEVF" | grep "new partition" \
+                | awk '{print $1;}' | head -1 | tr -d ":")
         if [ "$OUTF" == "" ] ; then
             echo "Could not create partition. Starting in nosave mode."
             sleep 2
@@ -185,7 +210,7 @@ if [ "$MOUNT_DISK" == "" ] ; then
     fi
 fi
 
-echo -e "Data storage at $MOUNT_DISK \033[32;1mOK\033[0m"
+echo -e "Data storage at \"$MOUNT_DISK\" \033[32;1mOK\033[0m"
 if [ "$FSCK" != "" ] ;  then
     echo "Executing file system check on $MOUNT_DISK"
     fsck -y "$MOUNT_DISK"
@@ -207,24 +232,21 @@ mount -t overlay  comlin_data  \
 getargy 'isleep' && sleep "$FOUNDVAL"
 getargx 'ibreak=pre-chroot' && tmpshell "$FOUNDVAR $ "
 
-mkdir -p $NEWROOT/proc $NEWROOT/sys $NEWROOT/dev/pts
-mount --bind /proc $NEWROOT/proc
-mount --bind /sys $NEWROOT/sys
-mount --bind /dev/pts $NEWROOT/dev/pts
-#mount -t devpts -o nosuid,noexec,nodev  devpts /dev/pts >/dev/null 2>&1
+#mkdir -p $NEWROOT/proc ; mount --bind /proc $NEWROOT/proc
+#mkdir -p $NEWROOT/sys ; mount -t sysfs sysfs $NEWROOT/sys
+#mkdir -p $NEWROOT/dev ; mount -t devtmpfs devtmpfs $NEWROOT/dev
+#udevadm settle
+#mkdir -p $NEWROOT/dev/pts
+#mount -t devpts devpts $NEWROOT/dev/pts
 
-# Clear environment
+# Clear environment of generated vars
 unset  FOUNDVAL FOUNDVAR FOUNDCMD
 unset  MOUNT_DISK MOUNT_DATA SUL
 unset  CLEARDISK CLEARDATA LIBVERS
 
 getargy 'isleep' && sleep "$FOUNDVAL"
+
 cd "$NEWROOT" || echo "Cannot CD to $NEWROOT"
 exec chroot $NEWROOT setsid /sbin/postinit
-
-#while : ; do
-#    getargy 'isleep' && sleep "$FOUNDVAL"
-#    tmpshell "Failed chroot"
-#done
 
 # EOF

@@ -14,7 +14,7 @@
 . config_build nocheck
 . "$SCRIPTS"/misc/lib/lib_fail
 
-echo "Preparing ISO image from $CURRUSB ..."
+echo "Preparing COMLIN image from $CURRUSB ..."
 
 if [ "$ROOTFS" == "" ] ; then
     # This would be really bad;
@@ -44,25 +44,35 @@ fi
 #rm -f $ROOTFS/usr/share/X11/xorg.conf.d/*
 #rm -f $ROOTFS/root/.config/*
 
+#IFS=$' \t\n'        # Restore original IFS
+
 echo "  Copying (updating) filesystem ... "
 #cp -au $CURRUSB/* $ROOTFS
 
 #EXC=$(basename $CURRUSB)
 
 # Clear target stuff
+HOMEDIRS="root home/user home/guest"
+#for aaa in $HOMEDIRS ; do
+#    rm -rf $ROOTFS/$aaa
+#done
+
 restglob=$(shopt -p dotglob)
 shopt -s dotglob
-DIRVALS="root home/user home/guest"
-for aaa in $DIRVALS ; do
-    rm -rf $ROOTFS/$aaa
-done
+
 sudo rsync -au  \
             --info=progress2 \
             --exclude=/proc/* \
             --exclude=/sys/* \
             --exclude=/tmp/* \
             --exclude=/dev/* \
-            $CURRUSB/* $ROOTFS
+            $CURRUSB/. $ROOTFS
+
+# Do users verbatim
+echo "  Copying user data ... "
+sudo cp -a \
+            $CURRUSB/home/. $ROOTFS/home
+
 $restglob
 
 #echo -n "Copying modules ... "
@@ -119,8 +129,7 @@ chown -R $UIDR.$GIDR $ROOTFS/root/.
 unset UIDX GIDX UIDG GIDG UIDR GIDR
 echo OK
 
-# Single user, needs permission
-chmod u+s $ROOTFS/bin/chvt
+./scripts/setuids.sh
 
 #echo -n "  Copying etc files ... "
 ## The pre created pass and group
@@ -132,26 +141,28 @@ chmod u+s $ROOTFS/bin/chvt
 #echo OK
 
 # Remove incidentals (created during testing)
-IFS=$' \t\n'        # Restore original IFS
-for aaa in $DIRVALS ; do
+for aaa in $HOMEDIRS ; do
     #echo "Cleaning: $aaa"
     rm -f  "$ROOTFS/$aaa/.sudo_as_admin_successful"
     rm -f  "$ROOTFS/$aaa/.bash_history"
     rm -f  "$ROOTFS/$aaa/.lesshst"
-    #rm -f  "$ROOTFS/$aaa/.dbus"
     rm -f  "$ROOTFS/$aaa/.ICEauthority"
     rm -f  "$ROOTFS/$aaa/.Xauthority"
     rm -f  "$ROOTFS/$aaa/.pulse*"
+
     rm -rf "$ROOTFS/$aaa/.mozilla"
     rm -rf "$ROOTFS/$aaa/.thunderbird"
     rm -rf "$ROOTFS/$aaa/.pyedpro"
     rm -rf "$ROOTFS/$aaa/.xfce_err"
     rm -rf "$ROOTFS/$aaa/.xfce_out"
     rm -rf "$ROOTFS/$aaa/tmp"
-    #rm -rf "$ROOTFS/$aaa/.xfce*"
+    rm -rf "$ROOTFS/$aaa/.dbus"
+
+    mkdir -p "$ROOTFS/$aaa/.config.old"
+    cp -a  "$ROOTFS/$aaa/.config" "$ROOTFS/$aaa/.config.old"
+    # Allow XFCE config to persist
     #rm -rf "$ROOTFS/$aaa/.config"
-    #rm -rf "$ROOTFS/$aaa/.local"
-    #rm -rf "$ROOTFS/$aaa/.cache"
+    rm -rf "$ROOTFS/$aaa/.cache"
 done
 
 echo -n "  Patching tmp and var/tmp permissions ... "
@@ -163,7 +174,7 @@ rm -rf $ROOTFS/var/tmp
 mkdir -p $ROOTFS/var/tmp
 chmod a+rwxt $ROOTFS/var/tmp
 
-#rm -rf $ROOTFS/var/run/* >/dev/null 2>&1
+rm  -rf $ROOTFS/var/run/* >/dev/null 2>&1
 rm  -f  $ROOTFS/var/lib/alsa/* >/dev/null 2>&1
 
 echo OK
@@ -178,6 +189,8 @@ cp $COMLINVERFILE $ROOTFS/etc/COMLINUX_VERSION
 rm -rf $ROOTFS/dev/snd/*
 mkdir -p $ROOTFS/dev/snd
 
-echo "Done prepping ISO."
+# Grub boot items
+
+echo "Done prepping SYS."
 
 # EOF

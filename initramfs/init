@@ -1,52 +1,56 @@
-#!/bin/sh
+#!/bin/bash
+# shellcheck disable=SC1091
 
-# Custom INIT for Community Linux INITRD
-#
-# Breakpoint flags that may be introduced from the kernel command line:
-#    ramfs=cmdline       cmdline       "Break at the beginning of script"
-#    ramfs=initqueue     initqueue     "Break before initqueue"
-#    ramfs=pre-mount     pre-mount     "Break pre-mount"
-#    ramfs=pre-overlay   overlay       "Break before overlay"
-#    ramfs=pre-chroot    switch_root   "Break before switch_root"
-#
-# Arguments that may be introduced from the kernel command line:
-#
-#    preinit=initprog    program name   "The pre-init program to execute"
-#
-# History:
-#           Tue 24.Dec.2024     Reworked 64 bit
-#           Sun 29.Dec.2024     Mount CD simplified
-#           Thu 16.Jan.2025     PreInit command line arguments added
-
-# Silence async messages on terminal
-/usr/bin/setterm --msg off
+# Custom INIT for Community Linux INITRD / INITRAMFS.
+# See doc in init.doc.txt
 
 # This also signals that we are active
-echo "COMMUNITY LINUX 64 Version 1.0.0\n"
-echo "Loaded kernel ... \033[32;1mOK\033[0m "
+echo
+echo "Booting Community Linux 64 Version 1.0.0, built on Thu 20.Mar.2025"
+echo
 
-export PATH=/sbin:/bin:/usr/sbin:/usr/bin
+# See if we are in simulation by looking at GUI files
+#   (which do not run at yet in real boot)
+#INSIM=$(pgrep Xorg)
+#echo "insim" $INSIM
+#if [  "$INSIM" != "" ] ; then
+#   echo Warn: in simulation $INSIM
+#   Optional test / simulate vars
+#   VERBOSE=3 ; TESTME=1
+#else
+#    echo real exec
+#fi
 
-mkdir -p /proc /sys /dev/pts
-
-# Mount some basic things
-mount -t proc -o  nosuid,noexec,nodev proc /proc >/dev/null 2>&1
-mount -t sysfs -o nosuid,noexec,nodev sysfs /sys >/dev/null 2>&1
-mount -t devpts -o nosuid,noexec,nodev  devpts /dev/pts >/dev/null 2>&1
-
-# Load out lib
-. /lib/shlib/comlin.sh
-
-getargs 'verbose' && export VERBOSE=$FOUNDVAL
-
-getarg 'ramfs=cmdline' && temporary_shell -n cmdline "Break at the beginning of script"
-
+# Silence async messages on terminal
 export TERM=linux
+/usr/bin/setterm --msg off
 export USER=root
 export HOME=/root
 
-# This is a trick to get rid of this shell and exec the next stage
+printf "Loaded kernel ... \033[32;1mOK\033[0m \n"
+export PATH=/sbin:/bin:/usr/sbin:/usr/bin
+
+mkdir -p /dev/pts
+
+# Mount some basic things
+mkdir -p /proc ; mount -t proc proc /proc
+mkdir -p /sys ; mount -t sysfs sysfs /sys
+
+# Devices go here
+mount -t devtmpfs devtmpfs /dev
+udevadm settle
+mount -t devpts -o nosuid,noexec,nodev devpts /dev/pts
+
+# Load our lib
+. /lib/shlib/comlin.sh
+
+getargs 'verbose' && export VERBOSE="$FOUNDVAL"
+getarg 'ramfs=cmdline' && temporary_shell -n cmdline "Break at the beginning of script"
+
 trap "temporary_shell Signal caught!" 0
+trap "echo Stopping temporarily" 2
+
+#trap "echo Stopping temporarily, type exit to continue; temporary_shell \"CTRL-C caught!\" " 2
 
 CDROOT="/cdroot"
 NEWROOT="/sysroot"
@@ -57,28 +61,31 @@ TMPROOT=/tmp
 # Just to make sure
 ln -s /proc/self/fd /dev/fd >/dev/null 2>&1
 
-#UDEVVERSION=$(udevadm --version)
-# start up udev and trigger cold plugs
-#udevd --daemon #--resolve-names=never
-#UDEV_LOG_PRIO_ARG=--log-priority
-#UDEV_QUEUE_EMPTY="udevadm settle --timeout=0"
-#
-#if [ $UDEVVERSION -lt 140 ]; then
-#   UDEV_LOG_PRIO_ARG=--log_priority
-#   UDEV_QUEUE_EMPTY="udevadm settle --timeout=1"
-#fi
+# Load modules needed
+loadmods
 
-#getarg 'ramfs=initqueue' && temporary_shell -n initqueue "Break before initqueue"
+getarg 'ramfs=systemd' && temporary_shell -n systemd "Break before systemd"
+
+# Start udev and execute trigger for a rescan
+WASSYSD=$(pgrep systemd-udevd)
+if [ -n "$WASSYSD" ] ; then
+    /lib/systemd/systemd-udevd --daemon
+fi
+
+udevadm trigger -c add -t subsystems
+udevadm settle
+udevadm trigger -c add -t devices
+udevadm settle
+partprobe
 
 # Pre-mount happens before we try to mount the root filesystem
 getarg 'ramfs=pre-mount' && temporary_shell -n pre-mount "Break pre-mount"
 
-# Mount scripts actually try to mount the root filesystem, and may
-# be sourced any number of times. As soon as one suceeds, no more are sourced.
+printf "Mounting media ... "
 
+# Mount scripts actually try to mount the root filesystem,
 ii=0
 while :; do
-
     # If no root, search for it, else accept command line
     if [ -z "$root" ] ; then
         MOUNT_DEVICE=""
@@ -88,32 +95,39 @@ while :; do
     fi
 
     # No ROOT FS found, tell the user
-    if test -z $MOUNT_DEVICE ; then
-        echo "Cannot find a valid system image - dropping to shell."
-        echo "Exiting this shell re-scans drives for valid system image."
-        temporary_shell  "No CD drive found."
+    if [ -z "$MOUNT_DEVICE" ] ; then
+        echo "Cannot find a marked and valid COMLIN system image - dropping to shell."
+        echo "Exiting this shell re-scans drives for valid system image.", $ii
+        temporary_shell  "No USB/CD drive found."
     else
-        # Done here
+        #DELAYONE Done here
         break
     fi
-    ii=$(($ii+1))
-    # Give up after many tries
-    [ $ii -gt 20 ] \
-        && { flock -s 9 ; temporary_shell "Can't mount root filesystem"; } \
-            9>/.console_lock
+    ii=$((ii+1))
+    # Give up after many tries (and test mode)
+    if [ $ii -gt 5 ] ; then
+        temporary_shell "Can't mount root filesystem"
+        break
+    fi
 done
 
-#echo "Mounted $MOUNT_DEVICE filesystem on $CDROOT"
+if [ $((VERBOSE)) -gt 1 ] ; then
+    echo "Mounted $MOUNT_DEVICE filesystem on $CDROOT"
+fi
+
+printf "\033[32;1mOK\033[0m \n"
 
 # By the time we get here, the root filesystem should be mounted.
 # Try to find init.
 
 for ii in "$(getarg init=)"/sbin/preinit /sbin/init /init /etc/init /bin/sh; do
     #echo "Search $CDROOT$ii"
-    [ -f "$CDROOT$ii" -a -x "$CDROOT$ii" ] && { INIT="$ii"; break; }
+    [ -f "$CDROOT$ii" ] && [ -x "$CDROOT$ii" ] && { INIT="$ii"; break; }
 done
 
-#echo "POST init search: $INIT"
+if [ $((VERBOSE)) -gt 1 ] ; then
+    echo "POST init search: $INIT"
+fi
 
 [ "$INIT" ] || {
     echo "Cannot find CD init!"
@@ -124,8 +138,6 @@ done
 mount -t tmpfs -o tmpfs $NEWROOT  >/dev/null 2>&1
 
 touch /etc/fstab
-
-#export PS1="initramfs before overlay " ; setsid -c -w /bin/bash
 
 mount -t tmpfs -o tmpfs $TMPROOT  >/dev/null 2>&1
 
@@ -138,6 +150,12 @@ mkdir -p $TMPROOT/fs
 
 getarg 'ramfs=pre-overlay' && temporary_shell -n overlay "Break before overlay"
 
+if [  "$INSIM" != "" ] ; then
+    exit
+fi
+
+mkdir -p $NEWROOT/dev/pts
+
 mount -t overlay  comlin_overlay  \
         -olowerdir=$CDROOT,upperdir=$TMPROOT/fs,workdir=$TMPROOT/work \
         $NEWROOT
@@ -147,33 +165,33 @@ mount -t overlay  comlin_overlay  \
 #pivot_root . $OLDROOT
 
 # Copy it so pre-init can see it
-echo $CMDLINE >$NEWROOT/var/cmdline
+echo "$CMDLINE" >$NEWROOT/var/cmdline
 
 getarg 'ramfs=pre-del' && temporary_shell -n del_initram "Break before init_ram"
 
 # Del unneeded files ... should release appx 80 megs (not much)
-rm -rf lib/modules
-rm -rf lib/firmware
-rm -rf lib/systemd
-rm -rf sbin
-rm -rf usr/sbin
+# We deal with it later ...
 
-#rm -rf dev/*
-#mknod -m 0666 /dev/null c 1 3   # Put it back for now
+#if [  "$INSIM" != "" ] ; then
+#    rm -rf lib/modules
+#    rm -rf lib/firmware
+#    rm -rf lib/systemd
+#    rm -rf sbin
+#    rm -rf usr/sbin
+#fi
 
-mkdir -p $NEWROOT/proc $NEWROOT/sys $NEWROOT/dev/ $NEWROOT/dev/pts
-mount --bind /proc $NEWROOT/proc
-mount --bind /sys $NEWROOT/sys
-mount --bind /dev/pts $NEWROOT/dev/pts
+getarg 'ramfs=pre-chroot' && temporary_shell \
+            -n switch_root "Break before switch_root"
 
-getarg 'ramfs=pre-chroot' && temporary_shell -n switch_root "Break before switch_root"
+# We deal with it later ...
+#if [  "$INSIM" != "" ] ; then
+#    rm -rf usr/bin
+#    rm -rf bin
+#fi
 
-rm -rf usr/bin
-rm -rf bin
+info "Jumping to preinit ... "
 
-#info "Switching root"
-
-cd $NEWROOT
+cd $NEWROOT || echo Failed to change root
 
 getargs 'preinit='
 if [ "" = "$FOUNDCMD" ]; then
@@ -185,11 +203,5 @@ fi
 
 # Tried exec in chroot ... no go (script does not have this feature)
 exec ./usr/sbin/chroot . $FOUNDCMD
-
-# If anything went wrong ... cycle here
-while :; do
-   export PS1="initramfs error $ " ; setsid -c -w /bin/bash
-   echo "Spawning new shell ... "
-done
 
 # EOF

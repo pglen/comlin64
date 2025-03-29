@@ -1,18 +1,20 @@
 #!/bin/bash
-# shellcheck disable=SC2004,SC2009,SC2068,SC2002
-# shellcheck disable=SC1091,SC2086
+# shellcheck disable=SC1091
 
-if [ $(($TESTME)) -gt 0 ] ; then
+
+if [ $((TESTME)) -gt 0 ] ; then
     .  ./preinit.sh
 else
     .  /sbin/preinit.sh
 fi
 
+loginfo Postinit stage ...
+
 # Determine overall flags for operation (for this file)
 getargy 'verbose' && export VERBOSE=$FOUNDVAL
 getargx 'ibreak=all' && export BREAKALL=1
 
-if [ $(($VERBOSE)) -gt 0 ] ; then
+if [ $((VERBOSE)) -gt 0 ] ; then
     echo "COMLIN64 in final stage"
 fi
 
@@ -22,12 +24,27 @@ export SYSTEMD_IGNORE_CHROOT=1
 # UP loopback network connection
 ifconfig lo up 127.0.0.1
 
-# May have residual from prev run
+mkdir -p /proc /sys /dev
+# Remount for devices
+mkdir -p /proc ; mount -t proc proc /proc
 
+# Remount if not present
+if [ ! -d /sys/kernel ] ; then
+    mount -t sysfs sysfs /sys
+fi
+
+if [ "$(mount | grep /dev)" == "" ] ; then
+    mount -t devtmpfs devtmpfs /dev
+fi
+
+# May have residuals from prev run
 rm -rf /dev/snd/*
 rm -rf /run/dbus/*
 
-# We create this dynamically
+# Test alternate config
+#export XDG_CONFIG_DIR=/etc/xdg-comlin
+
+# Create this dynamically
 export XDG_RUNTIME_DIR=/run/user/$UID
 mkdir -p $XDG_RUNTIME_DIR
 
@@ -39,28 +56,22 @@ echo -e " \033[32;1mOK\033[0m"
 
 # Start logging
 echo -n "Starting rsyslogd ... "
+rm -f /run/rsyslogd.pid
 rsyslogd >> "$SULOUT" 2>> "$SULERR" &
 getargy 'isleep' && sleep "$FOUNDVAL"
 echo -e " \033[32;1mOK\033[0m"
 
 dbus-daemon --session >/dev/null 2>&1 &
 
-# Virtual terminals and a serial port
-getargx 'ibreak=vt' && tmpshell "$FOUNDVAR $ "
-echo -n "Starting VTs ... "
-startvts
-getargy 'isleep' && sleep "$FOUNDVAL"
-echo -e " \033[32;1mOK\033[0m"
-
 getargx 'ibreak=polkit' && tmpshell "$FOUNDVAR $ "
 echo -n "Starting polkit ... "
-/usr/libexec/polkitd >>$SULOUT 2>>$SULERR &
+/usr/libexec/polkitd >>"$SULOUT" 2>>"$SULERR" &
 getargy 'isleep' && sleep "$FOUNDVAL"
 echo -e " \033[32;1mOK\033[0m"
 
 getargx 'ibreak=udevd' && tmpshell "$FOUNDVAR $ "
 echo -n "Starting systemd-udevd ... "
-/lib/systemd/systemd-udevd >>$SULOUT 2>>$SULERR &
+/lib/systemd/systemd-udevd >>"$SULOUT" 2>>"$SULERR" &
 getargy 'isleep' && sleep "$FOUNDVAL"
 echo -e " \033[32;1mOK\033[0m"
 
@@ -77,18 +88,47 @@ getargy 'isleep' && sleep "$FOUNDVAL"
 echo -e " \033[32;1mOK\033[0m"
 
 rm -rf /var/run/pulse/pid
-rm -rf .config/pulse/.
+rm -rf .config/pulse/*
 
-#echo -n "Pulseaudio daemon ... "
-#pulseaudio --deaemonize=no --system --realtime  >>$SULOUT 2>>$SULERR  &
+# Second round for dependents (like: WIFI)
+
+echo -n "Finalizing devices  ... "
+
+udevadm trigger -c add -t subsystems
+udevadm settle
+udevadm trigger -c add -t devices
+udevadm settle
+
+loadmods
+udevadm settle
+loaddevs
+udevadm settle
+loadmods
+udevadm settle
+
+echo -e " \033[32;1mOK\033[0m"
+
+mkdir -p /dev/pts ; mount -t devpts devpts /dev/pts
+
+getargx 'ibreak=pre-acpi' && tmpshell  "$FOUNDVAR $ "
+echo -n "Starting acpid ... "
+/usr/sbin/acpid >>"$SULOUT" 2>>"$SULERR" &
+
+getargy 'isleep' && sleep "$FOUNDVAL"
+echo -e " \033[32;1mOK\033[0m"
+
+echo -n "Pulseaudio daemon ... "
+mkdir -p /dev/shm
+pulseaudio --deaemonize=no --system --realtime  >>"$SULOUT" 2>>"$SULERR"  &
 #pactl set-sink-mute 0 0  >>$SULOUT 2>>$SULERR
 #pactl set-sink-volume 0 0.5  >>$SULOUT 2>>$SULERR
-#getargy 'isleep' && sleep "$FOUNDVAL"
-#echo -e " \033[32;1mOK\033[0m"
+getargy 'isleep' && sleep "$FOUNDVAL"
+echo -e " \033[32;1mOK\033[0m"
 
 getargx 'ibreak=network' && tmpshell "$FOUNDVAR $ "
 echo -n "Starting network ... "
 dhclient >>"$SULOUT" 2>>"$SULERR" &
+NetworkManager
 getargy 'isleep' && sleep "$FOUNDVAL"
 echo -e " \033[32;1mOK\033[0m"
 
@@ -98,39 +138,52 @@ echo -n "Starting sshd ... "
 getargy 'isleep' && sleep "$FOUNDVAL"
 echo -e " \033[32;1mOK\033[0m"
 
-getargx 'ibreak=pre-user' && tmpshell  "$FOUNDVAR $ "
+# This is a precaution, comment out if not wanted
+/usr/sbin/thermald
+
+# Our power key watcher
+/usr/bin/powacpi &
 
 SDCOM="/var/tmp/.shutdowncmd"
 
-# Bye Bye root
+# Bye Bye old root
 NEWHOME="/root"
 mkdir -p $NEWHOME
 cd $NEWHOME || echo "Cannot change to $NEWHOME"
 
-# Xorg needs these
+# Xorg needs these clean
 rm -f /tmp/.X*lock
 rm -rf /tmp/.X11-unix
 
 export XAUTHORITY=$NEWHOME/.Xauthority
 export ICEAUTHORITY=$NEWHOME/.ICEauthority
-#export DISPLAY=:0
-
 export XAUTHLOCALHOSTNAME=localhost
 
 while : ; do
     rm -f $SDCOM                # Fresh start
-    getargy 'isleep' && sleep "$FOUNDVAL"
     getargx 'ibreak=pre-gui' && tmpshell  "$FOUNDVAR $ "
 
-    # Start initial GUI for login program 'pylogin'
-    xinit # >.x_out 2>.x_err
+    printf "Starting GUI, \033[34;1m(in progress)\033[0m ... "
 
     # Start Xorg as root
     #/usr/bin/startxfce4 -- -keeptty vt5 >.xfce_out 2>.xfce_err
 
+    stty -g >.stty_dump.txt
+
+    # Start initial GUI for login program 'pylogin'
+    xinit -- -keeptty vt5  >.xorg_out 2>.xorg_err
+
+    getargy 'isleep' && sleep "$FOUNDVAL"
+
+    cd $NEWHOME || echo "Cannot change to $NEWHOME"
+
     # Back to initial terminal
     chvt 1
-    echo -e " \033[32;1mOK\033[0m"
+    # Sadly, this was needed, as the terminal was messed up (Xorg bug?)
+    stty "$(cat .stty_dump.txt)"
+    stty sane
+
+    echo -e " \033[32;1mDone\033[0m"
 
     getargx 'ibreak=post-gui' &&  tmpshell "$FOUNDVAR $ "
 
@@ -140,22 +193,19 @@ while : ; do
         getargx 'ibreak=post-cleanup' && tmpshell "Post cleanup $ "
     fi
 
-    # If it got here, it is a logout or shutdown error
-    echo "Type:     'exit' to restart the X session"
+    # If it got here, it is a GUI Exit / Logout
+    echo
+    echo "---------------------------------------------------"
+    echo "Type:     'exit' (or Ctrl-D) to start a new X session / login"
     echo "          'linux_reboot -f' to restart computer."
     echo "          'linux_poweroff -f' to power down computer."
-    #tmpshell "XFCE loop iteration $ "
+    echo "---------------------------------------------------"
+    echo
+
     tmpshell "System Control Prompt $ "
+
 done
 
-# Can not reach this ... just in case
-
-# Start a shell for recovery / diagnosis
-export PS1="Comlin PostInit fallback: \w $ "
-while : ; do
-   echo "Spawning new shell $$ \w # "
-   setsid -c -w /bin/bash
-   sleep 1
-done
+# Can not reach this ...
 
 # EOF

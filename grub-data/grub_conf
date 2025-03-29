@@ -1,0 +1,79 @@
+#!/bin/bash
+
+GRUBROOT=/dev/sdb
+INSTROOT="$GRUBROOT"2
+INSTARG=/mnt/guest
+ISOFILE=../../comlin64.iso
+TMPSYS=../../_system
+ISOMNT=/mnt/iso
+GRUBDATA=/mnt/data
+
+mountifnot() {
+    # Mount if not mounted
+    local MM
+    MM=$(mount | grep $3)
+    if [ "$MM" = "" ] ; then
+        sudo mkdir -p $3
+        sudo mount $1 $2 $3 || echo cannot mount $3
+    fi
+}
+
+umountifnot() {
+    # Unmount if mounted
+    local MM
+    MM=$(mount | grep $1)
+    if [ "$MM" != "" ] ; then
+        sudo umount $1
+        #sleep .2
+    fi
+}
+
+# See if we have a good target
+# $1 -> ./config_drive
+
+check_drive() {
+
+    if [ ! -f $1 ] ; then
+    	echo "USB drive not configured yet. Run 'make detect' first"
+    	exit 1;
+    fi
+
+    export CONFIG_DRIVE=
+    read -r RRR < $1
+    #echo ddd "'"$RRR"'"
+    DDD=$(echo $RRR | awk -F "=" '{print $2}')
+
+    MMM=$(mount | grep $DDD)
+    if [ "$MMM" != "" ] ; then
+        echo "Drive is mounted, exiting."
+        exit 1
+    fi
+
+    if [ ! -e $DDD ] ; then
+        echo Drive \'$DDD\' does not exist
+        exit 1
+    fi
+    CONFIG_DRIVE=$DDD
+}
+
+if [ ! -e $GRUBROOT ] ; then
+    echo echo $0: Please plugin $GRUBROOT
+    exit 1
+fi
+
+if [ "$1" == "justvars" ] ; then
+    #echo Jus export vars, no checks
+    return
+fi
+ALREADY=$(mount | grep $INSTROOT)
+if [ "$ALREADY" ==  "" ] ; then
+    echo $0: Not mounted $GRUBROOT
+    exit 1
+fi
+# More checks
+if [ ! -e data/grub.cfg ] ; then
+    echo echo $0: Must start from grub-data dir
+    exit 1
+fi
+
+# EOF

@@ -1,0 +1,52 @@
+#!/bin/bash
+##########################################################################
+##                                                                      ##
+## Make the install ISO                                                 ##
+##                                                                      ##
+## This program is free software; you can redistribute it and/or modify ##
+## it under the terms of the GNU General Public License as published by ##
+## the Free Software Foundation; either version 2 of the License, or    ##
+## (at your option) any later version.                                  ##
+##                                                                      ##
+##########################################################################
+
+. config_build nocheck
+. "$SCRIPTS"/misc/lib/lib_fail
+
+echo "----------------------------------"
+echo "        Burning ISO image         "
+echo "----------------------------------"
+
+# See if conditions are met (checks are also in prepiso)
+
+if [ ! -f $KEYGET ] ; then
+    echo "Execute 'make apps' first."
+    exit 1
+fi
+
+if [ ! -f $KERNELDIR/$KERNELBIN ] ; then
+    echo "Execute 'make getkern' first."
+    exit 1
+fi
+
+if [ ! -f $KERNELDIR/initramfs ] ; then
+    echo "Execute 'make initramfs' first."
+    exit 1
+fi
+
+if [ ! -f $ROOTISOFILE ] ; then
+    echo "Execute 'make buildiso' first."
+    exit 1
+fi
+
+# usb-creator bug: Cannot do ISO, but happy with image file
+#ln -s $ROOTISOFILE  $ROOTISOFILE.img
+
+usb-creator-gtk -i $ROOTISOFILE.img
+
+# Back to ISO
+#rm $ROOTISOFILE.img
+
+echo Done.
+
+# EOF

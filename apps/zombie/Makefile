@@ -8,3 +8,7 @@ all: eatzomb
 eatzomb: eatzomb.c
 	gcc eatzomb.c -o eatzomb
 
+clean:
+	rm -f eatzomb *.o
+
+# EOF

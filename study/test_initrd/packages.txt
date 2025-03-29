@@ -1,0 +1,1092 @@
+Package: b43-fwcutter
+Architecture: amd64
+Version: 1:019-7build2
+Priority: optional
+Section: utils
+Origin: Ubuntu
+Maintainer: Ubuntu Developers <ubuntu-devel-discuss@lists.ubuntu.com>
+Original-Maintainer: Debian QA Group <packages@qa.debian.org>
+Bugs: https://bugs.launchpad.net/ubuntu/+filebug
+Installed-Size: 100
+Depends: debconf (>= 0.5) | debconf-2.0, libc6 (>= 2.34)
+Filename: pool/main/b/b43-fwcutter/b43-fwcutter_019-7build2_amd64.deb
+Size: 27890
+SHA256: 37ab67186d92a9647b0e82bc076c3844e9f7211a1c4f520155a264467646effa
+SHA512: 038d602a5dd8c38fb9e94467b95de8ad0b7362e9c31d33d3a218cc124db0430390e7567079da21845df885ca58ffac11a7af88731092cac362b9317eaf0eebc9
+Homepage: https://wireless.wiki.kernel.org/en/users/drivers/b43
+Description: utility for extracting Broadcom 43xx firmware
+ This package provides a tool for extracting BCM43xx wireless chip
+ firmware from Broadcom's proprietary driver files.
+ .
+ It is used by the firmware-b43(legacy)-installer packages as part of
+ the automated process of downloading and installing firmware.
+
+Package: binutils-common
+Architecture: amd64
+Version: 2.38-3ubuntu1
+Multi-Arch: same
+Priority: optional
+Build-Essential: yes
+Section: devel
+Source: binutils
+Origin: Ubuntu
+Maintainer: Ubuntu Developers <ubuntu-devel-discuss@lists.ubuntu.com>
+Original-Maintainer: Matthias Klose <doko@debian.org>
+Bugs: https://bugs.launchpad.net/ubuntu/+filebug
+Installed-Size: 504
+Breaks: binutils (<< 2.29.1-3.1~)
+Replaces: binutils (<< 2.29.1-3.1~)
+Filename: pool/main/b/binutils/binutils-common_2.38-3ubuntu1_amd64.deb
+Size: 220780
+SHA256: 721fcaea1cd4f6748cd3c35b6a16391d164df3882ed55347c5322798ca0d7427
+SHA512: c36ac8cf441e68bb8c5bdf6620261dcc148cf6ea90a20e432e9e9bd9ce8d1a70768685fe528d8dcee8c4b1ad6b7cfa2c76cbeab95356a68e610d2d5eea925443
+Homepage: https://www.gnu.org/software/binutils/
+Description: Common files for the GNU assembler, linker and binary utilities
+ This package contains the localization files used by binutils packages for
+ various target architectures and parts of the binutils documentation. It is
+ not useful on its own.
+
+Package: binutils-x86-64-linux-gnu
+Architecture: amd64
+Version: 2.38-3ubuntu1
+Multi-Arch: allowed
+Priority: extra
+Build-Essential: yes
+Section: devel
+Source: binutils
+Origin: Ubuntu
+Maintainer: Ubuntu Developers <ubuntu-devel-discuss@lists.ubuntu.com>
+Original-Maintainer: Matthias Klose <doko@debian.org>
+Bugs: https://bugs.launchpad.net/ubuntu/+filebug
+Installed-Size: 10439
+Depends: binutils-common (= 2.38-3ubuntu1), libbinutils (= 2.38-3ubuntu1), libc6 (>= 2.34), libctf-nobfd0 (>= 2.36), libctf0 (>= 2.36), libgcc-s1 (>= 4.2), zlib1g (>= 1:1.1.4)
+Suggests: binutils-doc (= 2.38-3ubuntu1)
+Breaks: binutils (<< 2.29-6)
+Replaces: binutils (<< 2.29-6)
+Filename: pool/main/b/binutils/binutils-x86-64-linux-gnu_2.38-3ubuntu1_amd64.deb
+Size: 2327872
+SHA256: 377418492b8f90a76245200fdede3a72f9e34149cb71028493ed0cb3e298f265
+SHA512: e81398ea6a0d6c62310c655686c5267378c84986e66cbd2e8508125a8ddc00f9074903870a363dc0a284fb7f8a8c011ad092ad7f1b8da8f399fef3e08cc42915
+Homepage: https://www.gnu.org/software/binutils/
+Description: GNU binary utilities, for x86-64-linux-gnu target
+ This package provides GNU assembler, linker and binary utilities
+ for the x86-64-linux-gnu target.
+ .
+ You don't need this package unless you plan to cross-compile programs
+ for x86-64-linux-gnu and x86-64-linux-gnu is not your native platform.
+
+Package: binutils
+Architecture: amd64
+Version: 2.38-3ubuntu1
+Priority: optional
+Build-Essential: yes
+Section: devel
+Origin: Ubuntu
+Maintainer: Ubuntu Developers <ubuntu-devel-discuss@lists.ubuntu.com>
+Original-Maintainer: Matthias Klose <doko@debian.org>
+Bugs: https://bugs.launchpad.net/ubuntu/+filebug
+Installed-Size: 111
+Provides: binutils-gold, elf-binutils
+Depends: binutils-common (= 2.38-3ubuntu1), libbinutils (= 2.38-3ubuntu1), binutils-x86-64-linux-gnu (= 2.38-3ubuntu1)
+Suggests: binutils-doc (>= 2.38-3ubuntu1)
+Conflicts: binutils-mingw-w64-i686 (<< 2.23.52.20130612-1+3), binutils-mingw-w64-x86-64 (<< 2.23.52.20130612-1+3), binutils-multiarch (<< 2.27-8), modutils (<< 2.4.19-1)
+Filename: pool/main/b/binutils/binutils_2.38-3ubuntu1_amd64.deb
+Size: 3186
+SHA256: 0130c483679210d7dcd1095f6757fed4e499ccb23e243717cdc7c54fc39292e5
+SHA512: e9fba5180ccba6025b64d15f76793a9b3e17ee6dccf452e5c7b421eb2201eb25d29d8a400af773cc80fa0b95ac2d20c25ec3e99e16b071be67774af4cd579308
+Homepage: https://www.gnu.org/software/binutils/
+Description: GNU assembler, linker and binary utilities
+ The programs in this package are used to assemble, link and manipulate
+ binary and object files.  They may be used in conjunction with a compiler
+ and various libraries to build programs.
+
+Package: libbinutils
+Architecture: amd64
+Version: 2.38-3ubuntu1
+Multi-Arch: same
+Priority: optional
+Build-Essential: yes
+Section: devel
+Source: binutils
+Origin: Ubuntu
+Maintainer: Ubuntu Developers <ubuntu-devel-discuss@lists.ubuntu.com>
+Original-Maintainer: Matthias Klose <doko@debian.org>
+Bugs: https://bugs.launchpad.net/ubuntu/+filebug
+Installed-Size: 2776
+Depends: libc6 (>= 2.34), zlib1g (>= 1:1.2.0), binutils-common (= 2.38-3ubuntu1)
+Breaks: binutils (<< 2.29-6)
+Replaces: binutils (<< 2.29-6)
+Filename: pool/main/b/binutils/libbinutils_2.38-3ubuntu1_amd64.deb
+Size: 661524
+SHA256: c21d6b82049c1d4e435264f03edae57dd9f200b571cd1170613deeb6649e75b9
+SHA512: ca94ad5fa968bc5037c7566e3830c701da8e7eee97aefba31442f82698835609a91bc9559d58a494631d0227aa00cd671b049760f4be4e2cd2a7485a30afc52f
+Homepage: https://www.gnu.org/software/binutils/
+Description: GNU binary utilities (private shared library)
+ This package includes the private shared libraries libbfd and libopcodes.
+
+Package: libctf-nobfd0
+Architecture: amd64
+Version: 2.38-3ubuntu1
+Multi-Arch: same
+Priority: optional
+Build-Essential: yes
+Section: devel
+Source: binutils
+Origin: Ubuntu
+Maintainer: Ubuntu Developers <ubuntu-devel-discuss@lists.ubuntu.com>
+Original-Maintainer: Matthias Klose <doko@debian.org>
+Bugs: https://bugs.launchpad.net/ubuntu/+filebug
+Installed-Size: 311
+Depends: libc6 (>= 2.14), zlib1g (>= 1:1.2.0)
+Breaks: libbinutils (<< 2.33.50.20191128-1~)
+Replaces: libbinutils (<< 2.33.50.20191128-1~)
+Filename: pool/main/b/binutils/libctf-nobfd0_2.38-3ubuntu1_amd64.deb
+Size: 105998
+SHA256: 3f41643a73d2659052c00d1d9c1224a37d4da8660f87efbf5f886ac1b0fa1c04
+SHA512: 603191b2ebb6b2d811ede29c75a94e3fbc048e939dfce433ba282e2327233cfc37817570defc53fc5d6214775b475e56324a2b8a9bd3cac61c668d9b43fd8294
+Homepage: https://www.gnu.org/software/binutils/
+Description: Compact C Type Format library (runtime, no BFD dependency)
+ This package includes the libctf-nobfd shared library.  The Compact C Type
+ Format (CTF) is a way of representing information about a binary program
+
+Package: libctf0
+Architecture: amd64
+Version: 2.38-3ubuntu1
+Multi-Arch: same
+Priority: optional
+Build-Essential: yes
+Section: devel
+Source: binutils
+Origin: Ubuntu
+Maintainer: Ubuntu Developers <ubuntu-devel-discuss@lists.ubuntu.com>
+Original-Maintainer: Matthias Klose <doko@debian.org>
+Bugs: https://bugs.launchpad.net/ubuntu/+filebug
+Installed-Size: 239
+Depends: libbinutils (= 2.38-3ubuntu1), libc6 (>= 2.33), zlib1g (>= 1:1.2.0)
+Filename: pool/main/b/binutils/libctf0_2.38-3ubuntu1_amd64.deb
+Size: 102524
+SHA256: aacfaef0eb68c2a35e54dc1870a89d66694fdf8664f1b20c5ef3c956cd431659
+SHA512: 7d58056cbb0170cf523e727c9e3a6fbf738c620d8870d526bfe489f9610f0b4e42d68f53075532523d64ce93c7cc671bc12b9ee7a7a64b8ea9b16b10e2fee205
+Homepage: https://www.gnu.org/software/binutils/
+Description: Compact C Type Format library (runtime, BFD dependency)
+ This package includes the libctf-nobfd shared library.  The Compact C Type
+ Format (CTF) is a way of representing information about a binary program
+
+Package: build-essential
+Architecture: amd64
+Version: 12.9ubuntu3
+Priority: optional
+Build-Essential: yes
+Section: devel
+Origin: Ubuntu
+Maintainer: Ubuntu Developers <ubuntu-devel-discuss@lists.ubuntu.com>
+Original-Maintainer: Matthias Klose <doko@debian.org>
+Bugs: https://bugs.launchpad.net/ubuntu/+filebug
+Installed-Size: 21
+Depends: libc6-dev | libc-dev, gcc (>= 4:10.2), g++ (>= 4:10.2), make, dpkg-dev (>= 1.17.11)
+Filename: pool/main/b/build-essential/build-essential_12.9ubuntu3_amd64.deb
+Size: 4744
+SHA256: 1e464c41488d154b9f5ca19d2e9ac8b18913ae16e3dca713c3ba0223fae2cccc
+SHA512: 65452b51286fa167cb80ffbecbb9c4fb94324aefe19a792a3996a62c24cfefc937ddbcabaaab6f94c507aa0fabf20eb8e4a90e6f88a1ee89de90a4eb3f9cc65e
+Description: Informational list of build-essential packages
+ If you do not plan to build Debian packages, you don't need this
+ package.  Starting with dpkg (>= 1.14.18) this package is required
+ for building Debian packages.
+ .
+ This package contains an informational list of packages which are
+ considered essential for building Debian packages.  This package also
+ depends on the packages on that list, to make it easy to have the
+ build-essential packages installed.
+ .
+ If you have this package installed, you only need to install whatever
+ a package specifies as its build-time dependencies to build the
+ package.  Conversely, if you are determining what your package needs
+ to build-depend on, you can always leave out the packages this
+ package depends on.
+ .
+ This package is NOT the definition of what packages are
+ build-essential; the real definition is in the Debian Policy Manual.
+ This package contains merely an informational list, which is all
+ most people need.   However, if this package and the manual disagree,
+ the manual is correct.
+
+Package: dkms
+Architecture: all
+Version: 2.8.7-2ubuntu2
+Multi-Arch: foreign
+Priority: optional
+Section: admin
+Origin: Ubuntu
+Maintainer: Ubuntu Developers <ubuntu-devel-discuss@lists.ubuntu.com>
+Original-Maintainer: Dynamic Kernel Modules Support Team <dkms@packages.debian.org>
+Bugs: https://bugs.launchpad.net/ubuntu/+filebug
+Installed-Size: 294
+Provides: dh-sequence-dkms
+Pre-Depends: lsb-release
+Depends: kmod | kldutils, gcc | c-compiler, dpkg-dev, make | build-essential, coreutils (>= 7.4), patch, dctrl-tools
+Recommends: fakeroot, sudo, linux-headers-686-pae | linux-headers-amd64 | linux-headers-generic | linux-headers
+Suggests: menu, e2fsprogs
+Breaks: shim-signed (<< 1.34~)
+Filename: pool/main/d/dkms/dkms_2.8.7-2ubuntu2_all.deb
+Size: 69648
+SHA256: de6eae0b6df237df95595e99ce5b65329acc937c14e20974f3d68f53d814cc94
+SHA512: c390833b2dd4aea7d149737facc0ed3b7997c45197aed201d6ebd6c392c403df9d86e9e1c5642c272f426c6b419f2e71184f1a5e8ec3af385313a4474828ed4d
+Homepage: https://github.com/dell-oss/dkms
+Description: Dynamic Kernel Module Support Framework
+ DKMS is a framework designed to allow individual kernel modules to be upgraded
+ without changing the whole kernel. It is also very easy to rebuild modules as
+ you upgrade kernels.
+
+Package: dpkg-dev
+Architecture: all
+Version: 1.21.1ubuntu2.1
+Multi-Arch: foreign
+Priority: optional
+Build-Essential: yes
+Section: utils
+Source: dpkg
+Origin: Ubuntu
+Maintainer: Ubuntu Developers <ubuntu-devel-discuss@lists.ubuntu.com>
+Original-Maintainer: Dpkg Developers <debian-dpkg@lists.debian.org>
+Bugs: https://bugs.launchpad.net/ubuntu/+filebug
+Installed-Size: 2488
+Depends: perl:any, libdpkg-perl (= 1.21.1ubuntu2.1), tar (>= 1.28-1), bzip2, xz-utils, patch (>= 2.7), make, binutils, lto-disabled-list
+Recommends: build-essential, gcc | c-compiler, fakeroot, gnupg, gpgv, libalgorithm-merge-perl
+Suggests: debian-keyring
+Breaks: debhelper (<< 10.10.1~)
+Filename: pool/main/d/dpkg/dpkg-dev_1.21.1ubuntu2.1_all.deb
+Size: 922210
+SHA256: 22e32885e735fcf20f2defa277095b9bb27d1d5a53d84b3df04fff3533ac7354
+SHA512: f9e4aabee15555ab4bd4f372dff49b5c80f407aff3dcc5d6b42d1f83ac235d633e2d1ded0b103c4a102f608956715dd23a83438a9c28a845649f3be0724fd816
+Homepage: https://wiki.debian.org/Teams/Dpkg
+Description: Debian package development tools
+ This package provides the development tools (including dpkg-source)
+ required to unpack, build and upload Debian source packages.
+ .
+ Most Debian source packages will require additional tools to build;
+ for example, most packages need make and the C compiler gcc.
+
+Package: fakeroot
+Architecture: amd64
+Version: 1.28-1ubuntu1
+Multi-Arch: foreign
+Priority: optional
+Section: utils
+Origin: Ubuntu
+Maintainer: Ubuntu Developers <ubuntu-devel-discuss@lists.ubuntu.com>
+Original-Maintainer: Clint Adams <clint@debian.org>
+Bugs: https://bugs.launchpad.net/ubuntu/+filebug
+Installed-Size: 220
+Depends: libfakeroot (>= 1.28-1ubuntu1), libc6 (>= 2.34)
+Filename: pool/main/f/fakeroot/fakeroot_1.28-1ubuntu1_amd64.deb
+Size: 60358
+SHA256: 6a08de63f375566d3d91b181ff01a5fb797a5ecd6720b2c28f11d8e32071933b
+SHA512: 50f208d402455803a39487d683ba9e675e5a83a4a10450455176ae2d4626e0d8776ed16cc723c0c18c2b2706b4c9046da788af823ab1c7acddf056e0ad262009
+Description: tool for simulating superuser privileges
+ fakeroot provides a fake "root environment" by means of LD_PRELOAD and
+ SysV IPC (or TCP) trickery. It puts wrappers around getuid(), chown(),
+ stat(), and other file-manipulation functions, so that unprivileged
+ users can (for instance) populate .deb archives with root-owned files;
+ various build tools use fakeroot for this by default.
+ .
+ This package contains fakeroot command and the daemon that remembers
+ fake ownership/permissions of files manipulated by fakeroot
+ processes.
+
+Package: libfakeroot
+Architecture: amd64
+Version: 1.28-1ubuntu1
+Multi-Arch: same
+Priority: optional
+Section: utils
+Source: fakeroot
+Origin: Ubuntu
+Maintainer: Ubuntu Developers <ubuntu-devel-discuss@lists.ubuntu.com>
+Original-Maintainer: Clint Adams <clint@debian.org>
+Bugs: https://bugs.launchpad.net/ubuntu/+filebug
+Installed-Size: 172
+Depends: libc6 (>= 2.34)
+Breaks: fakeroot (<< 1.20-2~)
+Replaces: fakeroot (<< 1.20-2~)
+Filename: pool/main/f/fakeroot/libfakeroot_1.28-1ubuntu1_amd64.deb
+Size: 31506
+SHA256: 54083b86b4f74853cb5c0881e1c4273fd2071af507e90f794a56956109067b12
+SHA512: 94af1d797dffb1ec15704e5119a48f38d657d5ed50ad939e4a0efc377b91514a23be1322df85e16710370d011c1c8395c4710a58e0bc8ead7ed7ebe2791ee1eb
+Description: tool for simulating superuser privileges - shared libraries
+ fakeroot provides a fake "root environment" by means of LD_PRELOAD and
+ SysV IPC (or TCP) trickery. It puts wrappers around getuid(), chown(),
+ stat(), and other file-manipulation functions, so that unprivileged
+ users can (for instance) populate .deb archives with root-owned files;
+ various build tools use fakeroot for this by default.
+ .
+ This package contains the LD_PRELOAD libraries.
+
+Package: g++-11
+Architecture: amd64
+Version: 11.2.0-19ubuntu1
+Priority: optional
+Build-Essential: yes
+Section: devel
+Source: gcc-11
+Origin: Ubuntu
+Maintainer: Ubuntu Core developers <ubuntu-devel-discuss@lists.ubuntu.com>
+Original-Maintainer: Debian GCC Maintainers <debian-gcc@lists.debian.org>
+Bugs: https://bugs.launchpad.net/ubuntu/+filebug
+Installed-Size: 28780
+Provides: c++-compiler, c++abi2-dev
+Depends: gcc-11-base (= 11.2.0-19ubuntu1), gcc-11 (= 11.2.0-19ubuntu1), libstdc++-11-dev (= 11.2.0-19ubuntu1), libc6 (>= 2.34), libgmp10 (>= 2:6.2.1+dfsg), libisl23 (>= 0.15), libmpc3 (>= 1.1.0), libmpfr6 (>= 3.1.3), libzstd1 (>= 1.4.0), zlib1g (>= 1:1.1.4)
+Suggests: g++-11-multilib, gcc-11-doc (>= 11)
+Filename: pool/main/g/gcc-11/g++-11_11.2.0-19ubuntu1_amd64.deb
+Size: 11391844
+SHA256: 373f35df458c26a7461473409628f88c0787679068e0fc794be6d01ebc8cfb3d
+SHA512: e688f880f470a9d0fc45d52c8e2794b1a18d8af76ddb142e9ae24a03eec9061254eed995f4f382f4239fbf6f7259825bb6130f292f20b9f239cdef6665600b28
+Homepage: http://gcc.gnu.org/
+Description: GNU C++ compiler
+ This is the GNU C++ compiler, a fairly portable optimizing compiler for C++.
+
+Package: gcc-11
+Architecture: amd64
+Version: 11.2.0-19ubuntu1
+Priority: optional
+Build-Essential: yes
+Section: devel
+Origin: Ubuntu
+Maintainer: Ubuntu Core developers <ubuntu-devel-discuss@lists.ubuntu.com>
+Original-Maintainer: Debian GCC Maintainers <debian-gcc@lists.debian.org>
+Bugs: https://bugs.launchpad.net/ubuntu/+filebug
+Installed-Size: 52559
+Provides: c-compiler
+Depends: cpp-11 (= 11.2.0-19ubuntu1), gcc-11-base (= 11.2.0-19ubuntu1), libcc1-0 (>= 11.2.0-19ubuntu1), binutils (>= 2.38), libgcc-11-dev (= 11.2.0-19ubuntu1), libc6 (>= 2.34), libgcc-s1 (>= 3.0), libgmp10 (>= 2:6.2.1+dfsg), libisl23 (>= 0.15), libmpc3 (>= 1.1.0), libmpfr6 (>= 3.1.3), libstdc++6 (>= 5), libzstd1 (>= 1.4.0), zlib1g (>= 1:1.1.4)
+Recommends: libc6-dev (>= 2.13-0ubuntu6)
+Suggests: gcc-11-multilib, gcc-11-doc (>= 11), gcc-11-locales (>= 11)
+Replaces: cpp-11 (<< 7.1.1-8)
+Filename: pool/main/g/gcc-11/gcc-11_11.2.0-19ubuntu1_amd64.deb
+Size: 20082430
+SHA256: 0320b98a2d4664b10f6de2ec3f3e2409cb8c3dbec8c32d938a6beaa78e1fed76
+SHA512: 65eb43b18ab7034d20f04d7b649856d0ebe143994b7edb7367322159ca54212d832021648e9958f770c8941ca4ca8fef55b82288b8e706319013ec5ebe666197
+Homepage: http://gcc.gnu.org/
+Description: GNU C compiler
+ This is the GNU C compiler, a fairly portable optimizing compiler for C.
+
+Package: libasan6
+Architecture: amd64
+Version: 11.2.0-19ubuntu1
+Multi-Arch: same
+Priority: optional
+Build-Essential: yes
+Section: libs
+Source: gcc-11
+Origin: Ubuntu
+Maintainer: Ubuntu Core developers <ubuntu-devel-discuss@lists.ubuntu.com>
+Original-Maintainer: Debian GCC Maintainers <debian-gcc@lists.debian.org>
+Bugs: https://bugs.launchpad.net/ubuntu/+filebug
+Installed-Size: 7517
+Depends: gcc-11-base (= 11.2.0-19ubuntu1), libc6 (>= 2.34), libgcc-s1
+Filename: pool/main/g/gcc-11/libasan6_11.2.0-19ubuntu1_amd64.deb
+Size: 2283282
+SHA256: 94d9f1889bdec4aef6a37f8afd84346e1bcdaa65c158f5647b09781c1f4401e4
+SHA512: 879b51c208b36729446f0652016d4b3731a7e742a67ce84240122cd88714cb4b548950edb6f0723e296dd7f0621a6dd84823c6087b87bc1519c17e09cbb07656
+Homepage: http://gcc.gnu.org/
+Description: AddressSanitizer -- a fast memory error detector
+ AddressSanitizer (ASan) is a fast memory error detector.  It finds
+ use-after-free and {heap,stack,global}-buffer overflow bugs in C/C++ programs.
+
+Package: libgcc-11-dev
+Architecture: amd64
+Version: 11.2.0-19ubuntu1
+Multi-Arch: same
+Priority: optional
+Build-Essential: yes
+Section: libdevel
+Source: gcc-11
+Origin: Ubuntu
+Maintainer: Ubuntu Core developers <ubuntu-devel-discuss@lists.ubuntu.com>
+Original-Maintainer: Debian GCC Maintainers <debian-gcc@lists.debian.org>
+Bugs: https://bugs.launchpad.net/ubuntu/+filebug
+Installed-Size: 13878
+Depends: gcc-11-base (= 11.2.0-19ubuntu1), libgcc-s1 (>= 11.2.0-19ubuntu1), libgomp1 (>= 11.2.0-19ubuntu1), libitm1 (>= 11.2.0-19ubuntu1), libatomic1 (>= 11.2.0-19ubuntu1), libasan6 (>= 11.2.0-19ubuntu1), liblsan0 (>= 11.2.0-19ubuntu1), libtsan0 (>= 11.2.0-19ubuntu1), libubsan1 (>= 11.2.0-19ubuntu1), libquadmath0 (>= 11.2.0-19ubuntu1)
+Recommends: libc6-dev (>= 2.13-0ubuntu6)
+Breaks: libtsan0 (<< 11.2.0-11)
+Replaces: libtsan0 (<< 11.2.0-11)
+Filename: pool/main/g/gcc-11/libgcc-11-dev_11.2.0-19ubuntu1_amd64.deb
+Size: 2526190
+SHA256: adae5a301c7899c1bce8ae26b5423716a47e516df25c09d6d536607bc34853bc
+SHA512: 6d0cdf9aba8710a1d9721c996604c2c965c6d7be7379bf968f4ca33a3a180b9e8f167c4f7c298cf803842832373fe4d9c7c943177726886724dc7b0e91f202bf
+Homepage: http://gcc.gnu.org/
+Description: GCC support library (development files)
+ This package contains the headers and static library files necessary for
+ building C programs which use libgcc, libgomp, libquadmath, libssp or libitm.
+
+Package: libstdc++-11-dev
+Architecture: amd64
+Version: 11.2.0-19ubuntu1
+Multi-Arch: same
+Priority: optional
+Build-Essential: yes
+Section: libdevel
+Source: gcc-11
+Origin: Ubuntu
+Maintainer: Ubuntu Core developers <ubuntu-devel-discuss@lists.ubuntu.com>
+Original-Maintainer: Debian GCC Maintainers <debian-gcc@lists.debian.org>
+Bugs: https://bugs.launchpad.net/ubuntu/+filebug
+Installed-Size: 18710
+Provides: libstdc++-dev
+Depends: gcc-11-base (= 11.2.0-19ubuntu1), libgcc-11-dev (= 11.2.0-19ubuntu1), libstdc++6 (>= 11.2.0-19ubuntu1), libc6-dev (>= 2.13-0ubuntu6)
+Suggests: libstdc++-11-doc
+Filename: pool/main/g/gcc-11/libstdc++-11-dev_11.2.0-19ubuntu1_amd64.deb
+Size: 2083066
+SHA256: 9bf057085dbce0f9b06157df34ca55819d8f5c0262cd7de1eac7515b5138a8a2
+SHA512: c403cec00fdf0231897a7d201baf4fc4645cdac246078c982962cb297e544277b98ac52a77b72653a19ed66eda231d28d1ecf3dffcd2940aba3afba4c21a98e6
+Homepage: http://gcc.gnu.org/
+Description: GNU Standard C++ Library v3 (development files)
+ This package contains the headers and static library files necessary for
+ building C++ programs which use libstdc++.
+ .
+ libstdc++-v3 is a complete rewrite from the previous libstdc++-v2, which
+ was included up to g++-2.95. The first version of libstdc++-v3 appeared
+ in g++-3.0.
+
+Package: libtsan0
+Architecture: amd64
+Version: 11.2.0-19ubuntu1
+Multi-Arch: same
+Priority: optional
+Build-Essential: yes
+Section: libs
+Source: gcc-11
+Origin: Ubuntu
+Maintainer: Ubuntu Core developers <ubuntu-devel-discuss@lists.ubuntu.com>
+Original-Maintainer: Debian GCC Maintainers <debian-gcc@lists.debian.org>
+Bugs: https://bugs.launchpad.net/ubuntu/+filebug
+Installed-Size: 7254
+Depends: gcc-11-base (= 11.2.0-19ubuntu1), libc6 (>= 2.34), libgcc-s1
+Filename: pool/main/g/gcc-11/libtsan0_11.2.0-19ubuntu1_amd64.deb
+Size: 2261122
+SHA256: b3cae0deabbc5fef8a665f51ecc69eb812c97a6fc234b7971ea70d0d365238a1
+SHA512: 03d2798d84a5e11aeed7c604a621073dfe3938f50ec61a3ac5d82c85aa1c005bcc71b9e8326faefec51c9d2a4ce5e495c942db5e39fc6b7cd7492feb3f298b3f
+Homepage: http://gcc.gnu.org/
+Description: ThreadSanitizer -- a Valgrind-based detector of data races (runtime)
+ ThreadSanitizer (Tsan) is a data race detector for C/C++ programs.
+ The Linux and Mac versions are based on Valgrind.
+
+Package: libatomic1
+Architecture: amd64
+Version: 12-20220319-1ubuntu1
+Multi-Arch: same
+Priority: optional
+Build-Essential: yes
+Section: libs
+Source: gcc-12
+Origin: Ubuntu
+Maintainer: Ubuntu Core developers <ubuntu-devel-discuss@lists.ubuntu.com>
+Original-Maintainer: Debian GCC Maintainers <debian-gcc@lists.debian.org>
+Bugs: https://bugs.launchpad.net/ubuntu/+filebug
+Installed-Size: 45
+Depends: gcc-12-base (= 12-20220319-1ubuntu1), libc6 (>= 2.14)
+Filename: pool/main/g/gcc-12/libatomic1_12-20220319-1ubuntu1_amd64.deb
+Size: 10436
+SHA256: 38ca3edf9a5f7e0a8ee143b65b2671903427de607afd8de9d9fc8aff63844dc6
+SHA512: fed35208f9a641607618285f813f8fa99f6f84ab8df283a741699247b23572f4a79e6775eecb49f17d0f0cebcdeefbbfe3041aa928a76d4f9f44fbb99ae8924a
+Homepage: http://gcc.gnu.org/
+Description: support library providing __atomic built-in functions
+ library providing __atomic built-in functions. When an atomic call cannot
+ be turned into lock-free instructions, GCC will make calls into this library.
+
+Package: libcc1-0
+Architecture: amd64
+Version: 12-20220319-1ubuntu1
+Multi-Arch: same
+Priority: optional
+Build-Essential: yes
+Section: libs
+Source: gcc-12
+Origin: Ubuntu
+Maintainer: Ubuntu Core developers <ubuntu-devel-discuss@lists.ubuntu.com>
+Original-Maintainer: Debian GCC Maintainers <debian-gcc@lists.debian.org>
+Bugs: https://bugs.launchpad.net/ubuntu/+filebug
+Installed-Size: 144
+Depends: gcc-12-base (= 12-20220319-1ubuntu1), libc6 (>= 2.15), libgcc-s1 (>= 3.0), libstdc++6 (>= 5.2)
+Filename: pool/main/g/gcc-12/libcc1-0_12-20220319-1ubuntu1_amd64.deb
+Size: 47206
+SHA256: 2f52cdc0aca888bb3995d871a65282107dc7c2a0a4d78f60680f709bdc0875aa
+SHA512: 7382e962cf128dfa0f45974e3968f4120b2886807ef5dc92ab39adec242f1205ac5e7b59be73951b1f046a8e5fab3d14117ee601dd0f17528c6b4567dc0bb5eb
+Homepage: http://gcc.gnu.org/
+Description: GCC cc1 plugin for GDB
+ libcc1 is a plugin for GDB.
+
+Package: libitm1
+Architecture: amd64
+Version: 12-20220319-1ubuntu1
+Multi-Arch: same
+Priority: optional
+Build-Essential: yes
+Section: libs
+Source: gcc-12
+Origin: Ubuntu
+Maintainer: Ubuntu Core developers <ubuntu-devel-discuss@lists.ubuntu.com>
+Original-Maintainer: Debian GCC Maintainers <debian-gcc@lists.debian.org>
+Bugs: https://bugs.launchpad.net/ubuntu/+filebug
+Installed-Size: 115
+Depends: gcc-12-base (= 12-20220319-1ubuntu1), libc6 (>= 2.34)
+Filename: pool/main/g/gcc-12/libitm1_12-20220319-1ubuntu1_amd64.deb
+Size: 30154
+SHA256: c65a94c151396c542c10b8a4c2df943fb2bf07a90329e152596d521d9ece390c
+SHA512: e529b0a4ad5e6b50e3bad3dee1603173af2450e2481990a7d99bf3fbee3bff56b75e2a0b252337e92d25b72a03262cd0e51e3050f883fd3c9f519eabd28b7250
+Homepage: http://gcc.gnu.org/
+Description: GNU Transactional Memory Library
+ GNU Transactional Memory Library (libitm) provides transaction support for
+ accesses to the memory of a process, enabling easy-to-use synchronization of
+ accesses to shared memory by several threads.
+
+Package: liblsan0
+Architecture: amd64
+Version: 12-20220319-1ubuntu1
+Multi-Arch: same
+Priority: optional
+Build-Essential: yes
+Section: libs
+Source: gcc-12
+Origin: Ubuntu
+Maintainer: Ubuntu Core developers <ubuntu-devel-discuss@lists.ubuntu.com>
+Original-Maintainer: Debian GCC Maintainers <debian-gcc@lists.debian.org>
+Bugs: https://bugs.launchpad.net/ubuntu/+filebug
+Installed-Size: 2961
+Depends: gcc-12-base (= 12-20220319-1ubuntu1), libc6 (>= 2.34), libgcc-s1 (>= 3.3)
+Filename: pool/main/g/gcc-12/liblsan0_12-20220319-1ubuntu1_amd64.deb
+Size: 1068936
+SHA256: ee4dc708420b554d8cc1385f3c2a2d2917187b22c0d796eda46c8d52c09a81c1
+SHA512: f769cdb4fd71c32a8abeab5adc6c9b85cbd24ac962d4e936ede8f6d587c3e483ef582f191127bc95ccc05c61a55e0123ba0e158a83bbcd9baef43684943d5537
+Homepage: http://gcc.gnu.org/
+Description: LeakSanitizer -- a memory leak detector (runtime)
+ LeakSanitizer (Lsan) is a memory leak detector which is integrated
+ into AddressSanitizer.
+
+Package: libubsan1
+Architecture: amd64
+Version: 12-20220319-1ubuntu1
+Multi-Arch: same
+Priority: optional
+Build-Essential: yes
+Section: libs
+Source: gcc-12
+Origin: Ubuntu
+Maintainer: Ubuntu Core developers <ubuntu-devel-discuss@lists.ubuntu.com>
+Original-Maintainer: Debian GCC Maintainers <debian-gcc@lists.debian.org>
+Bugs: https://bugs.launchpad.net/ubuntu/+filebug
+Installed-Size: 2675
+Depends: gcc-12-base (= 12-20220319-1ubuntu1), libc6 (>= 2.34), libgcc-s1 (>= 3.3), libstdc++6 (>= 4.1.1)
+Filename: pool/main/g/gcc-12/libubsan1_12-20220319-1ubuntu1_amd64.deb
+Size: 975904
+SHA256: 695665a5619339d23152a7358dafbf44569a9c19afd127b2b9d4ce53d65d07f2
+SHA512: ef5d36bc3e65ea16a3db7dfc68acff8135be6db01790e85728c7597e1641c91f7a09dc51268d8eaa0013c70fd4c207602b90d1dda2664f5dbdf643d7d69e28ab
+Homepage: http://gcc.gnu.org/
+Description: UBSan -- undefined behaviour sanitizer (runtime)
+ UndefinedBehaviorSanitizer can be enabled via -fsanitize=undefined.
+ Various computations will be instrumented to detect undefined behavior
+ at runtime. Available for C and C++.
+
+Package: g++
+Architecture: amd64
+Version: 4:11.2.0-1ubuntu1
+Priority: optional
+Build-Essential: yes
+Section: devel
+Source: gcc-defaults (1.193ubuntu1)
+Origin: Ubuntu
+Maintainer: Ubuntu Developers <ubuntu-devel-discuss@lists.ubuntu.com>
+Original-Maintainer: Debian GCC Maintainers <debian-gcc@lists.debian.org>
+Bugs: https://bugs.launchpad.net/ubuntu/+filebug
+Installed-Size: 16
+Provides: c++-compiler, g++-x86-64-linux-gnu (= 4:11.2.0-1ubuntu1)
+Depends: cpp (= 4:11.2.0-1ubuntu1), gcc (= 4:11.2.0-1ubuntu1), g++-11 (>= 11.2.0-1~), gcc-11 (>= 11.2.0-1~)
+Suggests: g++-multilib
+Filename: pool/main/g/gcc-defaults/g++_11.2.0-1ubuntu1_amd64.deb
+Size: 1412
+SHA256: 693080e6d1648f521183c1fa5fcfdd2d357a87f5872511ec12792d9dfe1effdb
+SHA512: a5153251990f554fd7891fe974ea602cf00f0a800542bedc2db1386122112d009d0d2b664103fdc7ce90651b9450b423bd7de82ee2ffd1c6b20864276c19e85a
+Description: GNU C++ compiler
+ This is the GNU C++ compiler, a fairly portable optimizing compiler for C++.
+ .
+ This is a dependency package providing the default GNU C++ compiler.
+
+Package: gcc
+Architecture: amd64
+Version: 4:11.2.0-1ubuntu1
+Priority: optional
+Build-Essential: yes
+Section: devel
+Source: gcc-defaults (1.193ubuntu1)
+Origin: Ubuntu
+Maintainer: Ubuntu Developers <ubuntu-devel-discuss@lists.ubuntu.com>
+Original-Maintainer: Debian GCC Maintainers <debian-gcc@lists.debian.org>
+Bugs: https://bugs.launchpad.net/ubuntu/+filebug
+Installed-Size: 50
+Provides: c-compiler, gcc-x86-64-linux-gnu (= 4:11.2.0-1ubuntu1)
+Depends: cpp (= 4:11.2.0-1ubuntu1), gcc-11 (>= 11.2.0-1~)
+Recommends: libc6-dev | libc-dev
+Suggests: gcc-multilib, make, manpages-dev, autoconf, automake, libtool, flex, bison, gdb, gcc-doc
+Conflicts: gcc-doc (<< 1:2.95.3)
+Filename: pool/main/g/gcc-defaults/gcc_11.2.0-1ubuntu1_amd64.deb
+Size: 5112
+SHA256: be895c1a9611905254f818c41092f147f5f2a566f87f1817b5c36d977020bea7
+SHA512: 4f8d51089dc511f0da886fa577299078693f0b9383a5b4f6c96f27a590741a0c4c67c0c0964d6fa89a7aac866632e8f10a95496f0696e5149ec3b469ddda74f5
+Description: GNU C compiler
+ This is the GNU C compiler, a fairly portable optimizing compiler for C.
+ .
+ This is a dependency package providing the default GNU C compiler.
+
+Package: libc-dev-bin
+Architecture: amd64
+Version: 2.35-0ubuntu3.1
+Multi-Arch: foreign
+Priority: optional
+Build-Essential: yes
+Section: libdevel
+Source: glibc
+Origin: Ubuntu
+Maintainer: Ubuntu Developers <ubuntu-devel-discuss@lists.ubuntu.com>
+Original-Maintainer: GNU Libc Maintainers <debian-glibc@lists.debian.org>
+Bugs: https://bugs.launchpad.net/ubuntu/+filebug
+Installed-Size: 298
+Depends: libc6 (>> 2.35), libc6 (<< 2.36)
+Recommends: manpages, manpages-dev, libc-devtools (>> 2.35)
+Filename: pool/main/g/glibc/libc-dev-bin_2.35-0ubuntu3.1_amd64.deb
+Size: 20382
+SHA256: 8de7d24f63263c38fc2ae1a6841195f11c6717c77f6cdc64d02b10fcef8fa7da
+SHA512: b3763e10046b682fb3e72679e0d02dddb6e455183ded748800c74b00f0d241718114b1992e7473a92e2ee32951be33e89b369eb7fab96470e66653ec307d01e6
+Homepage: https://www.gnu.org/software/libc/libc.html
+Description: GNU C Library: Development binaries
+ This package contains utility programs related to the GNU C Library
+ development package.
+ .
+  * gencat: generate message catalogs
+  * rpcgen: compile RPC protocols to C
+Original-Vcs-Browser: https://salsa.debian.org/glibc-team/glibc
+Original-Vcs-Git: https://salsa.debian.org/glibc-team/glibc.git
+
+Package: libc-devtools
+Architecture: amd64
+Version: 2.35-0ubuntu3.1
+Multi-Arch: foreign
+Priority: optional
+Section: devel
+Source: glibc
+Origin: Ubuntu
+Maintainer: Ubuntu Developers <ubuntu-devel-discuss@lists.ubuntu.com>
+Original-Maintainer: GNU Libc Maintainers <debian-glibc@lists.debian.org>
+Bugs: https://bugs.launchpad.net/ubuntu/+filebug
+Installed-Size: 350
+Depends: libc6 (>= 2.34), libgd3 (>= 2.1.0~alpha~)
+Recommends: manpages, manpages-dev
+Breaks: libc-dev-bin (<< 2.31-8)
+Replaces: libc-dev-bin (<< 2.31-8)
+Filename: pool/main/g/glibc/libc-devtools_2.35-0ubuntu3.1_amd64.deb
+Size: 28950
+SHA256: 2da30d8334121a4ece5464975e369e27b8c370317a3f6b4367f3295d3e784121
+SHA512: e818af997e5309ab13f25f1c42f9125a4a9e47f452f564e479ee7b590e62e0d27d84b1f7a8d20356b54d6247e12f33f09b6e0225ffbc71186e953befc7c55bd7
+Homepage: https://www.gnu.org/software/libc/libc.html
+Description: GNU C Library: Development tools
+ This package contains development tools shipped by the GNU C
+ Library.
+ .
+  * memusage, memusagestat: profile a program's memory usage
+  * mtrace: interpret the malloc trace log
+  * sotruss: trace shared library calls
+  * sprof: display shared object profiling data
+Original-Vcs-Browser: https://salsa.debian.org/glibc-team/glibc
+Original-Vcs-Git: https://salsa.debian.org/glibc-team/glibc.git
+
+Package: libc6-dev
+Architecture: amd64
+Version: 2.35-0ubuntu3.1
+Multi-Arch: same
+Priority: optional
+Build-Essential: yes
+Section: libdevel
+Source: glibc
+Origin: Ubuntu
+Maintainer: Ubuntu Developers <ubuntu-devel-discuss@lists.ubuntu.com>
+Original-Maintainer: GNU Libc Maintainers <debian-glibc@lists.debian.org>
+Bugs: https://bugs.launchpad.net/ubuntu/+filebug
+Installed-Size: 13037
+Provides: libc-dev
+Depends: libc6 (= 2.35-0ubuntu3.1), libc-dev-bin (= 2.35-0ubuntu3.1), linux-libc-dev, libcrypt-dev, rpcsvc-proto, libtirpc-dev, libnsl-dev
+Suggests: glibc-doc, manpages-dev
+Conflicts: libc0.1-dev, libc0.3-dev, libc6.1-dev
+Breaks: libc6-dev-amd64-cross (<< 2.35~), libgcc-10-dev (<< 10-20200321-1~), libgcc-7-dev (<< 7.5.0-6~), libgcc-8-dev (<< 8.4.0-2~), libgcc-9-dev (<< 9.3.0-5~), libperl5.26 (<< 5.26.1-3), python3.7 (<< 3.7.7-1+b1), python3.8 (<< 3.8.2-1+b1)
+Filename: pool/main/g/glibc/libc6-dev_2.35-0ubuntu3.1_amd64.deb
+Size: 2099418
+SHA256: b181893d681db4471eb9f9b786db978edf10e41d1579d5446db267cc2dc7b73d
+SHA512: c9d34fe453c8a1d0a062c3ae41cce04071205330b14d7de1a56b31794a294da99f7acb4f69b7ae12bac42b500c820770aca72535e3456e3bccbefbd04c5bfd48
+Homepage: https://www.gnu.org/software/libc/libc.html
+Description: GNU C Library: Development Libraries and Header Files
+ Contains the symlinks, headers, and object files needed to compile
+ and link programs which use the standard C library.
+Original-Vcs-Browser: https://salsa.debian.org/glibc-team/glibc
+Original-Vcs-Git: https://salsa.debian.org/glibc-team/glibc.git
+
+Package: linux-libc-dev
+Architecture: amd64
+Version: 5.15.0-43.46
+Multi-Arch: same
+Priority: optional
+Build-Essential: yes
+Section: devel
+Source: linux
+Origin: Ubuntu
+Maintainer: Ubuntu Kernel Team <kernel-team@lists.ubuntu.com>
+Bugs: https://bugs.launchpad.net/ubuntu/+filebug
+Installed-Size: 6521
+Provides: aufs-dev, linux-kernel-headers
+Conflicts: linux-kernel-headers
+Replaces: linux-kernel-headers
+Filename: pool/main/l/linux/linux-libc-dev_5.15.0-43.46_amd64.deb
+Size: 1298136
+SHA256: 090b69aebd6568940d3bee7e94e0bb790e0d2a1afb8ce5adf6542f56bac5beaf
+SHA512: 51238c9d112b92ef61e227dd60ed9b8dc8434f92318f96ff01c659b41c663f0042dbaeaff9ab0f2f26da7a921e72b76ee91412e9b5f2095f9d4b018f92002423
+Description: Linux Kernel Headers for development
+ This package provides headers from the Linux kernel.  These headers
+ are used by the installed headers for GNU glibc and other system
+ libraries. They are NOT meant to be used to build third-party modules for
+ your kernel. Use linux-headers-* packages for that.
+
+Package: lto-disabled-list
+Architecture: all
+Version: 24
+Priority: optional
+Build-Essential: yes
+Section: devel
+Origin: Ubuntu
+Maintainer: Matthias Klose <doko@ubuntu.com>
+Bugs: https://bugs.launchpad.net/ubuntu/+filebug
+Installed-Size: 39
+Filename: pool/main/l/lto-disabled-list/lto-disabled-list_24_all.deb
+Size: 12504
+SHA256: c7fed2763b58cec1bc2749e696629ea57aac1d2aa2e231f90ccb16a8a61b16a6
+SHA512: 4b4c7d03692f98ddfd4acc28cad6e8978326f59eae2d066949c09f617ecc46cee68acc7a828a993de97d09263c60ca540749175cb74dfc62d78b06e2c1451c3e
+Description: list of packages not to build with LTO
+ A list of source packages not to build with link time
+ optimization (LTO).
+ .
+ Entries in this list should have a bug report filed with
+ the (user) tag 'lto'.
+
+Package: libalgorithm-diff-perl
+Architecture: all
+Version: 1.201-1
+Multi-Arch: foreign
+Priority: optional
+Section: perl
+Origin: Ubuntu
+Maintainer: Ubuntu Developers <ubuntu-devel-discuss@lists.ubuntu.com>
+Original-Maintainer: Debian Perl Group <pkg-perl-maintainers@lists.alioth.debian.org>
+Bugs: https://bugs.launchpad.net/ubuntu/+filebug
+Installed-Size: 127
+Depends: perl:any
+Recommends: libalgorithm-diff-xs-perl
+Filename: pool/main/liba/libalgorithm-diff-perl/libalgorithm-diff-perl_1.201-1_all.deb
+Size: 41804
+SHA256: 2920d81cf0ac368b2fc52b892bb731ce7ce624a2cf51badbd55f801ba75d076f
+SHA512: a2a88d7eb873a95c6234c1ff021327e8b62504f9d541f5346ba335b3cd372966af76c38e40eaa7b43fa1a4bd18587e73bb6e7d4632e23c33eea69e5a196c06eb
+Homepage: https://metacpan.org/release/Algorithm-Diff
+Description: module to find differences between files
+ Algorithm::Diff is a Perl module that allows users to analyze text based on a
+ Longest Common Subsequence (LCS) algorithm. It can compare two files and find
+ the differences between them, which can produce the same information as the
+ common Unix tool 'diff'.
+ .
+ There is an XS-optimized implementation of the core loop, which accelerates
+ some types of diff output (see libalgorithm-diff-xs-perl).
+
+Package: libalgorithm-diff-xs-perl
+Architecture: amd64
+Version: 0.04-6build3
+Priority: optional
+Section: perl
+Origin: Ubuntu
+Maintainer: Ubuntu Developers <ubuntu-devel-discuss@lists.ubuntu.com>
+Original-Maintainer: Debian Perl Group <pkg-perl-maintainers@lists.alioth.debian.org>
+Bugs: https://bugs.launchpad.net/ubuntu/+filebug
+Installed-Size: 50
+Depends: perl, perlapi-5.34.0, libc6 (>= 2.34), libalgorithm-diff-perl
+Filename: pool/main/liba/libalgorithm-diff-xs-perl/libalgorithm-diff-xs-perl_0.04-6build3_amd64.deb
+Size: 11924
+SHA256: 930596903cf7222052ede24c676e728719e0828c1c05cadf6ac31c39d97afd86
+SHA512: 243a5d3aa6c2d7fff07093a1e39137ceaf2ea46c1a4cf596bc0d0bb07da2720094c50c41ed39c67cfd0d3692a17fb905d6483f1a44af7b11c84b07aa24696e74
+Homepage: https://metacpan.org/release/Algorithm-Diff-XS
+Description: module to find differences between files (XS accelerated)
+ Algorithm::Diff::XS is a Perl diff utility module based on Joe Schaefer's
+ excellent but not very well-known Algorithm::LCS module, with a drop-in
+ interface identical to Algorithm::Diff.
+ .
+ Note that only the LCSidx function is optimized in XS at the moment, which
+ means only compact_diff will get significantly faster for large data sets,
+ while diff and sdiff will run in identical speed as Algorithm::Diff.
+
+Package: libalgorithm-merge-perl
+Architecture: all
+Version: 0.08-3
+Priority: optional
+Section: perl
+Origin: Ubuntu
+Maintainer: Ubuntu Developers <ubuntu-devel-discuss@lists.ubuntu.com>
+Original-Maintainer: Debian Perl Group <pkg-perl-maintainers@lists.alioth.debian.org>
+Bugs: https://bugs.launchpad.net/ubuntu/+filebug
+Installed-Size: 42
+Depends: perl, libalgorithm-diff-perl
+Filename: pool/main/liba/libalgorithm-merge-perl/libalgorithm-merge-perl_0.08-3_all.deb
+Size: 11992
+SHA256: ff7a1922d430da383cc1ee20bee8fe464fb56605297dcbb3412338a356cc7ad6
+SHA512: 75b9718b025dee4264219254e3f63486088d5ac827ad1e7f7fff756a626edcdaca893aa8b7d4954250c26d140183c7bc8a52017cd33a8d84f4b8d3ed4b9603fb
+Homepage: https://metacpan.org/release/Algorithm-Merge
+Description: Perl module for three-way merge of textual data
+ Algorithm::Merge provides three-way merge and diff functions, complementing
+ the functionality offered by Algorithm::Diff (libalgorithm-diff-perl). Given
+ three sets of items, known as the original, left and right, this module can
+ take a three-way difference or merge them. Taking a difference provides an
+ array reference that is very similar to the behaviour of Algorithm::Diff. One
+ can also implement custom conflict resolution using the CONFLICT callback.
+
+Package: libnsl-dev
+Architecture: amd64
+Version: 1.3.0-2build2
+Multi-Arch: same
+Priority: optional
+Build-Essential: yes
+Section: libdevel
+Source: libnsl
+Origin: Ubuntu
+Maintainer: Ubuntu Developers <ubuntu-devel-discuss@lists.ubuntu.com>
+Original-Maintainer: GNU Libc Maintainers <debian-glibc@lists.debian.org>
+Bugs: https://bugs.launchpad.net/ubuntu/+filebug
+Installed-Size: 347
+Depends: libnsl2 (= 1.3.0-2build2), libtirpc-dev
+Breaks: libc6-dev (<< 2.31-4)
+Replaces: libc6-dev (<< 2.31-4)
+Filename: pool/main/libn/libnsl/libnsl-dev_1.3.0-2build2_amd64.deb
+Size: 71286
+SHA256: e93aa448fe708a4bbfcc40b2a8cab6f5f88896174a301caab2719f734e08a621
+SHA512: e20ae6adae1a64694182d3965380d4142bafa0f7274f76c5e989f41f3f1b2c9f3648a134ac9b34ffdc780f9543feafe260ec23739177121148647bfac48ffbb0
+Homepage: https://github.com/thkukuk/libnsl
+Description: libnsl development files
+ This package contains the files needed for developing applications that
+ use libnsl.
+
+Package: libtirpc-dev
+Architecture: amd64
+Version: 1.3.2-2ubuntu0.1
+Multi-Arch: same
+Priority: extra
+Build-Essential: yes
+Section: libdevel
+Source: libtirpc
+Origin: Ubuntu
+Maintainer: Ubuntu Developers <ubuntu-devel-discuss@lists.ubuntu.com>
+Original-Maintainer: Josue Ortega <josue@debian.org>
+Bugs: https://bugs.launchpad.net/ubuntu/+filebug
+Installed-Size: 720
+Depends: libtirpc3 (= 1.3.2-2ubuntu0.1)
+Filename: pool/main/libt/libtirpc/libtirpc-dev_1.3.2-2ubuntu0.1_amd64.deb
+Size: 192156
+SHA256: f4254aff5a32ef3c9fca06d3f4f2eff71c93b9393cc1ecc718f7478a5d6a83da
+SHA512: 20fa9364acec9bfe32864f9a51475e3b299a5fd2a11189902b122372962b6682213ad2659977c8423c280fc4b18a40ca6746294b66d757a7faba2514c3e4a7c5
+Homepage: http://sourceforge.net/projects/libtirpc
+Description: transport-independent RPC library - development files
+ This package contains a port of Sun's transport-independent RPC library to
+ Linux. The library is intended as a replacement for the RPC code in the GNU C
+ library, providing among others support for RPC (and in turn, NFS) over IPv6.
+ .
+ This package contains the files needed for development against libtirpc.
+
+Package: libcrypt-dev
+Architecture: amd64
+Version: 1:4.4.27-1
+Multi-Arch: same
+Priority: optional
+Build-Essential: yes
+Section: libdevel
+Source: libxcrypt
+Origin: Ubuntu
+Maintainer: Ubuntu Developers <ubuntu-devel-discuss@lists.ubuntu.com>
+Original-Maintainer: Marco d'Itri <md@linux.it>
+Bugs: https://bugs.launchpad.net/ubuntu/+filebug
+Installed-Size: 320
+Provides: libcrypt1-dev
+Depends: libcrypt1 (= 1:4.4.27-1)
+Conflicts: libcrypt1-dev, libcrypt2-dev
+Breaks: libc6-dev (<< 2.29-4), manpages-dev (<< 5.01-1)
+Replaces: libc6-dev (<< 2.29-4), libcrypt1-dev, libcrypt2-dev, manpages-dev (<< 5.01-1)
+Filename: pool/main/libx/libxcrypt/libcrypt-dev_4.4.27-1_amd64.deb
+Size: 111682
+SHA256: a79be2f6e45823dcc09e04d5e98c88ec88d07d5b8895d05b875a8ade8b345efa
+SHA512: 776ed1e0866f021020799ee919dab2ab7c27115dd6d303a80bc00a92f037894d85332d6aef623d4f6aae47d6aea81da4870ccf356f4669aa3e6d6d4e4bdb4e7c
+Description: libcrypt development files
+ This package contains the files needed for developing applications that
+ use libcrypt.
+
+Package: make
+Architecture: amd64
+Version: 4.3-4.1build1
+Multi-Arch: allowed
+Priority: optional
+Build-Essential: yes
+Section: devel
+Source: make-dfsg
+Origin: Ubuntu
+Maintainer: Ubuntu Developers <ubuntu-devel-discuss@lists.ubuntu.com>
+Original-Maintainer: Manoj Srivastava <srivasta@debian.org>
+Bugs: https://bugs.launchpad.net/ubuntu/+filebug
+Installed-Size: 416
+Depends: libc6 (>= 2.34)
+Suggests: make-doc
+Conflicts: make-guile
+Replaces: make-guile
+Filename: pool/main/m/make-dfsg/make_4.3-4.1build1_amd64.deb
+Size: 179742
+SHA256: 080b79a1a1623a2e6c6eead37d62b15fdf2c3dbfeafe8ecf5e31c54eb09eadcc
+SHA512: d6b9d72c2e722165e5034c132431dd86f2647c9623bb9a67d1953cd8c78d402739d331211e53f5671aac7057fe75872920dc4f3398a1ed72c74ebb343f57d46d
+Homepage: https://www.gnu.org/software/make/
+Description: utility for directing compilation
+ GNU Make is a utility which controls the generation of executables
+ and other target files of a program from the program's source
+ files. It determines automatically which pieces of a large program
+ need to be (re)created, and issues the commands to (re)create
+ them. Make can be used to organize any task in which targets (files)
+ are to be automatically updated based on input files whenever the
+ corresponding input is newer --- it is not limited to building
+ computer programs. Indeed, Make is a general purpose dependency
+ solver.
+
+Package: manpages-dev
+Architecture: all
+Version: 5.10-1ubuntu1
+Multi-Arch: foreign
+Priority: optional
+Section: doc
+Source: manpages
+Origin: Ubuntu
+Maintainer: Ubuntu Developers <ubuntu-devel-discuss@lists.ubuntu.com>
+Original-Maintainer: Dr. Tobias Quathamer <toddy@debian.org>
+Bugs: https://bugs.launchpad.net/ubuntu/+filebug
+Installed-Size: 3942
+Depends: manpages
+Suggests: man-browser
+Breaks: libattr1-dev (<< 1:2.4.47-3), libbsd-dev (<< 0.8.4-1), manpages (<< 5.09-2)
+Replaces: libattr1-dev (<< 1:2.4.47-3), libbsd-dev (<< 0.8.4-1)
+Filename: pool/main/m/manpages/manpages-dev_5.10-1ubuntu1_all.deb
+Size: 2308800
+SHA256: 0d4955fd9ea2d79a0b39c795f48ad413190b0d1d814606bf14186355e90f6e85
+SHA512: fca662ea975908a623b2c13bf1b531164020dff9c53d3554ace3e356544ae0b7d511fa30ea733eaac8c6dc267cbebf91df377e60a87a4a6c34ffe5553098b38f
+Homepage: https://www.kernel.org/doc/man-pages/
+Description: Manual pages about using GNU/Linux for development
+ These man pages describe the Linux programming interface, including
+ these two sections:
+  2 = Linux system calls.
+  3 = Library calls (note that a more comprehensive source of information
+      may be found in the glibc-doc and glibc-doc-reference packages).
+
+Package: rpcsvc-proto
+Architecture: amd64
+Version: 1.4.2-0ubuntu6
+Multi-Arch: foreign
+Priority: optional
+Build-Essential: yes
+Section: libs
+Origin: Ubuntu
+Maintainer: Ubuntu Developers <ubuntu-devel-discuss@lists.ubuntu.com>
+Original-Maintainer: GNU Libc Maintainers <debian-glibc@lists.debian.org>
+Bugs: https://bugs.launchpad.net/ubuntu/+filebug
+Installed-Size: 245
+Depends: libc6 (>= 2.34)
+Breaks: libc6-dev (<< 2.32), libc6-dev-bin (<< 2.32)
+Replaces: libc6-dev (<< 2.32), libc6-dev-bin (<< 2.32)
+Filename: pool/main/r/rpcsvc-proto/rpcsvc-proto_1.4.2-0ubuntu6_amd64.deb
+Size: 68494
+SHA256: 447c6d8f7624a3d728a12232440d3f10e6e53bbf60cc202b7beb8a3bc9f7acc9
+SHA512: 322ec79938b3d45026adae65cfd1efb9d3205f6449ba9bb2951779d12f3cb647d6e44d03b9b6a5f24e097dc49da92b7f9a1ba1a93740d71539627a52e73acdfa
+Homepage: https://github.com/thkukuk/rpcsvc-proto
+Description: RPC protocol compiler and definitions
+ rpcgen is a tool that generates C code to implement an RPC protocol. The input
+ to rpcgen is a language similar to C known as RPC Language (Remote Procedure
+ Call Language).
+ .
+ This package also includes several rpcsvc header files and RPC protocol
+ definitions from SunRPC sources that were previously shipped by glibc.
+
+Package: setserial
+Architecture: amd64
+Version: 2.17-53build2
+Priority: extra
+Section: comm
+Origin: Ubuntu
+Maintainer: Ubuntu Developers <ubuntu-devel-discuss@lists.ubuntu.com>
+Original-Maintainer: Thorsten Alteholz <debian@alteholz.de>
+Bugs: https://bugs.launchpad.net/ubuntu/+filebug
+Installed-Size: 117
+Depends: libc6 (>= 2.34), debconf (>= 0.5) | debconf-2.0, lsb-base (>= 3.0-6)
+Filename: pool/main/s/setserial/setserial_2.17-53build2_amd64.deb
+Size: 36460
+SHA256: 9d5144a0c9dbab3f38fe0e226a60be9cb0df21769c4dcc9db830a1dd67ff26be
+SHA512: cbe64839a0fcab005f9059e275462619c50f92a23df0ae334557b60c2674f4d71fcbf94a93029b6fc8ee21cc726514131178d99344fa962f56655692c6792a90
+Description: controls configuration of serial ports
+ Set and/or report the configuration information associated with
+ a serial port. This information includes what I/O port and which IRQ
+ a particular serial port is using.
+ .
+ This version has a completely new approach to configuration, so if you
+ have a setup other than the standard ttyS0 and 1, you will have to get
+ your hands dirty.
+ .
+ By default, only COM1-4 are configured by the kernel, using IRQ 3 and 4.
+ If you have other serial ports (such as an AST Fourport card), or
+ if you have mapped the IRQs differently (perhaps COM3 and 4 to other
+ IRQs to allow concurrent access with COM1 and 2) then you must have this
+ package.
+
+Package: oem-config-gtk
+Architecture: all
+Version: 22.04.17
+Priority: extra
+Section: admin
+Source: ubiquity
+Origin: Ubuntu
+Maintainer: Ubuntu Installer Team <ubuntu-installer@lists.ubuntu.com>
+Bugs: https://bugs.launchpad.net/ubuntu/+filebug
+Installed-Size: 209
+Provides: oem-config-frontend-22.04.17
+Depends: aptdaemon, oem-config (= 22.04.17), python3-aptdaemon.gtk3widgets, ubiquity-frontend-gtk (= 22.04.17)
+Filename: pool/main/u/ubiquity/oem-config-gtk_22.04.17_all.deb
+Size: 4264
+SHA256: c3a8ae24fba651ad7a68288d7a0b0f0570b1c46209c8d606def8aff13a1c194d
+SHA512: cf99c8f3bdd2abecb1b1ad66e059dc07c786cfe8e228679179727d753c9aca0e04fb1b5e78d2a19d1da7316351e05875199c8dc58cf7923465a1bb4ff367aa03
+Description: GTK+ frontend for end-user post-OEM-install configuration
+ The oem-config script re-asks a number of questions that are normally asked
+ during installation, and reconfigures the system accordingly. This allows a
+ vendor to install a skeleton system, clone it onto a large number of
+ machines, and ship it to end users, while still allowing end users to set
+ up their own username and password, language, timezone, and so on.
+ .
+ This is a GTK+ frontend to oem-config.
+
+Package: oem-config
+Architecture: all
+Version: 22.04.17
+Priority: extra
+Section: admin
+Source: ubiquity
+Origin: Ubuntu
+Maintainer: Ubuntu Installer Team <ubuntu-installer@lists.ubuntu.com>
+Bugs: https://bugs.launchpad.net/ubuntu/+filebug
+Installed-Size: 245
+Depends: oem-config-frontend-22.04.17, procps, ubiquity (= 22.04.17), debconf (>= 0.5) | debconf-2.0
+Filename: pool/main/u/ubiquity/oem-config_22.04.17_all.deb
+Size: 13796
+SHA256: ae44b6779f020200f1a11f062d23db77a7e5a34ba711c877e90ff625f65523ac
+SHA512: 58fefcb01f87c6ffdcf1146d99ccff590ec6ba7edcb8283fe119412f381f3d1c4c7f86fd68ba085b48b07ac920af5eb4932714508f56e84bf597ad0af1f54641
+Description: Perform end-user configuration after initial OEM installation
+ The oem-config script re-asks a number of questions that are normally asked
+ during installation, and reconfigures the system accordingly. This allows a
+ vendor to install a skeleton system, clone it onto a large number of
+ machines, and ship it to end users, while still allowing end users to set
+ up their own username and password, language, timezone, and so on.
+

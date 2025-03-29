@@ -1,10 +1,10 @@
 /*****************************************************************************\
 
-  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR 
-  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS 
-  FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR 
-  COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER 
-  IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION 
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+  FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+  COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+  IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
   WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 \*****************************************************************************/
@@ -20,6 +20,7 @@
 #include <unistd.h>
 #include <syslog.h>
 #include <dlfcn.h>
+#include <time.h>
 
 #define _STRINGIZE(x) #x
 #define STRINGIZE(x) _STRINGIZE(x)
@@ -37,14 +38,14 @@ static void usage()
 
     fprintf(stderr, "The delay and random are cummulative.\n\n");
     //fprintf(stderr, "The timeout specified in milliseconds the delay in seconds.\n\n");
-         
+
 } /* usage */
 
 
-static int notify(const char *summary, const char *message, int ms_timeout) 
+static int notify(const char *summary, const char *message, int ms_timeout)
 {
     void *handle=NULL, *n;
-    int stat=1; 
+    int stat=1;
 
     typedef void  (*notify_init_t)(char *);
     typedef void *(*notify_notification_new_t)(const char *, const char *, const char *, void *);
@@ -58,7 +59,7 @@ static int notify(const char *summary, const char *message, int ms_timeout)
 
     //set_x_environment();
 
-    /* Bypass glib build dependencies by loading libnotify manually. */  
+    /* Bypass glib build dependencies by loading libnotify manually. */
 
     if ((handle = dlopen("libnotify.so.1", RTLD_LAZY)) == NULL)
     {
@@ -69,7 +70,7 @@ static int notify(const char *summary, const char *message, int ms_timeout)
     if ((n_init = (notify_init_t)dlsym(handle, "notify_init")) == NULL)
     {
        BUG("failed to find notify_init: %m\n");
-       goto bugout; 
+       goto bugout;
     }
     n_init("Basics");
 
@@ -154,7 +155,7 @@ int main(int argc, char *argv[])
     //printf("argc %d optind %d\n", argc, optind);
 
     if(argc < 2)
-        {        
+        {
         //fprintf(stderr, "Not enough arguments.\n");
         usage();
         exit(0);

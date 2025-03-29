@@ -12,21 +12,42 @@ if [ ! -f $KEYGET ] ; then
     exit 1;
 fi
 
-mkdir -p $ROOTFS/bin
-mkdir -p $ROOTFS/usr/bin
-mkdir -p $ROOTFS/root/Utils
+cpchown() {
 
-echo -n "Copying APPS ... "
+    if [ ! -d $2 ] ; then
+        mkdir -p $2
+    fi
+    cp -a $1 $2
+    FFF=$2/$(basename $1)
+    sudo chown root.root $FFF
+    sudo chmod go-w  $FFF
+}
 
-cp $APPDIR/keyget/keyget $ROOTFS/bin
-cp $APPDIR/reboot/linux_reboot $ROOTFS/bin
-cp $APPDIR/reboot/linux_poweroff $ROOTFS/bin
-cp $APPDIR/MessageBox-X11/progress $ROOTFS/bin
-cp $APPDIR/pypass/passcheck $ROOTFS/usr/bin
-cp $APPDIR/pypass/pypass.py $ROOTFS/usr/bin
-cp $APPDIR/pypass/Utils/background.png $ROOTFS/root/Utils
+TARG=$ROOTFS/usr/bin
+
+echo -n "Copying APPS to $TARG ... "
+
+cpchown $APPDIR/keyget/keyget $TARG
+cpchown $APPDIR/keyget/keypeek $TARG
+
+cpchown $APPDIR/reboot/linux_reboot $TARG
+cpchown $APPDIR/reboot/linux_poweroff $TARG
+
+cpchown $APPDIR/power/sendacpi $TARG
+cpchown $APPDIR/power/powacpi $TARG
+cpchown $APPDIR/power/powbutt.sh $TARG
+cpchown $APPDIR/power/powbutt.py $TARG
+cpchown $APPDIR/power/ctrl_alt_del.py $TARG
+
+cpchown $APPDIR/MessageBox-X11/progress $TARG
+
+cpchown $APPDIR/pypass/passcheck $TARG
+cpchown $APPDIR/pypass/pypass.py $TARG
+cpchown $APPDIR/pypass/pypass.conf $ROOTFS/etc/pypass
+
+cpchown $APPDIR/pypass/Utils/background.png $ROOTFS/root/Utils
+cpchown $APPDIR/pypass/Utils/icon.png $ROOTFS/root/Utils
 
 echo OK
 
 # EOF
-

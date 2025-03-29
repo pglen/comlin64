@@ -131,7 +131,7 @@ help4:
 	@echo
 
 apps:
-	make -s -C apps apps
+	make -s -C apps
 
 prompt:
 	@./scripts/prompt.sh " fdisk / format "
@@ -198,8 +198,22 @@ doall: prompt new remnt copyusb putkern syslin cpscripts uremnt
 	@echo "Done doall"
 
 # This is the 64 bit make all
-buildiso: apps checkscripts initramfs prepiso prepdown getapps iso
+buildiso: apps checkscripts initramfs prepiso prepdown getapps makeiso
 	@make playsound
+
+buildiso2: apps checkscripts initramfs prepiso prepdown getapps makeiso
+
+updateusb:  getapps
+	@sudo ./scripts/make_prepiso
+	@cd grub-data ; ./do_sys.sh
+	@make playsound
+
+burnusb:
+	@sudo ./scripts/make_burnusb
+	@make playsound
+
+newusb:
+	@cd grub-data ; ./do_new.sh
 
 # Test if sound plays
 playsound:
@@ -234,7 +248,7 @@ getboot:
 getkern2:
 	@sudo ./scripts/make_getkern2
 
-getapps:
+getapps:  apps
 	@sudo ./scripts/make_getapps
 
 getmods:
@@ -257,10 +271,10 @@ umount:
 cpscripts:
 	@sudo ./scripts/make_cpscripts
 
-iso:
+makeiso:
 	@sudo ./scripts/make_iso
 
-prepiso:
+prepiso:  getapps
 	@sudo ./scripts/make_prepiso
 
 prepdown:

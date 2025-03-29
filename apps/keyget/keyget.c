@@ -11,6 +11,7 @@
  *      ?                Added Ctrl-C to shortcut uninterrupted flow
  *      Sat 21.Dec.2024  Added message option and comline append
  *      Sun 22.Dec.2024  Added yesno, caught overflow situation
+ *      Fri 21.Mar.2025  Termios
 */
 
 #include <stdio.h>
@@ -20,6 +21,7 @@
 #include <stdbool.h>
 #include <signal.h>
 #include <sys/stat.h>
+#include <termios.h>
 
 int     retalarm = 0, secleft = 5;
 int     nomessage = false, yesno = false;
@@ -36,7 +38,7 @@ char*   message  = "To intercept current flow, press Enter in: ";
 char*   message2 = "Press Enter to continue: ";
 char*   message3 = "Press Y or N (default is %s): ";
 char*   message4 = "Press Y or N: ";
-
+char*   version = "Version 1.0.0\n";
 char *help   = \
     "Usage: keyget [-t timeout] [-m message] [-y default] [-f] [-n] [msgargs]\n" \
     "           -t   sec     - timeout in secs, 0 for no timeout, default: 5 \n"
@@ -44,6 +46,7 @@ char *help   = \
     "           -y   defval  - yes / no mode, default: 0=no 1=yes\n"
     "           -f           - force yes or no (captivate)\n"
     "           -n           - disable default message output\n"
+    "           -V           - print version number\n"
     "Arguments following options are appended to the console message.\n";
 
 // -----------------------------------------------------------------------
@@ -96,8 +99,10 @@ int main(int argc, char *argv[])
 {
     int ret = 0; char ch;
 
+    printf("test\n");
+
     // Parse options
-    while ((ch = getopt(argc, argv, "t:m:nh?y:f")) != -1)
+    while ((ch = getopt(argc, argv, "Vt:m:nh?y:f")) != -1)
       switch (ch) {
         case 't':
             secleft  = atoi(optarg);
@@ -116,6 +121,11 @@ int main(int argc, char *argv[])
 
         case 'f':
             forceyn = true;
+            break;
+
+        case 'V':
+            fprintf(stderr, "%s", version);
+            exit(0);
             break;
 
         case 'y':
@@ -184,7 +194,7 @@ int main(int argc, char *argv[])
         {
         printf("%s", message);              // Show message
 
-        if (secleft != -1 && yesno == 0)
+        if (secleft != -1 ) //&& yesno == 0)
             printf("          ");           // Placeholder for seconds message
         fflush(stdout);
         }
@@ -229,4 +239,4 @@ int main(int argc, char *argv[])
         }
 }
 
-
+//# EOF

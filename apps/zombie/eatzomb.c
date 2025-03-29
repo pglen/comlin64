@@ -25,17 +25,14 @@
 #include <sys/stat.h>
 #include <sys/ioctl.h>
 #include <sys/wait.h>
-
 #include <sys/syslog.h>
 #include <sys/time.h>
 #include <sys/resource.h>
 #include <sys/time.h>
-
-#include <linux/prctl.h>
+#include <sys/prctl.h>
 
 #define PR_SET_CHILD_SUBREAPER 36
 #define PR_GET_CHILD_SUBREAPER 37
-
 
 /* Set a signal handler. */
 #define SETSIG(sa, sig, fun, flags) \
@@ -50,8 +47,8 @@ int cnt = 0; int err = 0;
 int logflag = 0, qflag = 0;
 int pid, pidc = -1;
 
-/* 
- * Empty signal handler 
+/*
+ * Empty signal handler
  */
 
 void    sdummy(int dummy)
@@ -82,8 +79,8 @@ int  main(int argc, char *argv[])
     //act.sa_handler = sdummy;
     //sigaction(SIGINT, &act, NULL);
 
-    // Get our name 
-	char *prog = strrchr(pname, '/'); 
+    // Get our name
+	char *prog = strrchr(pname, '/');
     if(prog == NULL) prog = pname; else prog++;
 
     while ((opt = getopt(argc,argv,"p:lqh")) != EOF) switch (opt) {
@@ -105,10 +102,10 @@ int  main(int argc, char *argv[])
                   closelog();
                   exit(1);
                 }
-        
+
         case 'l':
                 logflag = 1;
-                
+
         case 'q':
                 qflag = 1;
 
@@ -124,13 +121,13 @@ int  main(int argc, char *argv[])
         openlog("eatzomb", LOG_PID, LOG_USER);
 
     //printf("%s Ver 1.0 pid = %d\n", prog, pidc);
-	
+
     if(!qflag)
         printf("%s Ver 1.0\n", prog);
-	
-    if(logflag)	
+
+    if(logflag)
         syslog(LOG_INFO,"Started eatzomb");
-                     
+
 	if(argv[0] == NULL)
 	    {
 	    printf("%s: Please specify a program to run.\n", prog);
@@ -138,7 +135,7 @@ int  main(int argc, char *argv[])
 	        syslog(LOG_ERR,"No program specified");
 
         exit(0);
-	    }	
+	    }
 
     // Make us a session leader and group leader
     setsid(); setpgrp();
@@ -163,7 +160,7 @@ int  main(int argc, char *argv[])
         // Allow child to make new ones
         //close(0); close(1); close(2);
 
-        int ret = execv(argv[0], &argv[0]);        
+        int ret = execv(argv[0], &argv[0]);
 
         // Control should not come here
         printf("Cannot execute '%s' (%s)\n", argv[0], strerror(errno));
@@ -176,15 +173,15 @@ int  main(int argc, char *argv[])
 
         exit(1);
         }
-    else if (pid > 0) {    
-        
+    else if (pid > 0) {
+
         //printf("in parent %d\n", pid);
         //close(0); close(1); close(2);
         while(1==1)
             {
 		    siginfo_t info;
 
-            //if(err) 
+            //if(err)
             //    break;
 
 			memset(&info, sizeof(info), 0);
@@ -194,10 +191,10 @@ int  main(int argc, char *argv[])
             if(logflag)
                 if(ret != -1)
                     syslog(LOG_WARNING,"Zombie Process Collected %d",  ret);
-                  
-            //printf("Waited on ret=%d  si_pid=%d errno=%d (%s)\n", 
+
+            //printf("Waited on ret=%d  si_pid=%d errno=%d (%s)\n",
 			//		ret, info.si_pid, errno, strerror(errno));
-			
+
             // We do not expect lot of zombies, let them breathe
             sleep(1);
             }
@@ -209,14 +206,14 @@ int  main(int argc, char *argv[])
             closelog();
             }
 
-        //printf("in parent after wait %d\n", pid);        
+        //printf("in parent after wait %d\n", pid);
     	}
-    else  
+    else
 		{
         if(logflag)
             syslog(LOG_ERR,"Cannot fork");
         printf("Cannot fork\n");
-	    }		
+	    }
 
     if(logflag)
         closelog();

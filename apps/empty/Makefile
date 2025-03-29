@@ -17,11 +17,13 @@ PREFIX = /usr/local
 BINDIR = $(PREFIX)/bin
 MANDIR = $(PREFIX)/man/man1
 
-.PHONY:	all clean install deinstall uninstall \
+.PHONY:	clean install deinstall uninstall \
 FreeBSD NetBSD OpenBSD Linux Cygwin UnixWare OpenUNIX AIX OSF1 HP-UX SunOS \
 UnixWare-gcc OpenUNIX-gcc HP-UX-gcc SunOS-gcc
 
-all:
+all:  empty
+
+empty:  empty.c
 	${CC} ${CFLAGS} -Wall ${LIBS} -o empty empty.c
 
 FreeBSD:	all
