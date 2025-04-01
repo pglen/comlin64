@@ -1,1 +1,3 @@
+# Drive configured by 'make detect'
 RDDEV=/dev/sdb
+# EOF

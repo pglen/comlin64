@@ -25,11 +25,10 @@ sudo rsync -rau  \
             --info=progress2 \
             $TMPSYS/* "$GRUBDATA"
 
-echo  Patching post USB changes
-
-sudo rm -rf "$GRUBDATA"/root/.config/*
-sudo rm -rf "$GRUBDATA"/home/user/.config/*
-sudo rm -rf "$GRUBDATA"/home/guest/.config/*
+#echo  Patching post USB changes
+#sudo rm -rf "$GRUBDATA"/root/.config/*
+#sudo rm -rf "$GRUBDATA"/home/user/.config/*
+#sudo rm -rf "$GRUBDATA"/home/guest/.config/*
 
 #sudo rm /usr/share/backgrounds/xfce/xfce-verticals.png
 

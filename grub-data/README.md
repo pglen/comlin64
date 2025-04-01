@@ -1,6 +1,9 @@
-README
+# README
 
 Mount it copy it
-chroot to it
-installl grub
-unmount it
+
+Chroot to it
+
+Install grub
+
+Unmount it

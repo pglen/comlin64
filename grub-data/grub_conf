@@ -1,12 +1,69 @@
 #!/bin/bash
 
-GRUBROOT=/dev/sdb
-INSTROOT="$GRUBROOT"2
-INSTARG=/mnt/guest
-ISOFILE=../../comlin64.iso
-TMPSYS=../../_system
-ISOMNT=/mnt/iso
-GRUBDATA=/mnt/data
+#set -x
+
+# See if we have a good target
+# $1 -> ./config_drive
+
+check_drive() {
+
+    if [ ! -f $1 ] ; then
+    	echo "USB drive not configured yet. Run 'make detect' first"
+    	exit 1;
+    fi
+
+    export CONFIG_DRIVE=
+
+    while : ;  do
+        read -r RRR
+        if [ "$RRR" == "" ] ; then
+            break
+        fi
+        if [ "${RRR:0:1}" != "#" ] ; then
+            #echo $RRR
+            break
+        fi
+    done  < $1
+
+    if [ "$RRR" == "" ] ; then
+        echo Not configured
+        exit 1
+    fi
+
+    local DDD
+    DDD=$(echo $RRR | awk -F "=" '{print $2}')
+    #echo DDD = \"$DDD\"
+    #exit 1
+    if [ ! -e $DDD ] ; then
+        echo Drive \'$DDD\' does not exist
+        exit 1
+    fi
+    CONFIG_DRIVE=$DDD
+}
+
+check_drive ../config_drive
+
+GRUBROOT=$CONFIG_DRIVE
+
+# See if loop used:
+AA=$(echo $GRUBROOT | grep loop)
+#echo AA = \"$AA\"
+if [ "$AA" != "" ] ; then
+    sudo partx -u $GRUBROOT
+    GRUBROOTp="$GRUBROOT"p
+else
+    GRUBROOTp="$GRUBROOT"
+fi
+
+IMGFILE="32G.img"
+INSTROOT="$GRUBROOTp"2
+INSTARG="/mnt/guest"
+ISOFILE="../../comlin64.iso"
+TMPSYS="../../_system"
+ISOMNT="/mnt/iso"
+GRUBDATA="/mnt/data"
+GRUBSTORE="/mnt/store"
+COMLIN_DATAFILE=.comlin_data
 
 mountifnot() {
     # Mount if not mounted
@@ -26,34 +83,6 @@ umountifnot() {
         sudo umount $1
         #sleep .2
     fi
-}
-
-# See if we have a good target
-# $1 -> ./config_drive
-
-check_drive() {
-
-    if [ ! -f $1 ] ; then
-    	echo "USB drive not configured yet. Run 'make detect' first"
-    	exit 1;
-    fi
-
-    export CONFIG_DRIVE=
-    read -r RRR < $1
-    #echo ddd "'"$RRR"'"
-    DDD=$(echo $RRR | awk -F "=" '{print $2}')
-
-    MMM=$(mount | grep $DDD)
-    if [ "$MMM" != "" ] ; then
-        echo "Drive is mounted, exiting."
-        exit 1
-    fi
-
-    if [ ! -e $DDD ] ; then
-        echo Drive \'$DDD\' does not exist
-        exit 1
-    fi
-    CONFIG_DRIVE=$DDD
 }
 
 if [ ! -e $GRUBROOT ] ; then

@@ -1,38 +1,37 @@
 #!/bin/bash
 
-echo
-echo -n "Remove the Jump Drive (if inserted), and then press a key ... "
-$KEYGET -t 0 >/dev/null 2>&1
-echo OK
-echo
+echo -n "Remove the USB Drive (if inserted), and then press the Enter key ...  "
+read
 
-mount > aa
+lsblk | grep "^[a-z]" > aa
 
-echo "Insert the NEW Jump Drive  (USB drive) now."
-echo -n "Wait for the USB detect to settle (if any), and then press a key ... "
-$KEYGET >/dev/null
-echo
-echo "OK, testing for new mount ..."
+echo -n "Insert the target USB drive, and then press the Enter key ...  "
+read
+
+echo -n "OK, testing for new mount ... "
 sleep 2
+echo
 
-mount >bb
+lsblk | grep "^[a-z]"  >bb
 
 DD=`diff aa bb`
-
-#cut -f 3 -d " "
 #echo $DD
 
 EE=`echo $DD | awk  '{ print $3 };' | sed  s/[0-9]// `
+#echo $EE
 
 if [ "" != "$EE" ] ; then
-	echo Detected USB drive in $EE
-    echo "You may use the 'df' command to check for correctness"
+	echo Detected USB drive in /dev/$EE
 	# Create configuration entry
-	echo "RDDEV=$EE" > config_drive
+    echo "# Drive configured by 'make detect'" > config_drive
+    echo "RDDEV=/dev/$EE" >> config_drive
+    echo "# EOF" >> config_drive
 else
 	echo "No Drive detected, please try again"
+    echo "# No Drive detected" > config_drive
 fi
 
 rm -f aa bb
+chown $SUDO_USER config_drive
 
 # EOF
