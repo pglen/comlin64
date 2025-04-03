@@ -44,7 +44,7 @@ echo 'label:mbr' | sudo sfdisk --wipe always $GRUBROOT <<SEOF
 ,,,
 SEOF
 
-partx -u /dev/loop0
+sudo partx -u /dev/loop0
 
 # See if clear wanted:
 

@@ -4,7 +4,7 @@
 
 MMM=$(mount | grep $CONFIG_DRIVE)
 if [ "$MMM" != "" ] ; then
-    echo "Device is mounted, exiting."
+    #echo "Device is mounted, exiting."
     exit 1
 fi
 

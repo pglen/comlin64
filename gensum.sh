@@ -18,7 +18,7 @@ cat $TMPFILE | grep -E -v "(SUMFILE)|(sha1.tmp)|(sha1.sum)" > sha1.sum
 rm $TMPFILE
 echo OK
 
-# The sumfile should also be checked against auxiliarry sources
+# The sumfile should also be checked against auxiliary sources
 echo -n "Generating SUMFILE ... "
 shasum sha1.sum > SUMFILE
 echo Done Checksum.

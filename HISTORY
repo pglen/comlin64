@@ -3,6 +3,12 @@
 Brief version information from development. For informational purposes only.
 Consult git for more detailed information.
 
+Community Linux 64:
+
+1.0.0   Wed 02.Apr.2025  History recording started
+
+Legacy (32 bit):
+
 17.0.0   Mon 13.Jan.2025   Sound drivers
 17.0.0   Fri 20.dec.2025   Changed to semantic versioning
 
@@ -29,5 +35,4 @@ Ver-13     Created Lite version. ComLin now fits on an 8GB USB
 Ver-12     Initial Release
 Ver-11     (and before) Hard at work creating a sane system.
 
-
-
+# EOF

@@ -1,6 +1,6 @@
 #
-# Make a Community Linux ISO and jump drive
-# Distributed under Community Linux Public License Version 1.0
+# Make a Community Linux 64 ISO and USB drive
+# Distributed under Community Linux 64 Public License Version 1.0
 #
 # Notes:
 #
@@ -30,124 +30,36 @@
 # more secure, but ultimately chicken and egg will not allow
 # this method to be really secure. For convenience only.
 
-#SUDO=@echo ${shell ./py/crypter.py -i -d <.crypted} | sudo -n -S
-
-# Else ... allow the sudo prompt as one normally would
-
-#SUDO=sudo
-
 SOUND=sounds/longbell.ogg
+SOUND2=sounds/bell.ogg
 
 all:
 	@echo "Type 'make help' for a list of targets"
 
+# Pushed old content to includes
+
+include help.mk
+#include legacy.mk
+
 help:
 	@echo
-	@echo "Making a bootable jump drive. **(see Warning)"
+	@echo "Making a bootable jump drive. **(see Warning in Makefile)"
 	@echo
-	@echo "	 	make makeiso    -- Make ISO and all dependents"
-	@echo "	 	make detect     -- Configure which drive is your jump drive"
-	@echo "	 	make new        -- & Fdisk / Format new usb"
-	@echo "	 	make copyusb    -- & @ Copy LINUX files to USB drive "
-	@echo "	 	make putkern    -- & @ * Copy kernel from build dir to USB"
-	@echo "	 	make syslin     -- & @ * Install syslinux to USB"
-	@echo "	 	make apps       -- & @ * Make support apps"
-	@echo "	 	make umount     -- & @ * Unmount USB drives"
-	@echo "	 	make cycle      --  Do all denoted by '*'"
-	@echo "	 	make bigcycle   --  Do all denoted by '@'"
-	@echo "	 	make doall      --  Do all denoted by '&'"
+	@echo "	 make buildsys     -- Assemble system components and dependents"
+	@echo "	 make makeiso      -- Make .ISO file"
+	@echo "	 make detect       -- Configure which drive is your jump drive"
+	@echo "	 make newusb       -- & Partition / Format USB"
+	@echo "	 make newcleanusb  -- & Partition / Clean / Format USB"
+	@echo "	 make updateusb    -- & @ Copy Linux files to USB"
 	@echo
-	@echo "   For more information type 'make help2'"
-	@echo
-	@echo " **Warning! Make sure config_build:RDDEV points to a jump drive!"
-	@echo "      !!!! Specifying the wrong drive will destroy data !!!! "
-	@echo
-
-help2:
-	@echo
-	@echo "Making a bootable jump drive. *(see Warning! at end)"
-	@echo
-	@echo "Development / sys:"
-	@echo
-	@echo "	 	make cycle       -- run putkern->syslinux->unmount"
-	@echo "	 	make getusb      -- get USB content back to project"
-	@echo "	 	make getusblite  -- get USB lite content back to project"
-	@echo "	 	make getusb2     -- update from USB content back to project"
-	@echo "	 	make copy        -- to mirror current system to USB (advanced)"
-	@echo "	 	make initramfs      -- to make a new initramfs"
-	@echo "	 	make putmods     -- Copy modules from build dir to USB"
-	@echo "	 	make refresh     -- Refresh kernel (System->Build_dir->USB)"
-	@echo
-	@echo "   For more information type 'make help3'"
-	@echo
-	@echo " *Warning! Make sure config_build:RDDEV points to a jump drive!"
-	@echo "      !!!! Specifying the wrong drive will destroy data !!!! "
-	@echo
-
-help3:
-	@echo
-	@echo "Making a bootable jump drive. *(see Warning! at end)"
-	@echo
-	@echo "Shortcuts:"
-	@echo
-	@echo "	 	make c            -- alias for make cycle"
-	@echo "	 	make u            -- alias for make umount"
-	@echo "	 	make n            -- alias for make new"
-	@echo "	 	make b            -- alias for make bigcycle"
-	@echo "	 	make a            -- alias for make doall"
-	@echo
-	@echo "Preparation: (optional)"
-	@echo
-	@echo "	 	make getmods    -- Copy modules from system into build dir"
-	@echo "	 	make getmods2   -- Copy modules from system into USB build dir"
-	@echo "	 	make getkern    -- Copy kernel from system into build dir"
-	@echo "	 	make getkern2   -- Copy kernel from system into USB dir"
-	@echo "	 	make clean      -- Remove tmp and work files"
-	@echo
-	@echo "   For more information type 'make help4'"
-	@echo
-	@echo " *Warning! Make sure config_build:RDDEV points to a jump drive!"
-	@echo "      !!!! Specifying the wrong drive will destroy data !!!! "
-	@echo
-
-help4:
-	@echo
-	@echo "Making a bootable jump drive. (see Warning! at end)"
-	@echo
-	@echo "To execute the whole set of commands in a batch operation:"
-	@echo
-	@echo "	 	su root -c 'make doall'"
-	@echo
-	@echo "The 'su' command will not timeout like the sudo for the long "
-	@echo "copy process;"
-	@echo
-	@echo "The 'make doall2' target will not promp for confirmation. Mainly"
-	@echo "useful for scripts"
-	@echo
-	@echo "	 	make getimg     -- Get COMLIN drive image"
-	@echo
-	@echo " *Warning! Make sure config_build:RDDEV points to a jump drive!"
-	@echo "      !!!! Specifying the wrong drive will destroy data !!!! "
+	@echo " Use: make help[1-4] to show more help details."
 	@echo
 
 apps:
 	make -s -C apps
 
-prompt:
-	@./scripts/prompt.sh " fdisk / format "
-	@#echo "Prompt succeeded ..."
-
 detect:
 	sudo ./scripts/make_detect
-
-new: prompt
-	sudo ./scripts/make_part go
-	sudo ./scripts/make_fs go
-	@echo "Remove and Reinsert drive for next steps"
-
-new2:
-	sudo ./scripts/make_part go
-	sudo ./scripts/make_fs go
 
 initramfs: apps
 	@sudo ./scripts/make_initramfs
@@ -155,89 +67,34 @@ initramfs: apps
 checkscripts:
 	@sudo ./scripts/make_check_scripts
 
-bootimage:
-	@sudo ./scripts/make_toritoimage
-
-cdboot:
-	@sudo ./scripts/make_cdboot
-
 getusb:
 	@sudo ./scripts/make_getusb
 
 getusblite:
 	@sudo ./scripts/make_getusb_lite
 
-getusb2:
-	@sudo ./scripts/make_getusb -u
-
-copy:
-	@sudo scripts/make_usb
-
-syslin:
-	@sudo ./scripts/make_syslin go
-
-cleanusb:
-	@sudo ./scripts/make_cleanusb
-
-cleanusbsock:
-	@sudo ./scripts/make_cleanusbsock
-
-copyusb:
-	@sudo ./scripts/make_copyusb
-
-getlite:
-	@sudo ./scripts/make_getlite
-
-cycle: putkern syslin cpscripts umount
-	@echo "Done Cycle"
-
-bigcycle: copyusb putkern syslin cpscripts umount
-	@echo "Done BigCycle"
-
-doall: prompt new remnt copyusb putkern syslin cpscripts uremnt
-	@echo "Done doall"
-
 # This is the 64 bit make all
-buildiso: apps checkscripts initramfs prepiso prepdown getapps makeiso
+buildsys: apps checkscripts initramfs prepiso prepdown getapps
 	@make playsound
-
-buildiso2: apps checkscripts initramfs prepiso prepdown getapps makeiso
 
 updateusb:  getapps
 	@sudo ./scripts/make_prepiso
 	@cd grub-data ; ./do_sys.sh
 	@make playsound
 
-burnusb:
-	@sudo ./scripts/make_burnusb
-	@make playsound
-
 newusb:
 	@cd grub-data ; ./do_new.sh
+
+newcleanusb:
+	@cd grub-data ; ./do_new.sh -c
 
 # Test if sound plays
 playsound:
 	@play ${SOUND} >/dev/null 2>&1 &
 
+# Somewhat more friedly (quiet) sound
 playsound2:
-	@play  sounds/bell.ogg >/dev/null 2>&1 &
-
-# Test if promptless sudo works
-testsudo:
-	sudo echo "Message from non prompted SUDO"
-
-# Callable from scripts, will not prompt (obsolete)
-
-doall2: new2 remnt copyusb putkern syslin cpscripts uremnt
-	@echo "Done doall"
-
-# ------------------------------------------------------------------------
-
-remnt:
-	./scripts/make_remount
-
-uremnt:
-	./scripts/make_uremount
+	@play  ${SOUND2} >/dev/null 2>&1 &
 
 getkern:
 	@sudo ./scripts/make_getkern
@@ -263,8 +120,6 @@ putmods:
 putkern:
 	@sudo ./scripts/make_putkern go
 
-refresh:	getkern getmods putmods putkern
-
 umount:
 	@echo "Wait for USB drive inactivity. Then you may remove drive."
 
@@ -281,6 +136,7 @@ prepdown:
 	@sudo ./scripts/make_shutdown
 
 # ------------------------------------------------------------------------
+# Backup / Packing / Management
 
 backup:
 	@sudo ./backup.sh
@@ -294,19 +150,6 @@ clean:
 
 getimg:
 	@sudo ./scripts/make_getimg
-
-# ------------------------------------------------------------------------
-# Shortcuts for PG  letter -> dependency
-
-n:	new
-
-u:	umount
-
-c:	cycle
-
-b:	bigcycle
-
-a:	doall
 
 git:
 	git add .

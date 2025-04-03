@@ -4,6 +4,7 @@
 ./cp_bootdrive.sh
 ./cp_grub.sh
 ./install_grub.sh
+./cp_store.sh
 sync
 ./umount_grub.sh
 

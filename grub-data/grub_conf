@@ -49,7 +49,7 @@ GRUBROOT=$CONFIG_DRIVE
 AA=$(echo $GRUBROOT | grep loop)
 #echo AA = \"$AA\"
 if [ "$AA" != "" ] ; then
-    sudo partx -u $GRUBROOT
+    #sudo partx -u $GRUBROOT
     GRUBROOTp="$GRUBROOT"p
 else
     GRUBROOTp="$GRUBROOT"
