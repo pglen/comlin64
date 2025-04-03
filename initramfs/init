@@ -189,7 +189,7 @@ getarg 'ramfs=pre-chroot' && temporary_shell \
 #    rm -rf bin
 #fi
 
-info "Jumping to preinit ... "
+#echo "Jumping to preinit ... "
 
 cd $NEWROOT || echo Failed to change root
 

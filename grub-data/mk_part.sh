@@ -40,7 +40,7 @@ done
 echo 'label:mbr' | sudo sfdisk --wipe always $GRUBROOT <<SEOF
 ,100M,c,*
 ,256M,U,*
-,10G,L,
+,11G,L,
 ,,,
 SEOF
 

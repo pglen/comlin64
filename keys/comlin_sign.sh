@@ -2,7 +2,13 @@
 
 # Test key pair signature
 
+#echo signinig with $0
+
+SD=$(realpath $0) ; DN=$(dirname $SD)
+HERE=$(pwd)
+cd $DN
 . keyparms.sh
+cd $HERE
 
 if [ "$1" == "" ] ; then
     echo Use: sign filename
