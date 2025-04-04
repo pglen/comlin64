@@ -119,8 +119,8 @@ echo -e " \033[32;1mOK\033[0m"
 
 echo -n "Pulseaudio daemon ... "
 mkdir -p /dev/shm
-#pulseaudio --deaemonize=no --system --realtime  >>"$SULOUT" 2>>"$SULERR"  &
-pulseaudio --system  >>"$SULOUT" 2>>"$SULERR"  &
+pulseaudio --deaemonize=no --system --realtime  >>"$SULOUT" 2>>"$SULERR"  &
+#pulseaudio --system  >>"$SULOUT" 2>>"$SULERR"  &
 #pactl set-sink-mute 0 0  >>$SULOUT 2>>$SULERR
 #pactl set-sink-volume 0 0.5  >>$SULOUT 2>>$SULERR
 getargy 'isleep' && sleep "$FOUNDVAL"
@@ -196,11 +196,12 @@ while : ; do
 
     # If it got here, it is a GUI Exit / Logout
     echo
-    echo "---------------------------------------------------"
+    echo "-------------------------------------------------------------"
     echo "Type:     'exit' (or Ctrl-D) to start a new X session / login"
     echo "          'linux_reboot -f' to restart computer."
     echo "          'linux_poweroff -f' to power down computer."
-    echo "---------------------------------------------------"
+    echo "           ... or any available bash command."
+    echo "-------------------------------------------------------------"
     echo
 
     tmpshell "System Control Prompt $ "

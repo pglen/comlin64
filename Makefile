@@ -75,10 +75,10 @@ getusblite:
 
 # This is the 64 bit make all
 buildsys: apps checkscripts initramfs prepiso prepdown getapps
-	@make playsound
+	@make playsound2
 
-updateusb:  getapps
-	@sudo ./scripts/make_prepiso
+updateusb:  buildsys
+	@#sudo ./scripts/make_prepiso
 	@cd grub-data ; ./do_sys.sh
 	@make playsound
 

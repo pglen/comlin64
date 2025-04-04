@@ -65,6 +65,11 @@ hostname "$(cat /etc/hostname)"  >>"$SULOUT" 2>>"$SULERR"
 
 getargx 'ibreak=start' && tmpshell "$FOUNDVAR $ "
 
+# Remount (real) devices
+mkdir -p /proc ; mount -t proc proc /proc
+mkdir -p /sys ; mount -t sysfs sysfs /sys
+mkdir -p /dev ; mount -t devtmpfs devtmpfs /dev
+
 # Install items specified by the user's /etc
 echo -n "Installing modules ... "
 loadmods
@@ -86,12 +91,6 @@ loaddevs
 getargy 'isleep' && sleep "$FOUNDVAL"
 echo -e " \033[32;1mOK\033[0m"
 
-# Remount real devices
-mkdir -p /proc ; mount -t proc proc /proc
-mkdir -p /sys ; mount -t sysfs sysfs /sys
-#mkdir -p /dev ; mount -t devtmpfs devtmpfs /dev
-#udevadm settle
-#mkdir -p /dev/pts ; mount -t devpts devpts /dev/pts
 # Virtual terminals and a serial port
 getargx 'ibreak=vt' && tmpshell "$FOUNDVAR $ "
 echo -n "Starting VTs ... "
@@ -128,6 +127,7 @@ getargy 'delete-disk'  && export CLEARDISK=$FOUNDVAL
 getargy 'fsck'   && export FSCK=$FOUNDVAL
 
 # Find and mount available writable media
+getargx 'ibreak=findhd' && tmpshell "$FOUNDVAR $ "
 findHD $HDROOT
 
 if [ "$CLEARDATA" != "" ] ; then
