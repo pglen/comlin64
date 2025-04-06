@@ -30,8 +30,11 @@
 # more secure, but ultimately chicken and egg will not allow
 # this method to be really secure. For convenience only.
 
-SOUND=sounds/longbell.ogg
-SOUND2=sounds/bell.ogg
+SOUND = sounds/longbell.ogg
+SOUND2 = sounds/bell.ogg
+SOUND3 = sounds/trash-empty.oga
+
+SILENT = 0
 
 all:
 	@echo "Type 'make help' for a list of targets"
@@ -43,16 +46,20 @@ include help.mk
 
 help:
 	@echo
-	@echo "Making a bootable jump drive. **(see Warning in Makefile)"
+	@echo "Making a bootable jump drive. Use it with care."
 	@echo
-	@echo "	 make buildsys     -- Assemble system components and dependents"
-	@echo "	 make makeiso      -- Make .ISO file"
-	@echo "	 make detect       -- Configure which drive is your jump drive"
-	@echo "	 make newusb       -- & Partition / Format USB"
-	@echo "	 make newcleanusb  -- & Partition / Clean / Format USB"
-	@echo "	 make updateusb    -- & @ Copy Linux files to USB"
+	@echo "  make detect       -- Configure which drive is your jump drive"
+	@echo "  make buildsys     -- Assemble system components and it's dependents"
+	@echo "  make craftiso     -- Make .ISO file"
+	@echo "  make newusb       -- New USB, Partition/Format/GRUB USB drive"
+	@echo "  make updateusb    -- Copy/Update Linux files onto USB"
+	@echo "  make createusb    -- Make new USB, and Copy Linux files to USB"
 	@echo
-	@echo " Use: make help[1-4] to show more help details."
+	@echo "	 make newcleanusb  -- Partition/Clean/Format/GRUB USB !SLOW!"
+	@echo
+	@echo " Use: make help[1-4] to show more help details. (obsolete)"
+	@echo
+	@echo "**see additional Warning(s) in Makefile"
 	@echo
 
 apps:
@@ -67,15 +74,17 @@ initramfs: apps
 checkscripts:
 	@sudo ./scripts/make_check_scripts
 
-getusb:
-	@sudo ./scripts/make_getusb
-
-getusblite:
-	@sudo ./scripts/make_getusb_lite
+craftiso: buildsys
+	@sudo ./scripts/make_iso
+	@make playsound
 
 # This is the 64 bit make all
 buildsys: apps checkscripts initramfs prepiso prepdown getapps
 	@make playsound2
+
+createusb: buildsys
+	@cd grub-data ; ./do_new.sh
+	@cd grub-data ; ./do_sys.sh
 
 updateusb:  buildsys
 	@#sudo ./scripts/make_prepiso
@@ -89,12 +98,26 @@ newcleanusb:
 	@cd grub-data ; ./do_new.sh -c
 
 # Test if sound plays
+ifeq (${SILENT},0)
+
 playsound:
 	@play ${SOUND} >/dev/null 2>&1 &
-
 # Somewhat more friedly (quiet) sound
 playsound2:
 	@play  ${SOUND2} >/dev/null 2>&1 &
+
+# Somewhat more harsh for error
+playsound3:
+	@play  ${SOUND3} >/dev/null 2>&1 &
+else
+
+playsound:
+	@echo "Not playing 1."
+playsound2:
+	@echo "Not playing 2."
+playsound3:
+	@echo "Not playing 3."
+endif
 
 getkern:
 	@sudo ./scripts/make_getkern

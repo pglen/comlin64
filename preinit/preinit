@@ -24,6 +24,9 @@ else
     .  /sbin/preinit.sh
 fi
 
+# Counting starts here
+tanchor
+
 loginfo Preinit stage ...
 
 # Determine overall flags for operation
@@ -71,7 +74,7 @@ mkdir -p /sys ; mount -t sysfs sysfs /sys
 mkdir -p /dev ; mount -t devtmpfs devtmpfs /dev
 
 # Install items specified by the user's /etc
-echo -n "Installing modules ... "
+ptime ; echo -n "Installing modules ... "
 loadmods
 getargy 'isleep' && sleep "$FOUNDVAL"
 echo -e " \033[32;1mOK\033[0m"
@@ -79,7 +82,7 @@ echo -e " \033[32;1mOK\033[0m"
 getargx 'ibreak=devices' && tmpshell "$FOUNDVAR $ "
 
 # Install devices from PCI bus; ignore vbox additions for now
-echo -n "Installing devices ... "
+ptime ; echo -n "Installing devices ... "
 udevadm settle
 udevadm trigger -c add -t subsystems   >/dev/null 2>&1
 udevadm settle
@@ -93,7 +96,7 @@ echo -e " \033[32;1mOK\033[0m"
 
 # Virtual terminals and a serial port
 getargx 'ibreak=vt' && tmpshell "$FOUNDVAR $ "
-echo -n "Starting VTs ... "
+ptime ;echo -n "Starting VTs ... "
 startvts
 getargy 'isleep' && sleep "$FOUNDVAL"
 echo -e " \033[32;1mOK\033[0m"
@@ -120,7 +123,7 @@ fi
 
 # Make the clear data command's name a non obvious one
 
-# Used to be clear-data ... but I kep typing clean .. delete nails it.
+# Used to be clear-data ... but I kept typing clean.. delete nails it.
 getargy 'delete-data'  && export CLEARDATA=$FOUNDVAL
 getargy 'delete-disk'  && export CLEARDISK=$FOUNDVAL
 
@@ -210,7 +213,7 @@ if [ "$MOUNT_DISK" == "" ] ; then
     fi
 fi
 
-echo -e "Data storage at \"$MOUNT_DISK\" \033[32;1mOK\033[0m"
+ptime ; echo -e "Data storage at \"$MOUNT_DISK\" \033[32;1mOK\033[0m"
 if [ "$FSCK" != "" ] ;  then
     echo "Executing file system check on $MOUNT_DISK"
     fsck -y "$MOUNT_DISK"

@@ -1,6 +1,9 @@
 #!/bin/bash
 
 . grub_conf justvars
+. grub_funct
+
+check_drive ../config_drive
 
 MMM=$(mount | grep $CONFIG_DRIVE)
 if [ "$MMM" != "" ] ; then
@@ -21,6 +24,8 @@ else
         exit 1
     fi
 fi
+
+#ls -l $CONFIG_DRIVE
 
 mountifnot "" "$GRUBROOTp"4 /mnt/store
 mountifnot "" "$GRUBROOTp"3 /mnt/data

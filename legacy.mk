@@ -1,5 +1,6 @@
-# Makefile include containit old and obscure targets
-# Instaed of delete it, we moved it out of the way
+# Makefile include contains old and obscure init targets
+# Instead of deleting it, we moved it out of the way.
+# This assures that in the future - one may reuse the script
 
 # Wed 02.Apr.2025  extracted from main make
 
@@ -68,6 +69,12 @@ refresh:
 prompt:
 	@./scripts/prompt.sh " fdisk / format "
 	@#echo "Prompt succeeded ..."
+
+getusb:
+	@sudo ./scripts/make_getusb
+
+getusblite:
+	@sudo ./scripts/make_getusb_lite
 
 # ------------------------------------------------------------------------
 

@@ -1,0 +1,72 @@
+#!/bin/bash
+
+# See if we have a good target
+# $1 -> ./config_drive
+
+check_drive() {
+
+    if [ ! -f $1 ] ; then
+    	echo "USB drive not configured yet. Run 'make detect' first"
+    	exit 1;
+    fi
+
+    export CONFIG_DRIVE=
+
+    while : ;  do
+        read -r RRR
+        if [ "$RRR" == "" ] ; then
+            break
+        fi
+        if [ "${RRR:0:1}" != "#" ] ; then
+            #echo $RRR
+            break
+        fi
+    done  < $1
+
+    if [ "$RRR" == "" ] ; then
+        echo Not configured
+        exit 1
+    fi
+
+    local DDD
+    DDD=$(echo $RRR | awk -F "=" '{print $2}')
+    #echo DDD = \"$DDD\"
+    #exit 1
+    if [ ! -e $DDD ] ; then
+        echo Drive \'$DDD\' does not exist
+        exit 1
+    fi
+    CONFIG_DRIVE=$DDD
+
+    # See if loop used:
+    AA=$(echo $CONFIG_DRIVE | grep loop)
+    #echo AA = \"$AA\"
+    if [ "$AA" != "" ] ; then
+        #sudo partx -u $CONFIG_DRIVE
+        GRUBROOTp="$CONFIG_DRIVE"p
+    else
+        GRUBROOTp="$CONFIG_DRIVE"
+    fi
+}
+
+mountifnot() {
+    # Mount if not mounted
+    local MM
+    MM=$(mount | grep $3)
+    if [ "$MM" = "" ] ; then
+        sudo mkdir -p $3
+        sudo mount $1 $2 $3 || echo cannot mount $3
+    fi
+}
+
+umountifnot() {
+    # Unmount if mounted
+    local MM
+    MM=$(mount | grep $1)
+    if [ "$MM" != "" ] ; then
+        sudo umount $1
+        #sleep .2
+    fi
+}
+
+# EOF

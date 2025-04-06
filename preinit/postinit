@@ -1,13 +1,13 @@
 #!/bin/bash
 # shellcheck disable=SC1091
 
-
 if [ $((TESTME)) -gt 0 ] ; then
     .  ./preinit.sh
 else
     .  /sbin/preinit.sh
 fi
 
+readanchor
 loginfo Postinit stage ...
 
 # Determine overall flags for operation (for this file)
@@ -48,14 +48,14 @@ rm -rf /run/dbus/*
 export XDG_RUNTIME_DIR=/run/user/$UID
 mkdir -p $XDG_RUNTIME_DIR
 
-echo -n "Starting DBUS ... "
+ptime ; echo -n "Starting DBUS ... "
 mkdir -p /run/dbus
 dbus-daemon --system >>"$SULOUT" 2>>"$SULERR" &
 getargy 'isleep' && sleep "$FOUNDVAL"
 echo -e " \033[32;1mOK\033[0m"
 
 # Start logging
-echo -n "Starting rsyslogd ... "
+ptime ;echo -n "Starting rsyslogd ... "
 rm -f /run/rsyslogd.pid
 rsyslogd >> "$SULOUT" 2>> "$SULERR" &
 getargy 'isleep' && sleep "$FOUNDVAL"
@@ -64,13 +64,13 @@ echo -e " \033[32;1mOK\033[0m"
 dbus-daemon --session >/dev/null 2>&1 &
 
 getargx 'ibreak=polkit' && tmpshell "$FOUNDVAR $ "
-echo -n "Starting polkit ... "
+ptime ;echo -n "Starting polkit ... "
 /usr/libexec/polkitd >>"$SULOUT" 2>>"$SULERR" &
 getargy 'isleep' && sleep "$FOUNDVAL"
 echo -e " \033[32;1mOK\033[0m"
 
 getargx 'ibreak=udevd' && tmpshell "$FOUNDVAR $ "
-echo -n "Starting systemd-udevd ... "
+ptime ;echo -n "Starting systemd-udevd ... "
 /lib/systemd/systemd-udevd >>"$SULOUT" 2>>"$SULERR" &
 getargy 'isleep' && sleep "$FOUNDVAL"
 echo -e " \033[32;1mOK\033[0m"
@@ -81,7 +81,7 @@ echo -e " \033[32;1mOK\033[0m"
 #echo -e " \033[32;1mOK\033[0m"
 
 getargx 'ibreak=sound' &&  tmpshell "$FOUNDVAR $ "
-echo -n "Starting sound system ... "
+ptime ;echo -n "Starting sound system ... "
 rm -rf /dev/snd/*
 make_sound_devices
 getargy 'isleep' && sleep "$FOUNDVAL"
@@ -92,7 +92,7 @@ rm -rf /var/run/pulse/pid
 
 # Second round for dependents (like: WIFI)
 
-echo -n "Finalizing devices  ... "
+ptime ;echo -n "Finalizing devices  ... "
 
 udevadm trigger -c add -t subsystems
 udevadm settle
@@ -111,13 +111,13 @@ echo -e " \033[32;1mOK\033[0m"
 mkdir -p /dev/pts ; mount -t devpts devpts /dev/pts
 
 getargx 'ibreak=pre-acpi' && tmpshell  "$FOUNDVAR $ "
-echo -n "Starting acpid ... "
+ptime ;echo -n "Starting acpid ... "
 /usr/sbin/acpid >>"$SULOUT" 2>>"$SULERR" &
 
 getargy 'isleep' && sleep "$FOUNDVAL"
 echo -e " \033[32;1mOK\033[0m"
 
-echo -n "Pulseaudio daemon ... "
+ptime ;echo -n "Pulseaudio daemon ... "
 mkdir -p /dev/shm
 pulseaudio --deaemonize=no --system --realtime  >>"$SULOUT" 2>>"$SULERR"  &
 #pulseaudio --system  >>"$SULOUT" 2>>"$SULERR"  &
@@ -127,14 +127,14 @@ getargy 'isleep' && sleep "$FOUNDVAL"
 echo -e " \033[32;1mOK\033[0m"
 
 getargx 'ibreak=network' && tmpshell "$FOUNDVAR $ "
-echo -n "Starting network ... "
+ptime ;echo -n "Starting network ... "
 dhclient >>"$SULOUT" 2>>"$SULERR" &
 NetworkManager
 getargy 'isleep' && sleep "$FOUNDVAL"
 echo -e " \033[32;1mOK\033[0m"
 
 getargx 'ibreak=pre-sshd' && tmpshell  "$FOUNDVAR $ "
-echo -n "Starting sshd ... "
+ptime ;echo -n "Starting sshd ... "
 /usr/sbin/sshd >>"$SULOUT" 2>>"$SULERR" &
 getargy 'isleep' && sleep "$FOUNDVAL"
 echo -e " \033[32;1mOK\033[0m"

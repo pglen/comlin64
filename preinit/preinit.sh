@@ -262,7 +262,7 @@ make_sound_devices() {
 findHD() {
 
     if [ $((VERBOSE)) -gt 1  ] ; then
-        echo "mountHD() $*"
+        echo "findHD() $*"
     fi
 
     export MOUNT_DISK=""
@@ -275,7 +275,7 @@ findHD() {
         fi
         sleep 0.01       # Needs to breathe
         DEVX="/dev/$ii"
-        mount "$DEVX" "$HDROOT"  >/dev/null 2>&1
+        mount -o ro "$DEVX" "$HDROOT"  >/dev/null 2>&1
         if test -f "$HDROOT/$COMLIN_DATAFILE" ; then
             if [ $((VERBOSE)) -gt 2 ] ; then
                 echo "Found COMLIN DATA at /dev/$ii"
@@ -294,6 +294,31 @@ findHD() {
 
     return 1
 }
+
+# Get milli seconds from epoch
+getmilli()
+{
+    echo $(($(date +%s%N)/1000000))
+}
+
+tanchor()
+{
+    export TTT0
+    TTT0=$(getmilli)
+    echo "$TTT0" > starttime
+}
+
+readanchor() {
+    read -r TTT0 < starttime
+}
+
+ptime() {
+    TTT2=$(getmilli)
+    TTT3=$((TTT2-TTT0))
+    SECS=$((TTT3 / 1000))
+    MECS=$((TTT3 % 1000))
+    printf "%d.%-3d " $SECS $MECS
+    }
 
 # Hack to test from dev system
 if [ $((TESTME)) -gt 0 ] ; then

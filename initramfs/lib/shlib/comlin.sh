@@ -191,7 +191,7 @@ mountCDx() {
         #echo "Test Drive" $ii
         sleep 0.01       # Needs to breathe
         DEVX="/dev/$ii"
-        mount "$DEVX" "$CDROOT"  >/dev/null 2>&1
+        mount -o ro "$DEVX" "$CDROOT"  >/dev/null 2>&1
         if test -f "$CDROOT/etc/COMLINUX_VERSION" ; then
             #echo "Found COMLIN SYSTEM at /dev/$ii"
             MOUNT_DEVICE=$DEVX

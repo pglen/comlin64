@@ -1,6 +1,7 @@
 #!/bin/bash
 
 . grub_conf justvars
+. grub_funct
 
 umountifnot /mnt/data
 umountifnot /mnt/store

@@ -71,7 +71,7 @@ sudo rsync -au  \
 # Do users verbatim
 echo "  Copying user data ... "
 sudo cp -a \
-            $CURRUSB/home/. $ROOTFS/home
+            $CURRUSB/home/* $ROOTFS/home
 
 $restglob
 
@@ -111,19 +111,20 @@ echo OK
 #cp -a $ROOTUSERDIR/. $ROOTFS/root
 #echo OK
 
-ETCDIR=$CURRUSB/etc
+ETCDIRx=$CURRUSB/etc
 
 echo -n "  Changing user file permissions ... "
-UIDX=$(grep user:x $ETCDIR/passwd  | awk -F ":" '{print $3}')
-GIDX=$(grep user:x $ETCDIR/passwd  | awk -F ":" '{print $4}')
+UIDX=$(grep user:x $ETCDIRx/passwd  | awk -F ":" '{print $3}')
+GIDX=$(grep user:x $ETCDIRx/passwd  | awk -F ":" '{print $4}')
+echo  user: $UIDX $GIDX
 chown -R $UIDX.$GIDX $ROOTFS/home/user/.
 
-UIDG=$(grep guest:x $ETCDIR/passwd  | awk -F ":" '{print $3}')
-GIDG=$(grep guest:x $ETCDIR/passwd  | awk -F ":" '{print $4}')
+UIDG=$(grep guest:x $ETCDIRx/passwd  | awk -F ":" '{print $3}')
+GIDG=$(grep guest:x $ETCDIRx/passwd  | awk -F ":" '{print $4}')
 chown -R $UIDG.$GIDG $ROOTFS/home/guest/.
 
-UIDR=$(grep root:x $ETCDIR/passwd  | awk -F ":" '{print $3}')
-GIDR=$(grep root:x $ETCDIR/passwd  | awk -F ":" '{print $4}')
+UIDR=$(grep root:x $ETCDIRx/passwd  | awk -F ":" '{print $3}')
+GIDR=$(grep root:x $ETCDIRx/passwd  | awk -F ":" '{print $4}')
 chown -R $UIDR.$GIDR $ROOTFS/root/.
 
 unset UIDX GIDX UIDG GIDG UIDR GIDR
