@@ -57,12 +57,16 @@ cp -au $APPDIR/reboot/linux_poweroff $INITRAMFSDIR/bin
 # Create a root owned copy
 RTMP=$TMPDIR/initramfs
 mkdir -p $RTMP
-rm -rf $RTMP/*
+#rm -rf $RTMP/*
 
-#diff -br $INITRAMFSDIR $RTMP
+DDD=$(diff -rq --no-dereference -x udev -x "dev" initramfs/ ../_work/tmp/initramfs/)
+if [ $? -eq 0 ] ; then
+    echo Up-to-date.
+    exit
+fi
+#echo $? - "DDD" $DDD
 
 cp -a $INITRAMFSDIR/* $RTMP
-#exit
 
 # TESTING, see if it boots with systemd:
 #cp $RTMP/bin/systemd $RTMP/init
@@ -76,7 +80,7 @@ chown -R root.root $RTMP
 (cd $RTMP; find . | cpio -o -H newc | gzip) > $INITRAMFSRES
 
 # Clean
-rm -rf $RTMP/*
+#rm -rf $RTMP/*
 #echo "Geneated:" $INITRAMFSRES
 
 # EOF

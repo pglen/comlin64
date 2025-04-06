@@ -220,7 +220,7 @@ if [ "$FSCK" != "" ] ;  then
     sleep 2
 fi
 getargx 'ibreak=pre-mount' && tmpshell "$FOUNDVAR $ "
-mount "$MOUNT_DISK" "$HDROOT"
+mount -o ro "$MOUNT_DISK" "$HDROOT"
 getargy 'isleep' && sleep "$FOUNDVAL"
 getargx 'ibreak=pre-overlay' && tmpshell "$FOUNDVAR $ "
 

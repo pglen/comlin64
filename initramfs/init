@@ -3,6 +3,7 @@
 
 # Custom INIT for Community Linux INITRD / INITRAMFS.
 # See doc in init.doc.txt
+# Sun 06.Apr.2025  Diff on make initramfs
 
 # This also signals that we are active
 echo

@@ -275,7 +275,7 @@ findHD() {
         fi
         sleep 0.01       # Needs to breathe
         DEVX="/dev/$ii"
-        mount -o ro "$DEVX" "$HDROOT"  >/dev/null 2>&1
+        mount  "$DEVX" "$HDROOT"  >/dev/null 2>&1
         if test -f "$HDROOT/$COMLIN_DATAFILE" ; then
             if [ $((VERBOSE)) -gt 2 ] ; then
                 echo "Found COMLIN DATA at /dev/$ii"
