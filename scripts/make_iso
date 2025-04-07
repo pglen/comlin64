@@ -50,8 +50,16 @@ touch $ROOTISOFILE.part
 #echo
 #echo OK
 
+#--xorriso="/usr/bin/xorriso"
+#--xorriso=./scripts/xorriso.sh
+
 echo -n "Making ISO grub rescue $ROOTISOFILE ($ROOTISOFILE.part) ... "
-grub-mkrescue  --product-name "Comlin64" -o $ROOTISOFILE.part $ROOTFS
+grub-mkrescue --product-name "Comlin64" -o $ROOTISOFILE.part $ROOTFS
+
+if [ $? -ne 0 ] ; then
+    echo grub-mkrescue failed.
+    exit 1
+fi
 
 echo
 echo OK

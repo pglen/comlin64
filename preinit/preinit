@@ -1,6 +1,6 @@
 #!/bin/bash
 # shellcheck disable=SC1091
-#SC2004,SC2009,SC2068,SC2002,,SC2086
+# SC2004,SC2009,SC2068,SC2002,,SC2086
 
 # Set the TESTME variable to non zero if you are in a sim / test environment.
 # Warning: script tests will not work in the real env.
@@ -24,15 +24,41 @@ else
     .  /sbin/preinit.sh
 fi
 
-# Counting starts here
+# If we are in ISO mode, change permissions
+#echo "Changing permissions."
+chmod -R u+w /root/.
+chmod -R u+w /home/user/.
+chown -R user.users /home/user/.
+chmod -R u+w /home/guest/.
+chown -R guest.users /home/guest/.
+
+chmod -R a+rw /run
+mkdir -p /run/user
+chown -R user.users /run/user/.
+
+chmod -R a+rwt /tmp
+
+setsuids
+
+if [ ! -w /root/.profile ] ; then
+    true
+fi
+if [ ! -w /home/user/.profile ] ; then
+    true
+fi
+if [ ! -w /home/guest/.profile ] ; then
+    true
+fi
+
+# Counting time starts here
 tanchor
 
-loginfo Preinit stage ...
+loginfo 1 "Preinit stage ..."
 
 # Determine overall flags for operation
 getargy 'verbose' && export VERBOSE=$FOUNDVAL
 
-loginfo "Booting Community Linux, Lib version: $LIBVERS"
+loginfo 0 "Booting Community Linux, Lib version: $LIBVERS"
 
 # Variables:
 #    verbose=lev        Verbosity level
@@ -57,7 +83,7 @@ mkdir -p /var/tmp
 
 mkdir -p "$SUL"
 
-# Create for log append, add current date value
+# Create for log append, add current date value to the beginning
 date > "$SULOUT" ; date > "$SULERR"
 
 getargy 'verbose' && export VERBOSE=$FOUNDVAL
@@ -66,15 +92,15 @@ getargx 'ibreak=all' && export BREAKALL=1
 # Never leave us hanging without a name
 hostname "$(cat /etc/hostname)"  >>"$SULOUT" 2>>"$SULERR"
 
-getargx 'ibreak=start' && tmpshell "$FOUNDVAR $ "
-
 # Remount (real) devices
 mkdir -p /proc ; mount -t proc proc /proc
 mkdir -p /sys ; mount -t sysfs sysfs /sys
 mkdir -p /dev ; mount -t devtmpfs devtmpfs /dev
 
+getargx 'ibreak=start' && tmpshell "$FOUNDVAR $ "
+
 # Install items specified by the user's /etc
-ptime ; echo -n "Installing modules ... "
+loginfo 0 -n "Installing modules ... "
 loadmods
 getargy 'isleep' && sleep "$FOUNDVAL"
 echo -e " \033[32;1mOK\033[0m"
@@ -82,7 +108,7 @@ echo -e " \033[32;1mOK\033[0m"
 getargx 'ibreak=devices' && tmpshell "$FOUNDVAR $ "
 
 # Install devices from PCI bus; ignore vbox additions for now
-ptime ; echo -n "Installing devices ... "
+loginfo 0 -n "Installing devices ... "
 udevadm settle
 udevadm trigger -c add -t subsystems   >/dev/null 2>&1
 udevadm settle
@@ -96,12 +122,12 @@ echo -e " \033[32;1mOK\033[0m"
 
 # Virtual terminals and a serial port
 getargx 'ibreak=vt' && tmpshell "$FOUNDVAR $ "
-ptime ;echo -n "Starting VTs ... "
+loginfo 0 -n "Starting VTs ... "
 startvts
 getargy 'isleep' && sleep "$FOUNDVAL"
-echo -e " \033[32;1mOK\033[0m"
+logok
 
-loginfo "Created mounts."
+loginfo 1 "Created mounts."
 
 # Time to find the writable disk
 getargx 'ibreak=pre-hd' && tmpshell "$FOUNDVAR $ "
@@ -209,6 +235,7 @@ if [ "$MOUNT_DISK" == "" ] ; then
             exec setsid /sbin/postinit
         fi
     else
+        echo "Started without writable media."
         exec setsid /sbin/postinit
     fi
 fi
@@ -220,7 +247,7 @@ if [ "$FSCK" != "" ] ;  then
     sleep 2
 fi
 getargx 'ibreak=pre-mount' && tmpshell "$FOUNDVAR $ "
-mount -o ro "$MOUNT_DISK" "$HDROOT"
+mount "$MOUNT_DISK" "$HDROOT"
 getargy 'isleep' && sleep "$FOUNDVAL"
 getargx 'ibreak=pre-overlay' && tmpshell "$FOUNDVAR $ "
 

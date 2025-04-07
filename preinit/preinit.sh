@@ -1,5 +1,5 @@
 #!/bin/bash
-# shellcheck disable=SC2002
+# shellcheck disable=SC2002,SC2048
 
 # COMLIN Linux boot lib: Thu 20.Mar.2025
 
@@ -18,8 +18,20 @@ SULERR=$SUL/log_err; SULOUT=$SUL/log_out
 # Echo arguments if verbose is ON
 
 loginfo() {
-    if [ $((VERBOSE)) -gt 0 ] ; then
-        echo "$*"
+    local LEVEL
+    LEVEL=$1
+    if [ $((VERBOSE)) -ge $((LEVEL)) ] ; then
+        shift
+        echo -n "$(ptime) "
+        echo $*
+    fi
+}
+
+logok(){
+    local LEVEL
+    LEVEL=$1
+    if [ $((VERBOSE)) -ge $((LEVEL)) ] ; then
+        echo -e " \033[32;1mOK\033[0m"
     fi
 }
 
@@ -104,6 +116,19 @@ getargy() {
     return $rety
 }
 
+# Load module in not loaded
+
+modprobeif() {
+
+    local ISMOD
+    ISMOD=$(lsmod | grep "$1")
+    #echo ISMOD: \"$ISMOD\"
+    if [ "$ISMOD" == "" ] ; then
+       loginfo 3 "Loading: $1"
+       modprobe "$1" >>"$SULOUT" 2>>"$SULERR" #>/dev/null 2>&1
+    fi
+}
+
 loadmods() {
 
     # Load modules intended for this system
@@ -114,7 +139,7 @@ loadmods() {
     local modx unsp
     while read -r modx ;
         do
-            if [ $((VERBOSE)) -gt 6 ] ; then
+            if [ $((VERBOSE)) -gt 8 ] ; then
                 echo "line = [$modx]"
             fi
             unsp=${modx# }
@@ -127,13 +152,13 @@ loadmods() {
                 fi
                 continue
             fi
-            if [ $((VERBOSE)) -gt 1 ] ; then
+            if [ $((VERBOSE)) -gt 5 ] ; then
                 echo -n "Loading module: \'$unsp\' "
             fi
             if [ $((TESTME)) -gt 0 ] ; then
                 echo "Would Load:" "'""$unsp""'"
             else
-                modprobe "$unsp" >/dev/null 2>&1
+                modprobeif "$unsp"
             fi
         done < /etc/modules
 }
@@ -156,7 +181,7 @@ loaddevs() {
             if [ $((VERBOSE)) -gt 1 ] ; then
                 echo -n "Device: $aa "
             fi
-            modprobe "$aa" >>"$SULOUT" 2>>"$SULERR"
+            modprobeif "$aa"  #>>"$SULOUT" 2>>"$SULERR"
         fi
         done
 }
@@ -185,7 +210,6 @@ startvts() {
         fi
     done
 }
-
 
 # Hack to test from dev system
 if [ $((TESTME)) -gt 0 ] ; then
@@ -301,24 +325,67 @@ getmilli()
     echo $(($(date +%s%N)/1000000))
 }
 
+SFILE=/.starttime
+
 tanchor()
 {
-    export TTT0
+    #export TTT0
     TTT0=$(getmilli)
-    echo "$TTT0" > starttime
+    echo "$TTT0" > $SFILE
 }
 
 readanchor() {
-    read -r TTT0 < starttime
+    read -r TTT0 < $SFILE
 }
 
 ptime() {
-    TTT2=$(getmilli)
+
+    local TTT2 TTT3 SECS MSECS
+    TTT2=$(getmilli
+    )
     TTT3=$((TTT2-TTT0))
     SECS=$((TTT3 / 1000))
-    MECS=$((TTT3 % 1000))
-    printf "%d.%-3d " $SECS $MECS
+    MSECS=$((TTT3 % 1000))
+    printf "%d.%-3d " $SECS $MSECS
     }
+
+ALLFILES="\
+/usr/bin/chfn \
+/usr/bin/chsh \
+/bin/chvt \
+/bin/fusermount3 \
+/bin/mount \
+/usr/bin/newgrp \
+/bin/su \
+/usr/bin/sudo \
+/bin/umount \
+/usr/bin/at \
+/usr/bin/chfn \
+/usr/bin/chsh \
+/usr/bin/chvt \
+/bin/fusermount \
+/bin/fusermount3 \
+/usr/bin/gpasswd \
+/usr/bin/mount \
+/usr/bin/newgrp \
+/usr/bin/passwd \
+/usr/bin/pkexec \
+/usr/bin/su \
+/usr/bin/sudo \
+/usr/bin/umount \
+/usr/lib/dbus-1.0/dbus-daemon-launch-helper \
+/usr/libexec/polkit-agent-helper-1 \
+/usr/sbin/pppd \
+"
+#echo $ALLFILES
+
+setsuids() {
+
+    for AA in $ALLFILES ; do
+        #echo $ROOTFS$AA
+        chmod u+s "$ROOTFS""$AA"
+    done
+}
 
 # Hack to test from dev system
 if [ $((TESTME)) -gt 0 ] ; then

@@ -2,7 +2,7 @@ root:x:0:
 bin:x:1:bin,daemon
 daemon:x:2:bin,daemon
 sys:x:3:bin,adm
-adm:x:4:adm,daemon
+adm:x:4:adm,syslog,daemon
 tty:x:5:
 disk:x:6:
 lp:x:7:daemon
@@ -68,3 +68,5 @@ memcached:x:492:
 tomcat:x:91:
 radiusd:x:95:
 ctapiusers:x:491:
+syslog:x:111:user
+

@@ -1,4 +1,5 @@
 #!/bin/bash
+# shellcheck disable=SC1091
 
 # Patching set uid permissions
 
@@ -45,5 +46,7 @@ ALLFILES="\
 
 for AA in $ALLFILES ; do
     #echo $ROOTFS$AA
-    sudo chmod u+s $ROOTFS$AA
+    sudo chmod u+s "$ROOTFS""$AA"
 done
+
+

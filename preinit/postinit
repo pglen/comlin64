@@ -7,16 +7,14 @@ else
     .  /sbin/preinit.sh
 fi
 
-readanchor
-loginfo Postinit stage ...
-
 # Determine overall flags for operation (for this file)
 getargy 'verbose' && export VERBOSE=$FOUNDVAL
 getargx 'ibreak=all' && export BREAKALL=1
 
-if [ $((VERBOSE)) -gt 0 ] ; then
-    echo "COMLIN64 in final stage"
-fi
+getargx 'ibreak=start2' && tmpshell "$FOUNDVAR $ "
+
+loginfo 1 "COMLIN64 in postinit stage"
+readanchor
 
 # This way udev is functional in chroot
 export SYSTEMD_IGNORE_CHROOT=1
@@ -24,9 +22,12 @@ export SYSTEMD_IGNORE_CHROOT=1
 # UP loopback network connection
 ifconfig lo up 127.0.0.1
 
-mkdir -p /proc /sys /dev
-# Remount for devices
-mkdir -p /proc ; mount -t proc proc /proc
+mkdir -p /sys /proc /dev
+
+# Remount after root change
+if [ ! -d /proc/1 ] ; then
+    mount -t proc proc /proc
+fi
 
 # Remount if not present
 if [ ! -d /sys/kernel ] ; then
@@ -38,7 +39,7 @@ if [ "$(mount | grep /dev)" == "" ] ; then
 fi
 
 # May have residuals from prev run
-rm -rf /dev/snd/*
+#rm -rf /dev/snd/*
 rm -rf /run/dbus/*
 
 # Test alternate config
@@ -47,15 +48,20 @@ rm -rf /run/dbus/*
 # Create this dynamically
 export XDG_RUNTIME_DIR=/run/user/$UID
 mkdir -p $XDG_RUNTIME_DIR
+chmod -R a+rw $XDG_RUNTIME_DIR
 
-ptime ; echo -n "Starting DBUS ... "
+loginfo 1 "Using XDG runtime dir: $XDG_RUNTIME_DIR"
+
+getargx 'ibreak=pre-dbus' && tmpshell "$FOUNDVAR $ "
+
+loginfo 0 -n "Starting DBUS ... "
 mkdir -p /run/dbus
 dbus-daemon --system >>"$SULOUT" 2>>"$SULERR" &
 getargy 'isleep' && sleep "$FOUNDVAL"
 echo -e " \033[32;1mOK\033[0m"
 
 # Start logging
-ptime ;echo -n "Starting rsyslogd ... "
+loginfo 0 -n "Starting rsyslogd ... "
 rm -f /run/rsyslogd.pid
 rsyslogd >> "$SULOUT" 2>> "$SULERR" &
 getargy 'isleep' && sleep "$FOUNDVAL"
@@ -64,7 +70,7 @@ echo -e " \033[32;1mOK\033[0m"
 dbus-daemon --session >/dev/null 2>&1 &
 
 getargx 'ibreak=polkit' && tmpshell "$FOUNDVAR $ "
-ptime ;echo -n "Starting polkit ... "
+loginfo 0 -n "Starting polkit ... "
 /usr/libexec/polkitd >>"$SULOUT" 2>>"$SULERR" &
 getargy 'isleep' && sleep "$FOUNDVAL"
 echo -e " \033[32;1mOK\033[0m"
@@ -92,7 +98,7 @@ rm -rf /var/run/pulse/pid
 
 # Second round for dependents (like: WIFI)
 
-ptime ;echo -n "Finalizing devices  ... "
+ptime ; echo -n "Finalizing devices  ... "
 
 udevadm trigger -c add -t subsystems
 udevadm settle
@@ -111,13 +117,13 @@ echo -e " \033[32;1mOK\033[0m"
 mkdir -p /dev/pts ; mount -t devpts devpts /dev/pts
 
 getargx 'ibreak=pre-acpi' && tmpshell  "$FOUNDVAR $ "
-ptime ;echo -n "Starting acpid ... "
+ptime ; echo -n "Starting acpid ... "
 /usr/sbin/acpid >>"$SULOUT" 2>>"$SULERR" &
 
 getargy 'isleep' && sleep "$FOUNDVAL"
 echo -e " \033[32;1mOK\033[0m"
 
-ptime ;echo -n "Pulseaudio daemon ... "
+ptime ; echo -n "Pulseaudio daemon ... "
 mkdir -p /dev/shm
 pulseaudio --deaemonize=no --system --realtime  >>"$SULOUT" 2>>"$SULERR"  &
 #pulseaudio --system  >>"$SULOUT" 2>>"$SULERR"  &
@@ -127,20 +133,20 @@ getargy 'isleep' && sleep "$FOUNDVAL"
 echo -e " \033[32;1mOK\033[0m"
 
 getargx 'ibreak=network' && tmpshell "$FOUNDVAR $ "
-ptime ;echo -n "Starting network ... "
+ptime ; echo -n "Starting network ... "
 dhclient >>"$SULOUT" 2>>"$SULERR" &
 NetworkManager
 getargy 'isleep' && sleep "$FOUNDVAL"
 echo -e " \033[32;1mOK\033[0m"
 
 getargx 'ibreak=pre-sshd' && tmpshell  "$FOUNDVAR $ "
-ptime ;echo -n "Starting sshd ... "
+ptime ; echo -n "Starting sshd ... "
 /usr/sbin/sshd >>"$SULOUT" 2>>"$SULERR" &
 getargy 'isleep' && sleep "$FOUNDVAL"
 echo -e " \033[32;1mOK\033[0m"
 
 # This is a precaution, comment out if not wanted
-/usr/sbin/thermald
+#/usr/sbin/thermald
 
 # Our power key watcher
 /usr/bin/powacpi &
@@ -165,15 +171,10 @@ while : ; do
     getargx 'ibreak=pre-gui' && tmpshell  "$FOUNDVAR $ "
 
     printf "Starting GUI, \033[34;1m(in progress)\033[0m ... "
-
-    # Start Xorg as root
-    #/usr/bin/startxfce4 -- -keeptty vt5 >.xfce_out 2>.xfce_err
-
     stty -g >.stty_dump.txt
 
     # Start initial GUI for login program 'pylogin'
     xinit -- -keeptty vt5  >.xorg_out 2>.xorg_err
-
     getargy 'isleep' && sleep "$FOUNDVAL"
 
     cd $NEWHOME || echo "Cannot change to $NEWHOME"
@@ -197,7 +198,7 @@ while : ; do
     # If it got here, it is a GUI Exit / Logout
     echo
     echo "-------------------------------------------------------------"
-    echo "Type:     'exit' (or Ctrl-D) to start a new X session / login"
+    echo "Type:     'exit' (or Ctrl-D) to start a new X login"
     echo "          'linux_reboot -f' to restart computer."
     echo "          'linux_poweroff -f' to power down computer."
     echo "           ... or any available bash command."

@@ -70,7 +70,7 @@ sudo rsync -au  \
 
 # Do users verbatim
 echo "  Copying user data ... "
-sudo cp -a \
+sudo cp -au \
             $CURRUSB/home/* $ROOTFS/home
 
 $restglob
@@ -80,26 +80,26 @@ $restglob
 #echo OK
 
 echo -n "  Copying boot items ... "
-cp -a $BOOTDIR/* $ROOTFS/boot
+cp -au $BOOTDIR/* $ROOTFS/boot
 echo OK
 
 echo -n "  Copying kernel items ... "
-cp -a $KERNELDIR/* $ROOTFS/boot
+cp -au $KERNELDIR/* $ROOTFS/boot
 echo OK
 
 echo -n "  Copying sbin inits ... "
-cp -a $INITDIR/* $ROOTFS/sbin
+cp -au $INITDIR/* $ROOTFS/sbin
 chown root.root $ROOTFS/sbin/*
 echo OK
 
 echo -n "  Copying shell utilities ... "
-cp -a $SHLIB $ROOTFS/lib
+cp -au $SHLIB $ROOTFS/lib
 chown root.root $ROOTFS/lib/*
 echo OK
 
 echo -n "  Copying dev files ... "
 mkdir -p $ROOTFS/dev
-cp -a $DEVDIR/* $ROOTFS/dev
+cp -au $DEVDIR/* $ROOTFS/dev
 echo OK
 
 #echo -n "  Copying user files ... "
@@ -113,22 +113,21 @@ echo OK
 
 ETCDIRx=$CURRUSB/etc
 
-echo -n "  Changing user file permissions ... "
-UIDX=$(grep user:x $ETCDIRx/passwd  | awk -F ":" '{print $3}')
-GIDX=$(grep user:x $ETCDIRx/passwd  | awk -F ":" '{print $4}')
-echo  user: $UIDX $GIDX
-chown -R $UIDX.$GIDX $ROOTFS/home/user/.
-
-UIDG=$(grep guest:x $ETCDIRx/passwd  | awk -F ":" '{print $3}')
-GIDG=$(grep guest:x $ETCDIRx/passwd  | awk -F ":" '{print $4}')
-chown -R $UIDG.$GIDG $ROOTFS/home/guest/.
-
-UIDR=$(grep root:x $ETCDIRx/passwd  | awk -F ":" '{print $3}')
-GIDR=$(grep root:x $ETCDIRx/passwd  | awk -F ":" '{print $4}')
-chown -R $UIDR.$GIDR $ROOTFS/root/.
-
-unset UIDX GIDX UIDG GIDG UIDR GIDR
-echo OK
+#echo -n "  Changing user file permissions ... "
+#UIDX=$(grep user:x $ETCDIRx/passwd  | awk -F ":" '{print $3}')
+#GIDX=$(grep user:x $ETCDIRx/passwd  | awk -F ":" '{print $4}')
+#chown -R $UIDX.$GIDX $ROOTFS/home/user/.
+#
+#UIDG=$(grep guest:x $ETCDIRx/passwd  | awk -F ":" '{print $3}')
+#GIDG=$(grep guest:x $ETCDIRx/passwd  | awk -F ":" '{print $4}')
+#chown -R $UIDG.$GIDG $ROOTFS/home/guest/.
+#
+#UIDR=$(grep root:x $ETCDIRx/passwd  | awk -F ":" '{print $3}')
+#GIDR=$(grep root:x $ETCDIRx/passwd  | awk -F ":" '{print $4}')
+#chown -R $UIDR.$GIDR $ROOTFS/root/.
+#
+#unset UIDX GIDX UIDG GIDG UIDR GIDR
+#echo OK
 
 ./scripts/setuids.sh
 
@@ -147,8 +146,8 @@ for aaa in $HOMEDIRS ; do
     rm -f  "$ROOTFS/$aaa/.sudo_as_admin_successful"
     rm -f  "$ROOTFS/$aaa/.bash_history"
     rm -f  "$ROOTFS/$aaa/.lesshst"
-    rm -f  "$ROOTFS/$aaa/.ICEauthority"
-    rm -f  "$ROOTFS/$aaa/.Xauthority"
+    #rm -f  "$ROOTFS/$aaa/.ICEauthority"
+    #rm -f  "$ROOTFS/$aaa/.Xauthority"
     rm -f  "$ROOTFS/$aaa/.pulse*"
 
     rm -rf "$ROOTFS/$aaa/.mozilla"

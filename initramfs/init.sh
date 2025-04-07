@@ -1,10 +1,22 @@
 #!/bin/bash
-# shellcheck disable=SC1090
+# shellcheck disable=SC1090,SC2048,SC2086
 
-# Custom Comlin library. Modifications from original by Peter Glen.
-# I attempted to preserve as much of the original as  it was practical.
+# Custom Comlin INIT library.
 #
 # Thu 16.Jan.2025   Added some function descriptions.
+# Mon 07.Apr.2025   Moved to local init dir, added loginfo2
+
+# Echo if logifo level or greater
+
+loginfo2() {
+    local ARG
+    ARG=$1
+    if [ $((VERBOSE)) -ge $((ARG)) ] ; then
+        shift
+        echo -n "$(ptime) "
+        echo $*
+    fi
+}
 
 # Returns OK if $1 contains $2
 
@@ -16,9 +28,7 @@ strstr() {
 
 getarg() {
 
-    if [ $((VERBOSE)) -gt 1 ] ; then
-        echo "getarg() $*"
-    fi
+    loginfo2 6 "getarg() $*"
 
     set +x
     local o line
@@ -44,9 +54,7 @@ getarg() {
 
 getargs() {
 
-    if [ $((VERBOSE)) -gt 1 ] ; then
-        echo "getargs() $*"
-    fi
+    loginfo2 5 "getargs() $*"
 
     set +x
     local oo line
@@ -61,7 +69,7 @@ getargs() {
        read -r CMDLINE </proc/cmdline;
        CMDLINE="$CMDLINE $CMDLINE_ETC"
     fi
-    #echo "cmdline = '" $CMDLINE "'"
+    loginfo2 2 "cmdline =  \'$CMDLINE"\'
     for oo in $CMDLINE; do
        if [ "${oo%=*}" = "${1%=}" ]; then
             #echo "Found:" "${o#*=} ";
@@ -148,7 +156,7 @@ killproc() {
 
 # Retry mount seral times in one go.
 
-mountCD() {
+findCD() {
 
     local RETRYCNT=10 DELAYONE=0.5 cntx
     cntx=0
@@ -156,7 +164,7 @@ mountCD() {
         if [ $cntx -gt $RETRYCNT ] ; then
            break
         fi
-        mountCDx "$1"
+        mountCD "$1"
         if [ "$MOUNT_DEVICE" != "" ] ; then
            break
         fi
@@ -174,7 +182,7 @@ mountCD() {
 #           Tue 24.Dec.2024         Reworked 64 bit
 #           Tue 24.Dec.2024         Scanning lsblk
 
-mountCDx() {
+mountCD() {
 
     if [ $((VERBOSE)) -gt 1 ] ; then
         echo "_mountcd() $*"
@@ -188,12 +196,12 @@ mountCDx() {
     mkdir -p /mnt/guest  >/dev/null 2>&1
     #echo "MountCD() $DEVS"
     for ii in $DEVS; do
-        #echo "Test Drive" $ii
+        loginfo2 1 "Test Drive: /dev/$ii"
         sleep 0.01       # Needs to breathe
         DEVX="/dev/$ii"
-        mount -o ro "$DEVX" "$CDROOT"  >/dev/null 2>&1
-        if test -f "$CDROOT/etc/COMLINUX_VERSION" ; then
-            #echo "Found COMLIN SYSTEM at /dev/$ii"
+        mount -o silent "$DEVX" "$CDROOT"  >/dev/null 2>&1
+        if [ -f "$CDROOT/etc/COMLINUX_VERSION" ] ; then
+            loginfo2 0 "Found COMLIN SYSTEM at /dev/$ii"
             MOUNT_DEVICE=$DEVX
             return 0
         else
@@ -249,38 +257,61 @@ temporary_shell()
     setsid -c -w /bin/bash
 }
 
-loadmods() {
+loadmods2() {
 
     # Load modules intended for this system
 
-    if [ $((VERBOSE)) -gt 1 ] ; then
-        echo "loadmods() $* "
-    fi
-    local modx unsp
-
-    while read -r modx ;
+    loginfo2 1 "loadmods() $* "
+    local MODX UNSP
+    while read -r MODX ;
     do
-        if [ $((VERBOSE)) -gt 2 ] ; then
-            echo "line: [$modx]"
-        fi
-        unsp=${modx# }
-        if [ "${unsp}" == "" ] ; then
+        loginfo2 7 "line: \'$MODX\'"
+        UNSP=${MODX# }
+        if [ "${UNSP}" == "" ] ; then
             continue
         fi
-        #echo unsp: "'"$unsp"'"
-        if [ "${unsp:0:1}" == "#" ] ; then
-            #echo Comment $unsp
+        #echo UNSP: "'"$UNSP"'"
+        if [ "${UNSP:0:1}" == "#" ] ; then
+            #echo Comment $UNSP
             continue
         fi
-        if [ $((VERBOSE)) -gt 1 ] ; then
-            echo -n "Loading module: $unsp"
-        fi
+        loginfo2 6 "Loading module: $UNSP"
+
         if [ $((TESTME)) -gt 0 ] ; then
-            echo "Would Load:" "'""$unsp""'"
+            echo "Would Load:" "'""$UNSP""'"
         else
-            modprobe "$unsp" >/dev/null 2>&1
+            modprobe "$UNSP" >/dev/null 2>&1
         fi
     done < etc/modules
 }
+
+# Get milli seconds from epoch
+getmilli()
+{
+    echo $(($(date +%s%N)/1000000))
+}
+
+SFILE=/.starttime
+
+tanchor()
+{
+    #export TTT0
+    TTT0=$(getmilli)
+    echo "$TTT0" > $SFILE
+}
+
+readanchor() {
+    read -r TTT0 < $SFILE
+}
+
+ptime() {
+
+    local TTT2 TTT3 SECS MSECS
+    TTT2=$(getmilli)
+    TTT3=$((TTT2-TTT0))
+    SECS=$((TTT3 / 1000))
+    MSECS=$((TTT3 % 1000))
+    printf "%d.%-3d " $SECS $MSECS
+    }
 
 # EOF

@@ -74,7 +74,7 @@ initramfs: apps
 checkscripts:
 	@sudo ./scripts/make_check_scripts
 
-craftiso: buildsys
+doiso: buildsys
 	@sudo ./scripts/make_iso
 	@make playsound
 

@@ -6,12 +6,11 @@
 # Sun 06.Apr.2025  Diff on make initramfs
 
 # This also signals that we are active
-echo
+#echo
 echo "Booting Community Linux 64 Version 1.0.0, built on Thu 20.Mar.2025"
 echo
 
-# See if we are in simulation by looking at GUI files
-#   (which do not run at yet in real boot)
+# Developers: See if we are in simulation by looking at GUI files
 #INSIM=$(pgrep Xorg)
 #echo "insim" $INSIM
 #if [  "$INSIM" != "" ] ; then
@@ -22,36 +21,54 @@ echo
 #    echo real exec
 #fi
 
+/usr/bin/setterm --msglevel 1
+
+# Load our lib
+. init.sh
+
 # Silence async messages on terminal
 export TERM=linux
-/usr/bin/setterm --msg off
 export USER=root
 export HOME=/root
 
 printf "Loaded kernel ... \033[32;1mOK\033[0m \n"
 export PATH=/sbin:/bin:/usr/sbin:/usr/bin
 
-mkdir -p /dev/pts
-
 # Mount some basic things
-mkdir -p /proc ; mount -t proc proc /proc
-mkdir -p /sys ; mount -t sysfs sysfs /sys
-
-# Devices go here
-mount -t devtmpfs devtmpfs /dev
-udevadm settle
-mount -t devpts -o nosuid,noexec,nodev devpts /dev/pts
-
-# Load our lib
-. /lib/shlib/comlin.sh
+mount -t proc proc /proc
+mount -t sysfs sysfs /sys
 
 getargs 'verbose' && export VERBOSE="$FOUNDVAL"
-getarg 'ramfs=cmdline' && temporary_shell -n cmdline "Break at the beginning of script"
+
+loginfo2 1 "After mounted proc"
+
+#dmesg -D dmesg -n 1
+tanchor
+
+# Devices go here
+mount -o silent -t devtmpfs devtmpfs /dev  >/dev/null 2>&1
+udevadm settle
+
+loginfo2 1 "After mounted dev"
+
+mkdir -p /dev/pts
+mount -o silent -t devpts -o nosuid,noexec,nodev devpts /dev/pts >/dev/null 2>&1
+
+loginfo2 1 "After mounted dev/pts"
+
+# This should silence kernel messages to console
+rm -f /run/rsyslog.pid
+rsyslogd
+
+getarg 'rbreak=cmdline' && temporary_shell -n cmdline "Break at the beginning of script"
+
+ctrl_c() {
+    echo "Stopping temporarily, type exit to continue"
+    temporary_shell \"CTRL-C caught!\"
+}
 
 trap "temporary_shell Signal caught!" 0
-trap "echo Stopping temporarily" 2
-
-#trap "echo Stopping temporarily, type exit to continue; temporary_shell \"CTRL-C caught!\" " 2
+trap  ctrl_c 2
 
 CDROOT="/cdroot"
 NEWROOT="/sysroot"
@@ -62,10 +79,12 @@ TMPROOT=/tmp
 # Just to make sure
 ln -s /proc/self/fd /dev/fd >/dev/null 2>&1
 
-# Load modules needed
-loadmods
+loginfo2 0 -n "Loading modules ... "
 
-getarg 'ramfs=systemd' && temporary_shell -n systemd "Break before systemd"
+# Load modules needed
+loadmods2 "$*"
+
+getarg 'rbreak=systemd' && temporary_shell -n systemd "Break before systemd"
 
 # Start udev and execute trigger for a rescan
 WASSYSD=$(pgrep systemd-udevd)
@@ -80,9 +99,9 @@ udevadm settle
 partprobe
 
 # Pre-mount happens before we try to mount the root filesystem
-getarg 'ramfs=pre-mount' && temporary_shell -n pre-mount "Break pre-mount"
+getarg 'rbreak=pre-mount' && temporary_shell -n pre-mount "Break pre-mount"
 
-printf "Mounting media ... "
+loginfo2 0 "Mounting media ... "
 
 # Mount scripts actually try to mount the root filesystem,
 ii=0
@@ -90,7 +109,7 @@ while :; do
     # If no root, search for it, else accept command line
     if [ -z "$root" ] ; then
         MOUNT_DEVICE=""
-        mountCD $CDROOT
+        findCD $CDROOT
     else
         MOUNT_DEVICE=$root
     fi
@@ -112,23 +131,19 @@ while :; do
     fi
 done
 
-if [ $((VERBOSE)) -gt 1 ] ; then
-    echo "Mounted $MOUNT_DEVICE filesystem on $CDROOT"
-fi
-
 printf "\033[32;1mOK\033[0m \n"
+
+loginfo2 1 "Mounted $MOUNT_DEVICE filesystem on $CDROOT"
 
 # By the time we get here, the root filesystem should be mounted.
 # Try to find init.
 
 for ii in "$(getarg init=)"/sbin/preinit /sbin/init /init /etc/init /bin/sh; do
-    #echo "Search $CDROOT$ii"
+    loginfo2 1 "Init search $CDROOT$ii"
     [ -f "$CDROOT$ii" ] && [ -x "$CDROOT$ii" ] && { INIT="$ii"; break; }
 done
 
-if [ $((VERBOSE)) -gt 1 ] ; then
-    echo "POST init search: $INIT"
-fi
+loginfo2 1 "POST init search: $INIT"
 
 [ "$INIT" ] || {
     echo "Cannot find CD init!"
@@ -136,10 +151,12 @@ fi
     temporary_shell -n check_init "ramfs CD No Init "
 }
 
+loginfo2 1 "Mounting newroot"
 mount -t tmpfs -o tmpfs $NEWROOT  >/dev/null 2>&1
 
 touch /etc/fstab
 
+loginfo2 1 "Mounting tmproot"
 mount -t tmpfs -o tmpfs $TMPROOT  >/dev/null 2>&1
 
 mkdir -p $TMPROOT/work
@@ -149,13 +166,15 @@ mkdir -p $TMPROOT/fs
 #mount --bind / $TMPROOT/fs/orig
 #mount --make-private $TMPROOT/fs/orig
 
-getarg 'ramfs=pre-overlay' && temporary_shell -n overlay "Break before overlay"
+getarg 'rbreak=pre-overlay' && temporary_shell -n overlay "Break before overlay"
 
 if [  "$INSIM" != "" ] ; then
     exit
 fi
 
 mkdir -p $NEWROOT/dev/pts
+
+loginfo2 1 "Exeuting overlay"
 
 mount -t overlay  comlin_overlay  \
         -olowerdir=$CDROOT,upperdir=$TMPROOT/fs,workdir=$TMPROOT/work \
@@ -168,7 +187,7 @@ mount -t overlay  comlin_overlay  \
 # Copy it so pre-init can see it
 echo "$CMDLINE" >$NEWROOT/var/cmdline
 
-getarg 'ramfs=pre-del' && temporary_shell -n del_initram "Break before init_ram"
+getarg 'rbreak=pre-del' && temporary_shell -n del_initram "Break before init_ram"
 
 # Del unneeded files ... should release appx 80 megs (not much)
 # We deal with it later ...
@@ -181,7 +200,7 @@ getarg 'ramfs=pre-del' && temporary_shell -n del_initram "Break before init_ram"
 #    rm -rf usr/sbin
 #fi
 
-getarg 'ramfs=pre-chroot' && temporary_shell \
+getarg 'rbreak=pre-chroot' && temporary_shell \
             -n switch_root "Break before switch_root"
 
 # We deal with it later ...
@@ -190,7 +209,7 @@ getarg 'ramfs=pre-chroot' && temporary_shell \
 #    rm -rf bin
 #fi
 
-#echo "Jumping to preinit ... "
+loginfo2 1 "Jumping to preinit ... "
 
 cd $NEWROOT || echo Failed to change root
 
@@ -198,6 +217,9 @@ getargs 'preinit='
 if [ "" = "$FOUNDCMD" ]; then
     FOUNDCMD="/sbin/preinit"
 fi
+
+dmesg -n 4
+#dmesg -E
 
 # TESTING (oddly enough it worked)
 #chroot . /bin/systemd
