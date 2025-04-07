@@ -58,7 +58,8 @@ loginfo 1 "Preinit stage ..."
 # Determine overall flags for operation
 getargy 'verbose' && export VERBOSE=$FOUNDVAL
 
-loginfo 0 "Booting Community Linux, Lib version: $LIBVERS"
+loginfo 0 -n "Booting Community Linux, Lib version: $LIBVERS "
+echo -e " \033[32;1mOK\033[0m"
 
 # Variables:
 #    verbose=lev        Verbosity level
@@ -125,7 +126,7 @@ getargx 'ibreak=vt' && tmpshell "$FOUNDVAR $ "
 loginfo 0 -n "Starting VTs ... "
 startvts
 getargy 'isleep' && sleep "$FOUNDVAL"
-logok
+logok 0
 
 loginfo 1 "Created mounts."
 
@@ -235,7 +236,7 @@ if [ "$MOUNT_DISK" == "" ] ; then
             exec setsid /sbin/postinit
         fi
     else
-        echo "Started without writable media."
+        loginfo 1 "Started without writable media."
         exec setsid /sbin/postinit
     fi
 fi

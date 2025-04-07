@@ -1,5 +1,5 @@
 #!/bin/bash
-# shellcheck disable=SC2002,SC2048
+# shellcheck disable=SC2002,SC2048,SC2068
 
 # COMLIN Linux boot lib: Thu 20.Mar.2025
 
@@ -23,7 +23,13 @@ loginfo() {
     if [ $((VERBOSE)) -ge $((LEVEL)) ] ; then
         shift
         echo -n "$(ptime) "
-        echo $*
+        if [ "$1" == "-n" ] ; then
+            shift
+            NN="-n"
+        else
+            NN=""
+        fi
+        echo $NN "$*"
     fi
 }
 

@@ -4,13 +4,13 @@
 # Custom INIT for Community Linux INITRD / INITRAMFS.
 # See doc in init.doc.txt
 # Sun 06.Apr.2025  Diff on make initramfs
+# Mon 07.Apr.2025  Found pesky kernel messages
 
 # This also signals that we are active
-#echo
-echo "Booting Community Linux 64 Version 1.0.0, built on Thu 20.Mar.2025"
 echo
+echo -e "Booting Community Linux 64 Version 1.0.0 \033[32;1mOK\033[0m"
 
-# Developers: See if we are in simulation by looking at GUI files
+# Developers: See if we are in simulation by looking at GUI X progs
 #INSIM=$(pgrep Xorg)
 #echo "insim" $INSIM
 #if [  "$INSIM" != "" ] ; then
@@ -21,7 +21,7 @@ echo
 #    echo real exec
 #fi
 
-/usr/bin/setterm --msglevel 1
+/usr/bin/setterm --msg off
 
 # Load our lib
 . init.sh
@@ -42,7 +42,8 @@ getargs 'verbose' && export VERBOSE="$FOUNDVAL"
 
 loginfo2 1 "After mounted proc"
 
-#dmesg -D dmesg -n 1
+#dmesg -n 1
+
 tanchor
 
 # Devices go here
@@ -59,6 +60,8 @@ loginfo2 1 "After mounted dev/pts"
 # This should silence kernel messages to console
 rm -f /run/rsyslog.pid
 rsyslogd
+
+loginfo2 1 "After syslogd"
 
 getarg 'rbreak=cmdline' && temporary_shell -n cmdline "Break at the beginning of script"
 
@@ -80,9 +83,9 @@ TMPROOT=/tmp
 ln -s /proc/self/fd /dev/fd >/dev/null 2>&1
 
 loginfo2 0 -n "Loading modules ... "
-
 # Load modules needed
 loadmods2 "$*"
+printf "\033[32;1mOK\033[0m \n"
 
 getarg 'rbreak=systemd' && temporary_shell -n systemd "Break before systemd"
 
@@ -96,12 +99,15 @@ udevadm trigger -c add -t subsystems
 udevadm settle
 udevadm trigger -c add -t devices
 udevadm settle
-partprobe
+
+#loginfo2 0 -n "Partprobe ... "
+#partprobe >/dev/null 2>&1
+#printf "\033[32;1mOK\033[0m \n"
 
 # Pre-mount happens before we try to mount the root filesystem
 getarg 'rbreak=pre-mount' && temporary_shell -n pre-mount "Break pre-mount"
 
-loginfo2 0 "Mounting media ... "
+loginfo2 0 -n "Mounting media ... "
 
 # Mount scripts actually try to mount the root filesystem,
 ii=0
@@ -218,8 +224,7 @@ if [ "" = "$FOUNDCMD" ]; then
     FOUNDCMD="/sbin/preinit"
 fi
 
-dmesg -n 4
-#dmesg -E
+#dmesg -n 4
 
 # TESTING (oddly enough it worked)
 #chroot . /bin/systemd

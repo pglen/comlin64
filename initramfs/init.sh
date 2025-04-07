@@ -1,5 +1,5 @@
 #!/bin/bash
-# shellcheck disable=SC1090,SC2048,SC2086
+# shellcheck disable=SC1090,SC2048,SC2086,SC2068
 
 # Custom Comlin INIT library.
 #
@@ -14,14 +14,23 @@ loginfo2() {
     if [ $((VERBOSE)) -ge $((ARG)) ] ; then
         shift
         echo -n "$(ptime) "
-        echo $*
+        if [ "$1" == "-n" ] ; then
+            shift
+            NN="-n"
+        else
+            NN=""
+        fi
+        echo $NN "$*"
     fi
 }
 
-# Returns OK if $1 contains $2
-
-strstr() {
-  [ "${1#*"$2"*}" != "$1" ]
+logok2() {
+    local ARG
+    ARG=$1
+    if [ $((VERBOSE)) -ge $((ARG)) ] ; then
+        shift
+        printf "\033[32;1mOK\033[0m \n"
+    fi
 }
 
 # Get arg from command line. Return 1 for arg found.
@@ -92,24 +101,6 @@ setdebug() {
     [ "$RDDEBUG" = "yes" ] && set -x
 }
 
-source_all() {
-    local f
-    [ "$1" ] && [  -d "/$1" ] || return
-    for f in "/$1"/*.sh; do [ -e "$f" ] && . "$f"; done
-}
-
-source_conf() {
-    local f
-    [ "$1" ] && [  -d "/$1" ] || return
-    for f in "/$1"/*.conf; do [ -e "$f" ] && . "$f"; done
-}
-
-check_finished() {
-    local f
-    for f in /initqueue-finished/*.sh; do { [ -e "$f" ] && ( . "$f" ) ; } || return 1 ; done
-    return 0
-}
-
 check_occurances() {
     # Count the number of times the character $ch occurs in $str
     # Return 0 if the count matches the expected number, 1 otherwise
@@ -154,21 +145,22 @@ killproc() {
     done
 }
 
-# Retry mount seral times in one go.
+# Retry mount several times in one go.
 
 findCD() {
 
-    local RETRYCNT=10 DELAYONE=0.5 cntx
-    cntx=0
+    mkdir -p "$CDROOT"  >/dev/null 2>&1
+    local RETRYCNT DELAYONE CNTX
+    RETRYCNT=10; DELAYONE=0.5; CNTX=0
     while :; do
-        if [ $cntx -gt $RETRYCNT ] ; then
+        if [ $CNTX -gt $RETRYCNT ] ; then
            break
         fi
         mountCD "$1"
         if [ "$MOUNT_DEVICE" != "" ] ; then
            break
         fi
-        cntx=$((cntx+1))
+        CNTX=$((CNTX+1))
         sleep $DELAYONE
     done
 }
@@ -188,26 +180,24 @@ mountCD() {
         echo "_mountcd() $*"
     fi
 
-    partprobe
-    export MOUNT_DEVICE=""
-
-    local ii DEVS
+    #partprobe >/dev/null 2>&1
+    local LOOPX DEVS
     DEVS=$(lsblk --raw | grep -v "NAME" | awk '{ print $1; }')
-    mkdir -p /mnt/guest  >/dev/null 2>&1
-    #echo "MountCD() $DEVS"
-    for ii in $DEVS; do
-        loginfo2 1 "Test Drive: /dev/$ii"
+    loginfo2 2  "MountCD() $DEVS"
+    for LOOPX in $DEVS; do
         sleep 0.01       # Needs to breathe
-        DEVX="/dev/$ii"
-        mount -o silent "$DEVX" "$CDROOT"  >/dev/null 2>&1
+        DEVX="/dev/$LOOPX"
+        loginfo2 3 "Testing Drive: $DEVX"
+        mount "$DEVX" "$CDROOT"  >/dev/null 2>&1
         if [ -f "$CDROOT/etc/COMLINUX_VERSION" ] ; then
-            loginfo2 0 "Found COMLIN SYSTEM at /dev/$ii"
+            loginfo2 1 "Found COMLIN SYSTEM at /dev/$ii"
             MOUNT_DEVICE=$DEVX
             return 0
         else
+            MOUNT_DEVICE=""
             umount "$DEVX" >/dev/null 2>&1
         fi
-        done
+    done
     return 1
 }
 
