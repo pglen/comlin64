@@ -7,8 +7,8 @@
 # Mon 07.Apr.2025  Found pesky kernel messages
 
 # This also signals that we are active
-echo
-echo -e "Booting Community Linux 64 Version 1.0.0 \033[32;1mOK\033[0m"
+#echo
+echo -e "Booting Community Linux 64 Version 1.0.0 ... \033[32;1mOK\033[0m"
 
 # Developers: See if we are in simulation by looking at GUI X progs
 #INSIM=$(pgrep Xorg)
@@ -21,17 +21,20 @@ echo -e "Booting Community Linux 64 Version 1.0.0 \033[32;1mOK\033[0m"
 #    echo real exec
 #fi
 
+# Do not clutter screen, silence async messages on terminal
 /usr/bin/setterm --msg off
 
 # Load our lib
 . init.sh
 
-# Silence async messages on terminal
 export TERM=linux
 export USER=root
 export HOME=/root
 
-printf "Loaded kernel ... \033[32;1mOK\033[0m \n"
+tanchor
+
+loginfo2 0 -e "Loaded kernel ... \033[32;1mOK\033[0m"
+
 export PATH=/sbin:/bin:/usr/sbin:/usr/bin
 
 # Mount some basic things
@@ -43,8 +46,6 @@ getargs 'verbose' && export VERBOSE="$FOUNDVAL"
 loginfo2 1 "After mounted proc"
 
 #dmesg -n 1
-
-tanchor
 
 # Devices go here
 mount -o silent -t devtmpfs devtmpfs /dev  >/dev/null 2>&1
@@ -85,7 +86,7 @@ ln -s /proc/self/fd /dev/fd >/dev/null 2>&1
 loginfo2 0 -n "Loading modules ... "
 # Load modules needed
 loadmods2 "$*"
-printf "\033[32;1mOK\033[0m \n"
+echo -e "\033[32;1mOK\033[0m"
 
 getarg 'rbreak=systemd' && temporary_shell -n systemd "Break before systemd"
 
@@ -99,10 +100,6 @@ udevadm trigger -c add -t subsystems
 udevadm settle
 udevadm trigger -c add -t devices
 udevadm settle
-
-#loginfo2 0 -n "Partprobe ... "
-#partprobe >/dev/null 2>&1
-#printf "\033[32;1mOK\033[0m \n"
 
 # Pre-mount happens before we try to mount the root filesystem
 getarg 'rbreak=pre-mount' && temporary_shell -n pre-mount "Break pre-mount"
@@ -137,9 +134,12 @@ while :; do
     fi
 done
 
-printf "\033[32;1mOK\033[0m \n"
+echo -e "\033[32;1mOK\033[0m"
 
 loginfo2 1 "Mounted $MOUNT_DEVICE filesystem on $CDROOT"
+
+MOUNTLINE=$(mount | grep "$CDROOT")
+loginfo2 1 "Mountline $MOUNTLINE"
 
 # By the time we get here, the root filesystem should be mounted.
 # Try to find init.
@@ -192,6 +192,9 @@ mount -t overlay  comlin_overlay  \
 
 # Copy it so pre-init can see it
 echo "$CMDLINE" >$NEWROOT/var/cmdline
+
+# Copy mount line as well
+echo "$MOUNTLINE" >$NEWROOT/var/mountline
 
 getarg 'rbreak=pre-del' && temporary_shell -n del_initram "Break before init_ram"
 

@@ -58,14 +58,14 @@ loginfo 0 -n "Starting DBUS ... "
 mkdir -p /run/dbus
 dbus-daemon --system >>"$SULOUT" 2>>"$SULERR" &
 getargy 'isleep' && sleep "$FOUNDVAL"
-echo -e " \033[32;1mOK\033[0m"
+loginfo 0 -e " \033[32;1mOK\033[0m"
 
 # Start logging
 loginfo 0 -n "Starting rsyslogd ... "
 rm -f /run/rsyslogd.pid
 rsyslogd >> "$SULOUT" 2>> "$SULERR" &
 getargy 'isleep' && sleep "$FOUNDVAL"
-echo -e " \033[32;1mOK\033[0m"
+loginfo 0 -e " \033[32;1mOK\033[0m"
 
 dbus-daemon --session >/dev/null 2>&1 &
 
@@ -73,32 +73,31 @@ getargx 'ibreak=polkit' && tmpshell "$FOUNDVAR $ "
 loginfo 0 -n "Starting polkit ... "
 /usr/libexec/polkitd >>"$SULOUT" 2>>"$SULERR" &
 getargy 'isleep' && sleep "$FOUNDVAL"
-echo -e " \033[32;1mOK\033[0m"
+loginfo 0  -e " \033[32;1mOK\033[0m"
 
 getargx 'ibreak=udevd' && tmpshell "$FOUNDVAR $ "
-ptime ;echo -n "Starting systemd-udevd ... "
+loginfo 0 -n "Starting systemd-udevd ... "
 /lib/systemd/systemd-udevd >>"$SULOUT" 2>>"$SULERR" &
 getargy 'isleep' && sleep "$FOUNDVAL"
-echo -e " \033[32;1mOK\033[0m"
+loginfo 0 -e " \033[32;1mOK\033[0m"
 
-#echo -n "systemd-logind "
+#loginfo 0  -n "systemd-logind "
 #/lib/systemd/systemd-logind >>$SULOUT 2>>$SULERR &
 #getargy 'isleep' && sleep "$FOUNDVAL"
-#echo -e " \033[32;1mOK\033[0m"
+#loginfo 0 -e " \033[32;1mOK\033[0m"
 
 getargx 'ibreak=sound' &&  tmpshell "$FOUNDVAR $ "
-ptime ;echo -n "Starting sound system ... "
+loginfo 0 -n "Starting sound system ... "
 rm -rf /dev/snd/*
 make_sound_devices
 getargy 'isleep' && sleep "$FOUNDVAL"
-echo -e " \033[32;1mOK\033[0m"
+loginfo 0 -e " \033[32;1mOK\033[0m"
 
 rm -rf /var/run/pulse/pid
-#rm -rf .config/pulse/*
 
 # Second round for dependents (like: WIFI)
 
-ptime ; echo -n "Finalizing devices  ... "
+loginfo -n "Finalizing devices  ... "
 
 udevadm trigger -c add -t subsystems
 udevadm settle
@@ -109,41 +108,42 @@ loadmods
 udevadm settle
 loaddevs
 udevadm settle
-loadmods
-udevadm settle
 
-echo -e " \033[32;1mOK\033[0m"
+#loadmods
+#udevadm settle
+
+loginfo 0 -e " \033[32;1mOK\033[0m"
 
 mkdir -p /dev/pts ; mount -t devpts devpts /dev/pts
 
 getargx 'ibreak=pre-acpi' && tmpshell  "$FOUNDVAR $ "
-ptime ; echo -n "Starting acpid ... "
+loginfo 0 -n "Starting acpid ... "
 /usr/sbin/acpid >>"$SULOUT" 2>>"$SULERR" &
 
 getargy 'isleep' && sleep "$FOUNDVAL"
-echo -e " \033[32;1mOK\033[0m"
+loginfo 0 -e " \033[32;1mOK\033[0m"
 
-ptime ; echo -n "Pulseaudio daemon ... "
+loginfo 0 -n "Pulseaudio daemon ... "
 mkdir -p /dev/shm
 pulseaudio --deaemonize=no --system --realtime  >>"$SULOUT" 2>>"$SULERR"  &
 #pulseaudio --system  >>"$SULOUT" 2>>"$SULERR"  &
 #pactl set-sink-mute 0 0  >>$SULOUT 2>>$SULERR
 #pactl set-sink-volume 0 0.5  >>$SULOUT 2>>$SULERR
 getargy 'isleep' && sleep "$FOUNDVAL"
-echo -e " \033[32;1mOK\033[0m"
+loginfo 0 -e " \033[32;1mOK\033[0m"
 
 getargx 'ibreak=network' && tmpshell "$FOUNDVAR $ "
-ptime ; echo -n "Starting network ... "
+loginfo 0 -n "Starting network ... "
 dhclient >>"$SULOUT" 2>>"$SULERR" &
 NetworkManager
 getargy 'isleep' && sleep "$FOUNDVAL"
-echo -e " \033[32;1mOK\033[0m"
+loginfo 0 -e " \033[32;1mOK\033[0m"
 
 getargx 'ibreak=pre-sshd' && tmpshell  "$FOUNDVAR $ "
-ptime ; echo -n "Starting sshd ... "
+loginfo 0 -n "Starting sshd ... "
 /usr/sbin/sshd >>"$SULOUT" 2>>"$SULERR" &
 getargy 'isleep' && sleep "$FOUNDVAL"
-echo -e " \033[32;1mOK\033[0m"
+loginfo 0 -e " \033[32;1mOK\033[0m"
 
 # This is a precaution, comment out if not wanted
 #/usr/sbin/thermald
@@ -168,10 +168,11 @@ export XAUTHLOCALHOSTNAME=localhost
 
 while : ; do
     rm -f $SDCOM                # Fresh start
-    getargx 'ibreak=pre-gui' && tmpshell  "$FOUNDVAR $ "
-
-    printf "Starting GUI, \033[34;1m(in progress)\033[0m ... "
     stty -g >.stty_dump.txt
+
+    getargx 'ibreak=pre-gui' && tmpshell  "$FOUNDVAR $ "
+    loginfo 0 -n -e "Starting GUI, \033[34;1m(in progress)\033[0m ... "
+    getargy 'isleep' && sleep "$FOUNDVAL"
 
     # Start initial GUI for login program 'pylogin'
     xinit -- -keeptty vt5  >.xorg_out 2>.xorg_err
@@ -185,7 +186,7 @@ while : ; do
     stty "$(cat .stty_dump.txt)"
     stty sane
 
-    echo -e " \033[32;1mDone\033[0m"
+    loginfo 0 -e " \033[32;1mDone\033[0m"
 
     getargx 'ibreak=post-gui' &&  tmpshell "$FOUNDVAR $ "
 
@@ -196,13 +197,12 @@ while : ; do
     fi
 
     # If it got here, it is a GUI Exit / Logout
-    echo
+    #echo
     echo "-------------------------------------------------------------"
     echo "Type:     'exit' (or Ctrl-D) to start a new X login"
     echo "          'linux_reboot -f' to restart computer."
     echo "          'linux_poweroff -f' to power down computer."
     echo "           ... or any available bash command."
-    echo "-------------------------------------------------------------"
     echo
 
     tmpshell "System Control Prompt $ "

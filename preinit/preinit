@@ -58,8 +58,8 @@ loginfo 1 "Preinit stage ..."
 # Determine overall flags for operation
 getargy 'verbose' && export VERBOSE=$FOUNDVAL
 
-loginfo 0 -n "Booting Community Linux, Lib version: $LIBVERS "
-echo -e " \033[32;1mOK\033[0m"
+#loginfo 0 -n "Booting Community Linux, Lib version: $LIBVERS "
+#echo -e " \033[32;1mOK\033[0m"
 
 # Variables:
 #    verbose=lev        Verbosity level

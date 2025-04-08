@@ -18,17 +18,27 @@ SULERR=$SUL/log_err; SULOUT=$SUL/log_out
 # Echo arguments if verbose is ON
 
 loginfo() {
-    local LEVEL
-    LEVEL=$1
-    if [ $((VERBOSE)) -ge $((LEVEL)) ] ; then
+
+    #echo args1: "$@"
+    local ARG NN
+    ARG=$1; NN=""
+    if [ $((VERBOSE)) -ge $((ARG)) ] ; then
         shift
+        #echo args2: "$@"
         echo -n "$(ptime) "
-        if [ "$1" == "-n" ] ; then
-            shift
-            NN="-n"
-        else
-            NN=""
-        fi
+        while : ; do
+            if [ "$1" == "-n" ] ; then
+                shift
+                NN="$NN-n "
+            else
+                if [ "$1" == "-e" ] ; then
+                    shift
+                    NN="$NN-e "
+                else
+                    break;
+                fi
+            fi
+        done
         echo $NN "$*"
     fi
 }

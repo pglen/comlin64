@@ -6,20 +6,30 @@
 # Thu 16.Jan.2025   Added some function descriptions.
 # Mon 07.Apr.2025   Moved to local init dir, added loginfo2
 
-# Echo if logifo level or greater
+    # Echo if logifo level or greater
 
 loginfo2() {
-    local ARG
-    ARG=$1
+
+    #echo args1: "$@"
+    local ARG NN
+    ARG=$1; NN=""
     if [ $((VERBOSE)) -ge $((ARG)) ] ; then
         shift
+        #echo args2: "$@"
         echo -n "$(ptime) "
-        if [ "$1" == "-n" ] ; then
-            shift
-            NN="-n"
-        else
-            NN=""
-        fi
+        while : ; do
+            if [ "$1" == "-n" ] ; then
+                shift
+                NN="$NN-n "
+            else
+                if [ "$1" == "-e" ] ; then
+                    shift
+                    NN="$NN-e "
+                else
+                    break;
+                fi
+            fi
+        done
         echo $NN "$*"
     fi
 }
@@ -29,7 +39,7 @@ logok2() {
     ARG=$1
     if [ $((VERBOSE)) -ge $((ARG)) ] ; then
         shift
-        printf "\033[32;1mOK\033[0m \n"
+        echo -e "\033[32;1mOK\033[0m \n"
     fi
 }
 
