@@ -1,8 +1,10 @@
 #!/bin/bash
 
-if [ "$1" != "justvars" ] ; then
+. grub_funct
+
+#if [ "$1" != "justvars" ] ; then
     check_drive ../config_drive
-fi
+#fi
 
 IMGFILE="32G.img"
 INSTROOT="$GRUBROOTp"2

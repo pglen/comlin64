@@ -23,7 +23,7 @@ cpchown() {
     sudo chmod go-w  $FFF
 }
 
-TARG=$ROOTFS/usr/bin
+TARG=$LITEUSB/usr/bin
 
 echo -n "Copying APPS to $TARG ... "
 
@@ -47,6 +47,16 @@ cpchown $APPDIR/pypass/pypass.conf $ROOTFS/etc/pypass
 
 cpchown $APPDIR/pypass/Utils/background.png $ROOTFS/root/Utils
 cpchown $APPDIR/pypass/Utils/icon.png $ROOTFS/root/Utils
+
+TARG2=$LITEUSB/usr/local/bin
+mkdir -p $TARG2
+chown root.root $TARG2
+
+mkdir -p $TARG2/panglib
+chown root.root $TARG2/panglib
+
+cpchown ../../../pgpygtk/pangview/pangview.py $TARG2
+cp -av ../../../pgpygtk/pangview/panglib/* $TARG2/panglib
 
 echo OK
 

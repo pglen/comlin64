@@ -15,32 +15,36 @@ SULERR=$SUL/log_err; SULOUT=$SUL/log_out
 # simulation / test environment. Warning: it will not work in real env.
 #TESTME=1
 
-# Echo arguments if verbose is ON
-
 loginfo() {
 
+    # Show info. use: loginfo Level [opts] [strs]
+    # Option -t must be the first
+
     #echo args1: "$@"
-    local ARG NN
-    ARG=$1; NN=""
-    if [ $((VERBOSE)) -ge $((ARG)) ] ; then
-        shift
-        #echo args2: "$@"
-        echo -n "$(ptime) "
-        while : ; do
-            if [ "$1" == "-n" ] ; then
-                shift
-                NN="$NN-n "
-            else
-                if [ "$1" == "-e" ] ; then
-                    shift
-                    NN="$NN-e "
-                else
-                    break;
-                fi
-            fi
-        done
-        echo $NN "$*"
+    local ARG TT
+    ARG=$1; TT=0
+    if [ $((VERBOSE)) -lt $((ARG)) ] ; then
+        return
     fi
+    shift
+    while : ; do
+        was=0
+        case $1 in
+            "-t")
+            shift; was=1; TT=1
+            ;;
+            "")
+        esac
+        if [ $was -eq 0 ] ;then
+            break
+        fi
+    done
+
+    if [ $TT -eq 0 ] ; then
+        echo -n "$(ptime) "
+    fi
+
+    echo "$@"
 }
 
 logok(){

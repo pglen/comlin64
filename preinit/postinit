@@ -58,14 +58,14 @@ loginfo 0 -n "Starting DBUS ... "
 mkdir -p /run/dbus
 dbus-daemon --system >>"$SULOUT" 2>>"$SULERR" &
 getargy 'isleep' && sleep "$FOUNDVAL"
-loginfo 0 -e " \033[32;1mOK\033[0m"
+loginfo 0 -t -e " \033[32;1mOK\033[0m"
 
 # Start logging
 loginfo 0 -n "Starting rsyslogd ... "
 rm -f /run/rsyslogd.pid
 rsyslogd >> "$SULOUT" 2>> "$SULERR" &
 getargy 'isleep' && sleep "$FOUNDVAL"
-loginfo 0 -e " \033[32;1mOK\033[0m"
+loginfo 0 -t -e " \033[32;1mOK\033[0m"
 
 dbus-daemon --session >/dev/null 2>&1 &
 
@@ -73,46 +73,43 @@ getargx 'ibreak=polkit' && tmpshell "$FOUNDVAR $ "
 loginfo 0 -n "Starting polkit ... "
 /usr/libexec/polkitd >>"$SULOUT" 2>>"$SULERR" &
 getargy 'isleep' && sleep "$FOUNDVAL"
-loginfo 0  -e " \033[32;1mOK\033[0m"
+loginfo 0 -t -e " \033[32;1mOK\033[0m"
 
 getargx 'ibreak=udevd' && tmpshell "$FOUNDVAR $ "
 loginfo 0 -n "Starting systemd-udevd ... "
 /lib/systemd/systemd-udevd >>"$SULOUT" 2>>"$SULERR" &
 getargy 'isleep' && sleep "$FOUNDVAL"
-loginfo 0 -e " \033[32;1mOK\033[0m"
+loginfo 0 -t -e " \033[32;1mOK\033[0m"
 
 #loginfo 0  -n "systemd-logind "
 #/lib/systemd/systemd-logind >>$SULOUT 2>>$SULERR &
 #getargy 'isleep' && sleep "$FOUNDVAL"
-#loginfo 0 -e " \033[32;1mOK\033[0m"
+#loginfo 0 -t -e " \033[32;1mOK\033[0m"
 
 getargx 'ibreak=sound' &&  tmpshell "$FOUNDVAR $ "
 loginfo 0 -n "Starting sound system ... "
 rm -rf /dev/snd/*
 make_sound_devices
 getargy 'isleep' && sleep "$FOUNDVAL"
-loginfo 0 -e " \033[32;1mOK\033[0m"
+loginfo 0 -t -e " \033[32;1mOK\033[0m"
 
 rm -rf /var/run/pulse/pid
 
 # Second round for dependents (like: WIFI)
 
-loginfo -n "Finalizing devices  ... "
+loginfo 0 -n "Finalizing devices  ... "
 
 udevadm trigger -c add -t subsystems
-udevadm settle
+udevadm settle -t 1
 udevadm trigger -c add -t devices
-udevadm settle
+udevadm settle -t 1
 
 loadmods
-udevadm settle
+udevadm settle -t 1
 loaddevs
-udevadm settle
+udevadm settle -t 1
 
-#loadmods
-#udevadm settle
-
-loginfo 0 -e " \033[32;1mOK\033[0m"
+loginfo 0 -t -e " \033[32;1mOK\033[0m"
 
 mkdir -p /dev/pts ; mount -t devpts devpts /dev/pts
 
@@ -121,7 +118,7 @@ loginfo 0 -n "Starting acpid ... "
 /usr/sbin/acpid >>"$SULOUT" 2>>"$SULERR" &
 
 getargy 'isleep' && sleep "$FOUNDVAL"
-loginfo 0 -e " \033[32;1mOK\033[0m"
+loginfo 0 -t -e " \033[32;1mOK\033[0m"
 
 loginfo 0 -n "Pulseaudio daemon ... "
 mkdir -p /dev/shm
@@ -130,20 +127,20 @@ pulseaudio --deaemonize=no --system --realtime  >>"$SULOUT" 2>>"$SULERR"  &
 #pactl set-sink-mute 0 0  >>$SULOUT 2>>$SULERR
 #pactl set-sink-volume 0 0.5  >>$SULOUT 2>>$SULERR
 getargy 'isleep' && sleep "$FOUNDVAL"
-loginfo 0 -e " \033[32;1mOK\033[0m"
+loginfo 0 -t -e " \033[32;1mOK\033[0m"
 
 getargx 'ibreak=network' && tmpshell "$FOUNDVAR $ "
 loginfo 0 -n "Starting network ... "
 dhclient >>"$SULOUT" 2>>"$SULERR" &
 NetworkManager
 getargy 'isleep' && sleep "$FOUNDVAL"
-loginfo 0 -e " \033[32;1mOK\033[0m"
+loginfo 0 -t -e " \033[32;1mOK\033[0m"
 
 getargx 'ibreak=pre-sshd' && tmpshell  "$FOUNDVAR $ "
 loginfo 0 -n "Starting sshd ... "
 /usr/sbin/sshd >>"$SULOUT" 2>>"$SULERR" &
 getargy 'isleep' && sleep "$FOUNDVAL"
-loginfo 0 -e " \033[32;1mOK\033[0m"
+loginfo 0 -t -e " \033[32;1mOK\033[0m"
 
 # This is a precaution, comment out if not wanted
 #/usr/sbin/thermald
@@ -186,7 +183,7 @@ while : ; do
     stty "$(cat .stty_dump.txt)"
     stty sane
 
-    loginfo 0 -e " \033[32;1mDone\033[0m"
+    loginfo 0 -t -e " \033[32;1mDone\033[0m"
 
     getargx 'ibreak=post-gui' &&  tmpshell "$FOUNDVAR $ "
 

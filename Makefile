@@ -82,8 +82,9 @@ doiso: buildsys
 buildsys: apps checkscripts initramfs prepiso prepdown getapps
 	@make playsound2
 
-createusb: buildsys
+createusb:
 	@cd grub-data ; ./do_new.sh
+	make buildsys
 	@cd grub-data ; ./do_sys.sh
 
 updateusb:  buildsys

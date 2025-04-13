@@ -1,56 +1,78 @@
-<e><c><xxl><r>T</r>roubleshooting</xxl></c></e>
-<e><c><xxl><image name=pinguin.xpm align=center> <b>Community Linux</b>.\
-<image name=pinguin.xpm align=center></xxl></c></e>
+<inc name=header.pango></inc>
+<c><b><xl>Troubleshooting</xl></b></c><xs>
 
-<c>\
-<link name=index.pango> [ <u>Index</u> ] </link> \
-<link name=install.pango> [ <u>Installation</u> ] </link>\
-<link name=troubleshoot.pango> [ <u>Troubleshoting</u> ] </link>\
-<link name=tech.pango> [ <u>Technical Details</u> ] </link>\
+</xs><inc name=menu.pango></inc><xs>
 
-<link name=install.pango> [ <u>Create ComLin Drive</u> ] </link>\
-</c>
+</xs><w><j>\
+<sp> <sp> In case there are any difficutlies, Community Linux 64 is \
+very troubleshoot friendly. Most things can be diagnosed and fixed \
+via the GRUB command line.
 
-<w>    The boot process can be troubleshooted from the GRUB command line. When  \
-starting up, press the 'e' key at the grub prompt for editing the command line.  \
-Select the <u>Community Linux 64</u> boot line and press the 'e' key again.\
-Edit the command line, press enter key when done.
-Press the 'b' key to boot.
-</w>
-  The following options are available on the kernel command line:
+<sp> <sp>The ComLin boot process can be interrupted from the GRUB \
+command line at many stages. The interruption is in the form of a \
+shell prompt, where one can diagnose and fix any issue. The shell prompt is \
+presented as a full bash shell, with all the powers one has on a full system.\
+
+  When the system is starting up, press the 'e' key at the grub prompt \
+for editing the command line.  \
+Select the <i>Community Linux 64</i> boot entry, and press the 'e' key again. \
+Edit the command line, press enter key then the 'b' key \
+(or Ctrl-x key combination) when done.
+
+  The following variables are available on the kernel command line:
 
 <b>Variables:</b>
-<in>\
-        verbose=lev     Verbosity level (lev) Values: 0 ... 10
-        isleep=sec      Sleep (sec) after commands for visual observation\
-</in>
-<b>Break items:</b>
-<m><w>   The break items suspend the execution of the startup process, and drop \
-to a shell. (for examination) The execution continues when exiting the shell \
-via the 'exit' command or Ctrl-D keyboard sequence.
-</w></m>
-<b>Break items;</b> (see source for more info)
-    ibreak=all         <tab> Stop at all break points
-    ibreak=start       <tab> Stop at the start of script.
-    ibreak=devices
-    ibreak=hd
-    ibreak=chroot
-    ibreak=all
-    ibreak=vt
-    ibreak=daemons
-    ibreak=sound
-    ibreak=network
-    ibreak=pre-mount
-    ibreak=pre-user
-    ibreak=pre-gui
-    ibreak=post-gui
-    ibreak=post-cleanup
-</m>
-<j><w>
- <b>Community Linux</b> is maintained by Peter Glen. The project is funded by donations, please consider contributing. Contributions are accepted on <r>Paypal;</r> account: <i>peterglen99@gmail.com</i>
-</w></j>
-<c>The <b>ComLin</b> and <b>Community Linux</b> names are Copyright Peter Glen.<sm>
-</sm>\
-<i>This document is displayed by the pangview utility.</i>
-</c>
 
+<m>\
+    verbose=level         <tab> <tab> Verbosity level Values: 0 ... 10
+    isleep=sec <sp> <sp>  <tab> <tab> Sleep (sec) after commands for visual observation\
+</m>
+
+The following breakpoint options are available on the kernel command line:
+
+<b>Break BOOT items:</b>
+
+These break items suspend the execution of the initramfs startup process, \
+and drop to a bash shell.
+<m>
+    rbreak=cmdline          <tab count=3>  Break at the beginning of script
+    rbreak=systemd          <tab count=3>  Break before systemd-udevd
+    rbreak=pre-mount        <tab count=3>  Break pre-mount
+    rbreak=pre-overlay      <tab count=3>  Break before overlay mont
+    rbreak=pre-del <sp><sp> <tab count=3>  Break before cleanup
+    rbreak=pre-chroot       <tab count=3>  Break before chroot to INIT FS
+</m>
+<b>Break INIT items:</b>
+
+   The break items suspend the execution of the startup (INIT) process, \
+and drop to a shell. (for examination and correctiive action) \
+The execution continues when exiting the shell via the 'exit' command \
+or Ctrl-D keyboard sequence.
+<m>
+    ibreak=all      <tab count=5>       Stop at all break points
+    ibreak=start    <tab count=4>       Stop at the start of script.
+    ibreak=devices  <tab count=4>       Stop before device install
+    ibreak=hd       <tab count=5>       Stop before HD detect
+    ibreak=chroot   <tab count=4>       Stop before chroot
+    ibreak=pre-vt   <tab count=4>       Stop before virtual terminals started
+    ibreak=pre-hd   <tab count=4>       Stop before RW storage mount
+    ibreak=findhd   <tab count=4>       Stop before storage scan
+    ibreak=pre-mount   <tab count=3>    Stop before RW mount
+    ibreak=pre-overlay <tab count=3>    Stop before real overlay mount
+    ibreak=pre-chroot  <tab count=3>    Stop before real overlay mount
+    ibreak=daemons     <tab count=3>    Stop before daemons start
+    ibreak=sound       <tab count=4>    Stop before sound card detect
+    ibreak=network     <tab count=3>    Stop before network start
+    ibreak=pre-mount   <tab count=3>    Stop before real mount
+    ibreak=pre-user    <tab count=3>    Stop before change to real user
+    ibreak=pre-gui     <tab count=4>    Stop before GUI cycle
+    ibreak=post-gui    <tab count=3>    Stop after GUI cycle
+    ibreak=post-cleanup <tab count=2>   Stop before clenup (not used)
+</m>
+<b>Break on System wipe items:</b>
+<m>
+    ibreak=post-del      <tab count=3>  Stop before delete RW
+    ibreak=pre-format    <tab count=3>  Stop before RW reformat
+    ibreak=post-create   <tab count=3>  Stop after RW created
+</m></w></m></j>
+<inc name=footer.pango>

@@ -1,4 +1,5 @@
-
+#!/bin/bash
+#
 # Get milli seconds from epoch
 getmilli()
 {
@@ -28,47 +29,42 @@ ptime() {
     printf "%d.%-3d " $SECS $MSECS
     }
 
-
 loginfo2() {
 
     # Show info. use: loginfo Level [opts] [strs]
+    # Option -t must be the first
 
     #echo args1: "$@"
-    local ARG NN TT
-    ARG=$1; NN="" ; TT=""
-    if [ $((VERBOSE)) -ge $((ARG)) ] ; then
-        shift
-        #echo args2: "$@"
-
-        while getopts 'net' opt; do
-
-            case $opt in
-                n)
-                    NN="$NN-n "
-                    ;;
-                e)
-                    NN="$NN-e "
-                    ;;
-                t)
-                    TT="1"
-                    ;;
-
-                ?)
-                    #echo no arg: $opt
-                    break
-                    ;;
-            esac
-        done
-
-        shift "$(($OPTIND -1))"
-        if [ "$TT" == "" ] ; then
-            echo -n "$(ptime) "
-        fi
-        echo $NN "$*"
+    local ARG TT
+    ARG=$1; TT=0
+    if [ $((VERBOSE)) -lt $((ARG)) ] ; then
+        return
     fi
+    shift
+    while : ; do
+        was=0
+        case $1 in
+            "-t")
+            shift; was=1; TT=1
+            ;;
+            "")
+        esac
+        if [ $was -eq 0 ] ;then
+            break
+        fi
+    done
+
+    if [ $TT -eq 0 ] ; then
+        echo -n "$(ptime) "
+    fi
+
+    echo "$@"
 }
 
 tanchor
-loginfo2 0 -e  "Hello  World "  "\033[32;1mOK\033[0m"
-loginfo2 0 "$*"
-#echo -e " \033[32;1mOK\033[0m"
+loginfo2 0   "Hello  World unescaped "  "\033[32;1mOK\033[0m"
+loginfo2 0 -t -e  "Hello  World no time disp"  "\033[32;1mOK\033[0m"
+loginfo2 0 -e  "Hello  World one line "  "\033[32;1mOK\033[0m"
+loginfo2 0 -n "Hello World  two lines "
+loginfo2 0 -t -e "\033[32;1mOK\033[0m"
+

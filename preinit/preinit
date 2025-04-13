@@ -110,11 +110,11 @@ getargx 'ibreak=devices' && tmpshell "$FOUNDVAR $ "
 
 # Install devices from PCI bus; ignore vbox additions for now
 loginfo 0 -n "Installing devices ... "
-udevadm settle
+udevadm settle -t 1
 udevadm trigger -c add -t subsystems   >/dev/null 2>&1
-udevadm settle
+udevadm settle -t 1
 udevadm trigger -c add -t devices      >/dev/null 2>&1
-udevadm settle
+udevadm settle -t 1
 
 loaddevs
 
@@ -122,7 +122,7 @@ getargy 'isleep' && sleep "$FOUNDVAL"
 echo -e " \033[32;1mOK\033[0m"
 
 # Virtual terminals and a serial port
-getargx 'ibreak=vt' && tmpshell "$FOUNDVAR $ "
+getargx 'ibreak=pre-vt' && tmpshell "$FOUNDVAR $ "
 loginfo 0 -n "Starting VTs ... "
 startvts
 getargy 'isleep' && sleep "$FOUNDVAL"
@@ -195,7 +195,7 @@ if [ "$CLEARDISK" != "" ] ; then
             sfdisk "$PARTX" --delete "$PARTNUM"
             sync ; partprobe "$PARTX"
             findHD "$HDROOT"
-            getargx 'ibreak=post-nuke' && tmpshell "$FOUNDVAR $ "
+            getargx 'ibreak=post-del' && tmpshell "$FOUNDVAR $ "
         fi
     fi
 fi
@@ -224,7 +224,7 @@ if [ "$MOUNT_DISK" == "" ] ; then
         #echo "Created $OUTF"
         sync ; partprobe "$DEVF"
         getargx 'ibreak=pre-format' && tmpshell "$FOUNDVAR $ "
-        mkfs.ext4 -F "$OUTF"  || (echo "Error on mkfs"; sleep 2)
+        mkfs.ext2 -F "$OUTF"  || (echo "Error on mkfs"; sleep 2)
         mount "$OUTF" "$HDROOT"  || (echo "Error on mount"; sleep2)
         touch  "$HDROOT/$COMLIN_DATAFILE" # Mark volume
         umount $HDROOT
@@ -262,13 +262,6 @@ mount -t overlay  comlin_data  \
 
 getargy 'isleep' && sleep "$FOUNDVAL"
 getargx 'ibreak=pre-chroot' && tmpshell "$FOUNDVAR $ "
-
-#mkdir -p $NEWROOT/proc ; mount --bind /proc $NEWROOT/proc
-#mkdir -p $NEWROOT/sys ; mount -t sysfs sysfs $NEWROOT/sys
-#mkdir -p $NEWROOT/dev ; mount -t devtmpfs devtmpfs $NEWROOT/dev
-#udevadm settle
-#mkdir -p $NEWROOT/dev/pts
-#mount -t devpts devpts $NEWROOT/dev/pts
 
 # Clear environment of generated vars
 unset  FOUNDVAL FOUNDVAR FOUNDCMD

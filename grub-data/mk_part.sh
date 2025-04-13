@@ -6,7 +6,11 @@
 
 . grub_conf justvars
 
+#echo "instroot:" $INSTROOT
+
 ALREADY=$(mount | grep $INSTROOT)
+#echo "already:" $ALREADY
+
 if [ "$ALREADY" !=  "" ] ; then
     echo "Please unmount USB first (use: ./umount_grub.sh)"
     exit 1
@@ -37,17 +41,20 @@ done
 
 # Format of sfdisk create script:  start, size, type, bootable
 
-echo 'label:mbr' | sudo sfdisk --wipe always $GRUBROOT <<SEOF
+echo 'label:mbr' | sudo sfdisk --wipe always $GRUBROOTp <<SEOF
 ,100M,c,*
 ,256M,U,*
 ,11G,L,
 ,,,
 SEOF
 
-sudo partx -u /dev/loop0
+# if loop, rescan partitions
+ISLOOP=$(echo $GRUBROOTp | grep "loop")
+if [ "$ISLOOP" != "" ] ; then
+    sudo partx -u $GRUBROOTp
+fi
 
-# See if clear wanted:
-
+# See if clear partition wanted:
 if [ "$CLEAR" != "" ] ; then
   ./clear_part.sh "$GRUBROOTp"1
   ./clear_part.sh "$GRUBROOTp"2
@@ -59,7 +66,7 @@ fi
 
 sudo mkfs.vfat    "$GRUBROOTp"1
 sudo mkfs.vfat    "$GRUBROOTp"2
-sudo mkfs.ext4 -F "$GRUBROOTp"3
-sudo mkfs.ext4 -F "$GRUBROOTp"4
+sudo mkfs.ext2 -F "$GRUBROOTp"3
+sudo mkfs.ext2 -F "$GRUBROOTp"4
 
 # EOF

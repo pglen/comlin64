@@ -14,5 +14,6 @@ umountifnot /mnt/guest/dev/pts
 umountifnot /mnt/guest/dev
 
 umountifnot /mnt/guest
+umountifnot /mnt/store
 
 # EOF
