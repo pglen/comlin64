@@ -23,7 +23,10 @@ if [ "$1" = "" ] ; then
 fi
 
 if [ "$1" = "all" ] ; then
-    for aa in {1..10} ; do
+    for aa in {1..9} ; do
+        ALL+="$aa "
+    done
+    for aa in "a b c d" ; do
         ALL+="$aa "
     done
 else
@@ -32,13 +35,14 @@ fi
 
 TESTME=1
 . ../preinit.sh
+. ../terminit.sh
 
 # Pass individual test numbers per argument to see results
 
 VERBOSE=3
 
 for itemx in $ALL ; do
-    #echo Item: $itemx
+    echo Item: $itemx
     case "$itemx" in
         1)  getargy 'verbose' && echo "found VERBOSE=$FOUNDVAL"; VERBOSE="$FOUNDVAL" ;;
         2)  getargy 'bsleep' && echo "found bsleep=$FOUNDVAL"; echo would sleep "$FOUNDVAL" ;;
@@ -49,6 +53,7 @@ for itemx in $ALL ; do
         7)  loaddevs ;;
         8)  loadmods ;;
         9)  startvts ;;
+
         a) downClean ;;
         b) shutdownx ;;
         c) getargx 'initbreak=all' && export BREAKALL=1

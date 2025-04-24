@@ -93,6 +93,32 @@ tmpshell() {
     fi
 }
 
+_readcmdline(){
+
+    # Only read it once
+    if [ "$CMDLINE" != "" ] ; then
+         #echo already got it $CMDLINE
+         return
+    fi
+    if [ $((VERBOSE)) -gt 4 ] ; then
+        echo "_readcmdline() $0  $* "
+    fi
+    # Read command line into variable
+    local fname
+    if [ $((TESTME)) -gt 0 ] ; then
+        fname="testcline"
+    else
+        fname="/var/cmdline"
+    fi
+    if [ -f $fname ] ; then
+        read -r CMDLINE <$fname
+    fi
+
+    if [ $((VERBOSE)) -gt 2 ] ; then
+        echo "cmdline=$CMDLINE"
+    fi
+}
+
 getargx() {
 
     # Get arg from command line. Return 1 for arg.
@@ -241,31 +267,6 @@ fi
 
 #set +x
 
-_readcmdline(){
-
-    # Only read it once
-    if [ "$CMDLINE" != "" ] ; then
-         #echo already got it $CMDLINE
-         return
-    fi
-    if [ $((VERBOSE)) -gt 4 ] ; then
-        echo "_readcmdline() $0  $* "
-    fi
-    # Read command line into variable
-    local fname
-    if [ $((TESTME)) -gt 0 ] ; then
-        fname="testcline"
-    else
-        fname="/var/cmdline"
-    fi
-    if [ -f $fname ] ; then
-        read -r CMDLINE <$fname
-    fi
-
-    if [ $((VERBOSE)) -gt 2 ] ; then
-        echo "cmdline=$CMDLINE"
-    fi
-}
 
 make_sound_devices() {
 
