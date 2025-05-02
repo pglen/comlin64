@@ -99,6 +99,8 @@ int main(int argc, char *argv[])
         {
         sync();
 
+        // Attempt to unmount root
+
         int ret = 0;
         #ifdef COMPILE_POWEROFF
             ret = my_reboot(LINUX_REBOOT_CMD_POWER_OFF);

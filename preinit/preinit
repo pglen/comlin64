@@ -1,6 +1,6 @@
 #!/bin/bash
 # shellcheck disable=SC1091
-# SC2004,SC2009,SC2068,SC2002,,SC2086
+# SC2004,SC2009,SC2068,SC2002,SC2086,SC2010
 
 # Set the TESTME variable to non zero if you are in a sim / test environment.
 # Warning: script tests will not work in the real env.
@@ -24,42 +24,39 @@ else
     .  /sbin/preinit.sh
 fi
 
-# If we are in ISO mode, change permissions
-#echo "Changing permissions."
-chmod -R u+w /root/.
-chmod -R u+w /home/user/.
-chown -R user.users /home/user/.
-chmod -R u+w /home/guest/.
-chown -R guest.users /home/guest/.
-
-chmod -R a+rw /run
-mkdir -p /run/user
-chown -R user.users /run/user/.
-
-chmod -R a+rwt /tmp
-
-setsuids
-
-if [ ! -w /root/.profile ] ; then
-    true
-fi
-if [ ! -w /home/user/.profile ] ; then
-    true
-fi
-if [ ! -w /home/guest/.profile ] ; then
-    true
-fi
-
 # Counting time starts here
 tanchor
 
-loginfo 1 "Preinit stage ..."
+# If we are in ISO (read only) mode, change permissions
 
-# Determine overall flags for operation
-getargy 'verbose' && export VERBOSE=$FOUNDVAL
+PPP=$(ls -ld /root/ | grep rw)
+if [ "$PPP" == "" ] ; then
+    loginfo 0 "Changing permissions."
 
-#loginfo 0 -n "Booting Community Linux, Lib version: $LIBVERS "
-#echo -e " \033[32;1mOK\033[0m"
+    chmod -R u+w /root/.
+    chmod -R u+w /home/user/.
+    chown -R user.users /home/user/.
+    chmod -R u+w /home/guest/.
+    chown -R guest.users /home/guest/.
+
+    chmod -R a+rw /run
+    mkdir -p /run/user
+    chown -R user.users /run/user/.
+
+    chmod -R a+rwt /tmp
+
+    setsuids
+fi
+
+#if [ ! -w /root/.profile ] ; then
+#    true
+#fi
+#if [ ! -w /home/user/.profile ] ; then
+#    true
+#fi
+#if [ ! -w /home/guest/.profile ] ; then
+#    true
+#fi
 
 # Variables:
 #    verbose=lev        Verbosity level
@@ -72,6 +69,15 @@ getargy 'verbose' && export VERBOSE=$FOUNDVAL
 #           Tue 21.Jan.2025     Cleanup (quote errors in bash are difficult)
 #           Sat 15.Feb.2025     Restructure /proc ... etc to --bind
 #           Sat 15.Feb.2025     Writable media
+#           Thu 01.May.2025     The read only chmod corrected
+
+# Determine overall flags for operation
+getargy 'verbose' && export VERBOSE=$FOUNDVAL
+
+loginfo 1 "Preinit stage ..."
+
+#loginfo 0 -n "Booting Community Linux, Lib version: $LIBVERS "
+#echo -e " \033[32;1mOK\033[0m"
 
 # Patch some basic environmental vars
 export TERM=linux
@@ -244,9 +250,12 @@ fi
 ptime ; echo -e "Data storage at \"$MOUNT_DISK\" \033[32;1mOK\033[0m"
 if [ "$FSCK" != "" ] ;  then
     echo "Executing file system check on $MOUNT_DISK"
-    fsck -y "$MOUNT_DISK"
+    fsck -f "$MOUNT_DISK"
     sleep 2
+else
+    fsck -T -y "$MOUNT_DISK"
 fi
+
 getargx 'ibreak=pre-mount' && tmpshell "$FOUNDVAR $ "
 mount "$MOUNT_DISK" "$HDROOT"
 getargy 'isleep' && sleep "$FOUNDVAL"

@@ -26,9 +26,6 @@ shutdownx()  {
     # Do not need it any more ??? ... leave for debug
     #rm -f $SDCOM
 
-    # We have to work out the details of this
-    #downClean
-
     local AA
     sfound=0
     for AA in $sreflag ; do
@@ -95,7 +92,7 @@ umountAll() {
     unset IFS
 }
 
-termAll() {
+_termAll() {
 
     # Terminate all pocesses higher than $GOV without suiside / petriside
     # termAll(SIG, PAR, GOV)
@@ -156,11 +153,11 @@ downClean() {
         GOV=$(ps xa | grep  "dbus" | head -1 | awk '{print $1 }')
     fi
 
-    termAll 15 "$PPID" "$GOV"
+    _termAll 15 "$PPID" "$GOV"
     sync
 
     # Amp it up
-    termAll 9 "$PPID" "$GOV"
+    _termAll 9 "$PPID" "$GOV"
     #umountAll
 }
 

@@ -3,8 +3,10 @@
 
 if [ $((TESTME)) -gt 0 ] ; then
     .  ./preinit.sh
+    .  ./terminit.sh
 else
     .  /sbin/preinit.sh
+    .  /sbin/terminit.sh
 fi
 
 # Determine overall flags for operation (for this file)
@@ -189,8 +191,18 @@ while : ; do
 
     # Shutdown?
     if [ -e $SDCOM ] ; then
-        shutdownx
+        getargx 'ibreak=pre-cleanup' && tmpshell "Pre cleanup $ "
+
+        # We have to work out the details of this
+        downClean
+
+        getargx 'ibreak=pre-unmount' && tmpshell "Pre unmount $ "
+        umountAll
+
+        mount -o remount,ro /
+
         getargx 'ibreak=post-cleanup' && tmpshell "Post cleanup $ "
+        shutdownx
     fi
 
     # If it got here, it is a GUI Exit / Logout

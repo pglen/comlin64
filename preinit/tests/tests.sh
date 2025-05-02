@@ -39,7 +39,7 @@ TESTME=1
 
 # Pass individual test numbers per argument to see results
 
-VERBOSE=3
+VERBOSE=2
 
 for itemx in $ALL ; do
     echo Item: $itemx

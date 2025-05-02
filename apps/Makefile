@@ -3,6 +3,7 @@
 .PHONY: apps clean
 
 all:
+	make -C power
 	make -C keyget
 	make -C reboot
 	make -C notify
@@ -10,13 +11,13 @@ all:
 	make -C zombie
 	make -C MessageBox-X11
 
-
 #make -C hello
 
 help:
 	@echo "Targets: apps help clean"
 
 clean:
+	make -C power clean
 	make -C keyget clean
 	make -C reboot clean
 	make -C empty clean

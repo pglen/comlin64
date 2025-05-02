@@ -6,15 +6,15 @@
 
 . grub_conf justvars
 
-#echo "instroot:" $INSTROOT
+echo "instroot:" $INSTROOT
 
 ALREADY=$(mount | grep $INSTROOT)
 #echo "already:" $ALREADY
 
-if [ "$ALREADY" !=  "" ] ; then
-    echo "Please unmount USB first (use: ./umount_grub.sh)"
-    exit 1
-fi
+#if [ "$ALREADY" !=  "" ] ; then
+#    echo "Please unmount USB first (use: ./umount_grub.sh)"
+#    exit 1
+#fi
 
 # See if we want to clear partition for distributing for dd install
 CLEAR=""
