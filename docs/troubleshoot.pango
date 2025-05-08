@@ -11,15 +11,15 @@ via the GRUB command line.
 <sp> <sp>The ComLin boot process can be interrupted from the GRUB \
 command line at many stages. The interruption is in the form of a \
 shell prompt, where one can diagnose and fix any issue. The shell prompt is \
-presented as a full bash shell, with all the powers one has on a full system.\
+presented as a full bash shell, with all the powers one has on a full system.
 
   When the system is starting up, press the 'e' key at the grub prompt \
 for editing the command line.  \
 Select the <i>Community Linux 64</i> boot entry, and press the 'e' key again. \
 Edit the command line, press enter key then the 'b' key \
 (or Ctrl-x key combination) when done.
-
-  The following variables are available on the kernel command line:
+</j>
+  The following options and variables are available on the kernel command line:
 
 <b>Variables:</b>
 
@@ -42,6 +42,10 @@ and drop to a bash shell.
     rbreak=pre-del <sp><sp> <tab count=3>  Break before cleanup
     rbreak=pre-chroot       <tab count=3>  Break before chroot to INIT FS
 </m>
+<b>Break SHUTDOWN items:</b>
+<m>
+    rbreak=pre-down         <tab count=3>  Break before actual power down
+</m>
 <b>Break INIT items:</b>
 
    The break items suspend the execution of the startup (INIT) process, \
@@ -61,18 +65,38 @@ or Ctrl-D keyboard sequence.
     ibreak=pre-overlay <tab count=3>    Stop before real overlay mount
     ibreak=pre-chroot  <tab count=3>    Stop before real overlay mount
     ibreak=daemons     <tab count=3>    Stop before daemons start
+    ibreak=start2      <tab count=4>    Stop before post phase
+    ibreak=pre-dbus    <tab count=3>    Stop before dbus daemon
+    ibreak=pre-polkit  <tab count=3>    Stop before polkit starts
+    ibreak=udevd       <tab count=4>    Stop before udevd starts
     ibreak=sound       <tab count=4>    Stop before sound card detect
+    ibreak=pre-acpi    <tab count=3>    Stop before ACPI daemon
     ibreak=network     <tab count=3>    Stop before network start
+    ibreak=pre-sshd    <tab count=3>    Stop before secure shall daemon
     ibreak=pre-mount   <tab count=3>    Stop before real mount
-    ibreak=pre-user    <tab count=3>    Stop before change to real user
     ibreak=pre-gui     <tab count=4>    Stop before GUI cycle
     ibreak=post-gui    <tab count=3>    Stop after GUI cycle
-    ibreak=post-cleanup <tab count=2>   Stop before clenup (not used)
+    ibreak=pre-cleanup <tab count=3>    Stop before cleanup
+    ibreak=pre-umount  <tab count=3>    Stop before unmount
+    ibreak=post-cleanup <tab count=2>   Stop before cleanup
 </m>
 <b>Break on System wipe items:</b>
 <m>
     ibreak=post-del      <tab count=3>  Stop before delete RW
     ibreak=pre-format    <tab count=3>  Stop before RW reformat
     ibreak=post-create   <tab count=3>  Stop after RW created
-</m></w></m></j>
+</m></w>
+<w>\
+<b>System maintainance items:</b>
+<m>
+    nodisk           <tab count=5> Do not use writable storage for session
+    sleep=sec        <tab count=4> Sleep number of seconds after every command
+    verbose=num      <tab count=3> Show more info (0=none 10=noisy)
+    delete-data      <tab count=3> Delete all data from rw storage
+    delete-disk      <tab count=4> Delete rw storage disk
+</m>
+<sp> <sp> As you can see, a lot of break points. One can examine the system \
+in many states during boot up, operation and shutdown. Every breakpoint \
+presents a command shell, where one can examine and fix the issue.
+</w>
 <inc name=footer.pango>

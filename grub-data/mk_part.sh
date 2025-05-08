@@ -1,20 +1,26 @@
 #!/bin/bash
-
+# shellcheck disable=SC1091
 # Three partitions ... MSDOS 512M EFI and LINUX EXT[234]
 #
 # Mon 31.Mar.2025  clean data, so compression has lower size
 
 . grub_conf justvars
 
-echo "instroot:" $INSTROOT
+#echo "instroot: $INSTROOT"
+#echo "grubroot: $GRUBROOTp"
 
-ALREADY=$(mount | grep $INSTROOT)
+ISMOUNT=$(mount | grep "$GRUBROOTp")
+#echo "ismount: $ISMOUNT"
+if [ "$ISMOUNT" !=  "" ] ; then
+    echo "Device already mounted. (use: ./umount_grub.sh)"
+    exit 1
+fi
+ALREADY=$(mount | grep "$INSTROOT")
 #echo "already:" $ALREADY
-
-#if [ "$ALREADY" !=  "" ] ; then
-#    echo "Please unmount USB first (use: ./umount_grub.sh)"
-#    exit 1
-#fi
+if [ "$ALREADY" !=  "" ] ; then
+    echo "Please unmount USB first (use: ./umount_grub.sh)"
+    exit 1
+fi
 
 # See if we want to clear partition for distributing for dd install
 CLEAR=""
@@ -28,7 +34,7 @@ while getopts 'ch' opt; do
       ;;
 
     h )
-      echo -e "Usage: $(basename $0) [ -c ]"
+      echo -e "Usage: $(basename "$0") [ -c ]"
       shift
       exit 1
       ;;
@@ -39,19 +45,26 @@ while getopts 'ch' opt; do
     esac
 done
 
+# Prevent warnings
+wipefs -a "$GRUBROOTp"4
+wipefs -a "$GRUBROOTp"3
+wipefs -a "$GRUBROOTp"2
+wipefs -a "$GRUBROOTp"1
+wipefs -a "$GRUBROOTp"
+
 # Format of sfdisk create script:  start, size, type, bootable
 
-echo 'label:mbr' | sudo sfdisk --wipe always $GRUBROOTp <<SEOF
+echo 'label:mbr' | sudo sfdisk --wipe always "$GRUBROOTp" <<SEOF
 ,100M,c,*
 ,256M,U,*
-,11G,L,
+,12G,L,
 ,,,
 SEOF
 
 # if loop, rescan partitions
-ISLOOP=$(echo $GRUBROOTp | grep "loop")
+ISLOOP=$(echo "$GRUBROOTp" | grep "loop")
 if [ "$ISLOOP" != "" ] ; then
-    sudo partx -u $GRUBROOTp
+    sudo partx -u "$GRUBROOTp"
 fi
 
 # See if clear partition wanted:

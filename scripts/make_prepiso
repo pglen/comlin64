@@ -60,7 +60,7 @@ HOMEDIRS="root home/user home/guest"
 restglob=$(shopt -p dotglob)
 shopt -s dotglob
 
-sudo rsync -au  \
+sudo rsync -au --delete \
             --info=progress2 \
             --exclude=/proc/* \
             --exclude=/sys/* \

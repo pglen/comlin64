@@ -11,6 +11,14 @@ COMLIN_DATAFILE=.comlin_data
 export SUL="/var/log/startuplogs"
 SULERR=$SUL/log_err; SULOUT=$SUL/log_out
 
+# This way udev is functional in chroot
+export SYSTEMD_IGNORE_CHROOT=1
+
+# Do all that one needs in memory
+export TMP=/tmp
+export TEMP=$TMP
+export RUN=/run
+
 # Set the TESTME variable to non zero if you are in a
 # simulation / test environment. Warning: it will not work in real env.
 #TESTME=1
@@ -180,7 +188,7 @@ loadmods() {
     # Load modules intended for this system
 
     if [ $((VERBOSE)) -gt 1 ] ; then
-        echo "loadmods() $* "
+        echo "loadmods()"
     fi
     local modx unsp
     while read -r modx ;
@@ -214,7 +222,7 @@ loaddevs() {
     # Install devices from PCI bus; ignore vbox additions for now
 
     if [ $((VERBOSE)) -gt 0 ] ; then
-        echo "loaddevs()  $* "
+        echo "loaddevs()  "
     fi
 
     DEVS=$(lspci -v | grep "Kernel " | awk -F ":" '{ print($2); }' | \
@@ -240,7 +248,7 @@ startvts() {
         echo "startvts()  $*"
     fi
 
-    local TT TERMS="tty2 tty3 tty4 ttyS0"
+    local TT TERMS="tty2 tty3 tty4 " # ttyS0"
 
     for TT in $TERMS ; do
         if [ $((VERBOSE)) -gt 0 ] ; then
@@ -406,6 +414,42 @@ setsuids() {
         #echo $ROOTFS$AA
         chmod u+s "$ROOTFS""$AA"
     done
+}
+
+# Force trigger and load
+
+devload() {
+
+    loginfo 0 -n "$1"
+
+    udevadm trigger -c add -t subsystems
+    udevadm settle -t 5
+    udevadm trigger -c add -t devices
+    udevadm settle -t 5
+
+    loadmods ;     udevadm settle -t 5
+    loaddevs ;     udevadm settle -t 5
+
+    loginfo 0 -t -e " \033[32;1mOK\033[0m"
+}
+
+# Change root and execute postinit
+
+post_chroot() {
+
+    #echo "Start chroot to: $NEWROOT"
+    #exec chroot $NEWROOT setsid /sbin/postinit
+
+    mkdir -p "$NEWROOT"/sys "$NEWROOT"/proc "$NEWROOT"/dev
+
+    mount --bind /sys "$NEWROOT"/sys
+    mount --bind /proc "$NEWROOT"/proc
+    mount --rbind /dev "$NEWROOT"/dev
+
+    chroot "$NEWROOT" setsid /sbin/postinit
+    #echo "Back from postinit"
+    getargx 'ibreak=post-down' && tmpshell "$FOUNDVAR $ "
+    #umount "$HDROOT"
 }
 
 # Hack to test from dev system

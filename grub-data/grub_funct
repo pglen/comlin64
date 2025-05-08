@@ -32,10 +32,6 @@ check_drive() {
     DDD=$(echo $RRR | awk -F "=" '{print $2}')
     #echo DDD = \"$DDD\"
     #exit 1
-    if [ ! -e $DDD ] ; then
-        echo Drive \'$DDD\' does not exist
-        exit 1
-    fi
     CONFIG_DRIVE=$DDD
 
     # See if loop used:
@@ -47,6 +43,11 @@ check_drive() {
     else
         GRUBROOTp="$CONFIG_DRIVE"
     fi
+
+    #if [ ! -e $DDD ] ; then
+    #    echo Drive \'$DDD\' does not exist
+    #    exit 1
+    #fi
 }
 
 mountifnot() {

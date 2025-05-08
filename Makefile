@@ -46,20 +46,20 @@ include help.mk
 
 help:
 	@echo
-	@echo "Making a bootable jump drive. Use it with care."
+	@echo "Make a bootable jump drive. Writes to devices. Use it with care. **"
 	@echo
 	@echo "  make detect       -- Configure which drive is your jump drive"
 	@echo "  make buildsys     -- Assemble system components and it's dependents"
 	@echo "  make craftiso     -- Make .ISO file"
 	@echo "  make newusb       -- New USB, Partition/Format/GRUB USB drive"
 	@echo "  make updateusb    -- Copy/Update Linux files onto USB"
-	@echo "  make createusb    -- Make new USB, and Copy Linux files to USB"
-	@echo
-	@echo "	 make newcleanusb  -- Partition/Clean/Format/GRUB USB !SLOW!"
-	@echo
+	@echo "  make createusb    -- All of: buildsys newusb updatusb"
+	@echo ""
+	@echo "  make newcleanusb  -- Partition/Clean/Format/GRUB USB !SLOW!"
+	@echo ""
 	@echo " Use: make help[1-4] to show more help details. (obsolete)"
 	@echo
-	@echo "**see additional Warning(s) in Makefile"
+	@echo "** See additional Warning(s) in Makefile"
 	@echo
 
 apps:
@@ -81,6 +81,9 @@ doiso: buildsys
 # This is the 64 bit make all
 buildsys: apps checkscripts initramfs prepiso prepdown getapps
 	@make playsound2
+
+umountusb:
+	@cd grub-data ; ./umount_grub.sh
 
 createusb:
 	@cd grub-data ; ./do_new.sh
@@ -144,8 +147,8 @@ putmods:
 putkern:
 	@sudo ./scripts/make_putkern go
 
-umount:
-	@echo "Wait for USB drive inactivity. Then you may remove drive."
+#umount:
+#	@echo "Wait for USB drive inactivity. Then you may remove drive."
 
 cpscripts:
 	@sudo ./scripts/make_cpscripts

@@ -20,8 +20,10 @@ export LC_ALL=en_US.UTF-8
 
 if [ $((TESTME)) -gt 0 ] ; then
     .  ./preinit.sh
+    .  ./terminit.sh
 else
     .  /sbin/preinit.sh
+    .  /sbin/terminit.sh
 fi
 
 # Counting time starts here
@@ -103,6 +105,7 @@ hostname "$(cat /etc/hostname)"  >>"$SULOUT" 2>>"$SULERR"
 mkdir -p /proc ; mount -t proc proc /proc
 mkdir -p /sys ; mount -t sysfs sysfs /sys
 mkdir -p /dev ; mount -t devtmpfs devtmpfs /dev
+mkdir -p /dev/pts ; mount -t devpts devpts /dev/pts
 
 getargx 'ibreak=start' && tmpshell "$FOUNDVAR $ "
 
@@ -114,15 +117,8 @@ echo -e " \033[32;1mOK\033[0m"
 
 getargx 'ibreak=devices' && tmpshell "$FOUNDVAR $ "
 
-# Install devices from PCI bus; ignore vbox additions for now
-loginfo 0 -n "Installing devices ... "
-udevadm settle -t 1
-udevadm trigger -c add -t subsystems   >/dev/null 2>&1
-udevadm settle -t 1
-udevadm trigger -c add -t devices      >/dev/null 2>&1
-udevadm settle -t 1
-
-loaddevs
+# Install devices from PCI bus(es)
+devload "Detecting devices ... "
 
 getargy 'isleep' && sleep "$FOUNDVAL"
 echo -e " \033[32;1mOK\033[0m"
@@ -134,7 +130,10 @@ startvts
 getargy 'isleep' && sleep "$FOUNDVAL"
 logok 0
 
-loginfo 1 "Created mounts."
+# Second round for dependents (like: WIFI)
+devload "Loading devices ... "
+
+#loginfo 1 "Created mounts."
 
 # Time to find the writable disk
 getargx 'ibreak=pre-hd' && tmpshell "$FOUNDVAR $ "
@@ -148,10 +147,12 @@ FSCK=""
 getargy 'nodisk' && export NODISK=$FOUNDVAL
 
 if [ "$NODISK" != "" ] ; then
-    echo -n "Starting without writable DATA media. Enter key to continue. "
-    read -r
+    echo  "Starting without writable DATA media. " #Enter key to continue. "
+    #read -r
+    sleep 2
     # User wants no data mount
-    exec setsid /sbin/postinit
+    setsid /sbin/postinit
+    exit
 fi
 
 # Make the clear data command's name a non obvious one
@@ -218,14 +219,16 @@ if [ "$MOUNT_DISK" == "" ] ; then
             echo "No free space found. Starting in nosave mode."
             echo -n "Press Enter to continue ... "
             read -r
-            exec setsid /sbin/postinit
+            setsid /sbin/postinit
+            exit
         fi
         OUTF=$(echo ,,, | sfdisk -a --no-reread "$DEVF" | grep "new partition" \
                 | awk '{print $1;}' | head -1 | tr -d ":")
         if [ "$OUTF" == "" ] ; then
             echo "Could not create partition. Starting in nosave mode."
             sleep 2
-            exec setsid /sbin/postinit
+            setsid /sbin/postinit
+            exit
         fi
         #echo "Created $OUTF"
         sync ; partprobe "$DEVF"
@@ -239,17 +242,19 @@ if [ "$MOUNT_DISK" == "" ] ; then
         if [ "$MOUNT_DISK" == "" ] ; then
             echo "Failed auto creating space for data. Starting in nosave mode."
             sleep 2
-            exec setsid /sbin/postinit
+            setsid /sbin/postinit
+            exit
         fi
     else
         loginfo 1 "Started without writable media."
-        exec setsid /sbin/postinit
+        setsid /sbin/postinit
+        exit
     fi
 fi
 
 ptime ; echo -e "Data storage at \"$MOUNT_DISK\" \033[32;1mOK\033[0m"
 if [ "$FSCK" != "" ] ;  then
-    echo "Executing file system check on $MOUNT_DISK"
+    echo "Starting file system check on $MOUNT_DISK"
     fsck -f "$MOUNT_DISK"
     sleep 2
 else
@@ -280,6 +285,12 @@ unset  CLEARDISK CLEARDATA LIBVERS
 getargy 'isleep' && sleep "$FOUNDVAL"
 
 cd "$NEWROOT" || echo "Cannot CD to $NEWROOT"
-exec chroot $NEWROOT setsid /sbin/postinit
+
+post_chroot
+
+#umount /
+
+#tmpshell "Unexpected script state $ "
+#exit
 
 # EOF

@@ -5,9 +5,9 @@
 # See doc in init.doc.txt
 # Sun 06.Apr.2025  Diff on make initramfs
 # Mon 07.Apr.2025  Found pesky kernel messages
+# Sat 03.May.2025  Made symmetric
 
 # This also signals that we are active
-#echo
 echo -e "Booting Community Linux 64 Version 1.0.0 ... \033[32;1mOK\033[0m"
 
 # Developers: See if we are in simulation by looking at GUI X progs
@@ -180,7 +180,7 @@ fi
 
 mkdir -p $NEWROOT/dev/pts
 
-loginfo2 1 "Exeuting overlay"
+loginfo2 1 "Executing overlay"
 
 mount -t overlay  comlin_overlay  \
         -olowerdir=$CDROOT,upperdir=$TMPROOT/fs,workdir=$TMPROOT/work \
@@ -232,7 +232,25 @@ fi
 # TESTING (oddly enough it worked)
 #chroot . /bin/systemd
 
-# Tried exec in chroot ... no go (script does not have this feature)
-exec ./usr/sbin/chroot . $FOUNDCMD
+# Tried exec in chroot ... made it symmetric
+#exec ./usr/sbin/chroot . $FOUNDCMD
+
+/usr/sbin/chroot . $FOUNDCMD
+cd /
+umount /cdroot
+umount $NEWROOT/hdroot
+umount $NEWROOT/newroot/tmp
+umount $NEWROOT/newroot/run
+umount $NEWROOT/newroot
+umount $NEWROOT/dev
+umount $NEWROOT/proc
+umount $NEWROOT/sys
+umount $NEWROOT
+
+mount -o remount,ro /
+
+getarg 'rbreak=pre-down' && temporary_shell -n cmdline "Break at pre exit"
+
+linux_poweroff -f
 
 # EOF

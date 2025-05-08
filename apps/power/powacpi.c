@@ -24,6 +24,7 @@ char    *sockname = "/var/run/acpid.socket";
 char    *version = "Version 1.0.0, built on Sun 23.Mar.2025\n";
 char    *teststr = NULL;
 char    *execname = "/usr/bin/powbutt.sh";
+char    *fstr = "%s %s";
 
 char buf[512]; char buf2[600];
 
@@ -94,7 +95,7 @@ int startacpi(const char *sname)
                 usleep(100000);
                 }
 
-            snprintf(buf2, sizeof(buf2), "%s %s", execname, buf);
+            snprintf(buf2, sizeof(buf2), fstr, execname, buf);
             if(verbose)
                 printf("Command: '%s'", buf2);
             if(loglevel)
@@ -135,6 +136,7 @@ void ctrl_c(int sig)
 char *help   = \
     "Usage: powacpi [-V] [-v] [-h] \n" \
     "           -t str       - execute test event string.\n"
+    "           -x str       - batch name.\n"
     "           -s           - socket name.\n"
     "           -l           - add log level. (-ll.. for more)\n"
     "           -v           - add verbosity level. (-vv.. for more)\n"
@@ -190,7 +192,7 @@ int main(int argc, char *argv[])
 
     if (teststr)
         {
-        snprintf(buf2, sizeof(buf2), "%s %s", execname, teststr);
+        snprintf(buf2, sizeof(buf2), fstr, execname, teststr);
 
         if(verbose)
             printf("Executing '%s' args: '%s'\n", execname, buf2);

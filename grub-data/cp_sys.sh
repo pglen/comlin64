@@ -21,16 +21,9 @@ if [ ! -f "$TMPSYS"/etc/COMLINUX_VERSION ] ; then
 fi
 
 shopt -s dotglob
-sudo rsync -rau  \
+sudo rsync -rau --delete \
             --info=progress2 \
             $TMPSYS/* "$GRUBDATA"
-
-#echo  Patching post USB changes
-#sudo rm -rf "$GRUBDATA"/root/.config/*
-#sudo rm -rf "$GRUBDATA"/home/user/.config/*
-#sudo rm -rf "$GRUBDATA"/home/guest/.config/*
-
-#sudo rm /usr/share/backgrounds/xfce/xfce-verticals.png
 
 shopt -u dotglob
 

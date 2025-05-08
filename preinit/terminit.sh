@@ -3,16 +3,16 @@
 
 # Shutdown / Termination routines
 
-shutdownx()  {
+shutDownx()  {
 
     # Shutdown command
     # These linux_* utils are needed, as the real shutdown program
     #   ... will refuse to run from chroot. (we are in CDROM chroot)
 
-    local sfile sreflag sfound
+    local sfile sreflag AA
 
     if [ $(($VERBOSE)) -gt 1 ] ; then
-        echo "shutdownx() " $@
+        echo "shutDownx() " $@
     fi
     if [ $(($TESTME)) -gt 0 ] ; then
         sfile=shutdowncmd
@@ -23,15 +23,12 @@ shutdownx()  {
     if [ $(($VERBOSE)) -gt 1 ] ; then
         echo "Command in: $sfile -- reflag: $sreflag"
     fi
-    # Do not need it any more ??? ... leave for debug
+    # Do not need it any more ... but leave for debug
     #rm -f $SDCOM
 
-    local AA
-    sfound=0
     for AA in $sreflag ; do
         #echo aa: $AA
         if [ "$AA" = "-r" ] ; then
-            sfound=1
             if [ $(($TESTME)) -gt 0 ] ; then
                 echo would reboot
             else
@@ -42,7 +39,6 @@ shutdownx()  {
                 linux_reboot -f
             fi
         elif [ "$AA" = '-P' ]  ||  [ "$AA" = '-h' ] ; then
-            sfound=1
             if [ $(($TESTME)) -gt 0 ] ; then
                 echo would poweroff
             else
@@ -52,12 +48,10 @@ shutdownx()  {
                 echo -n "Shutting down ... "
                 linux_poweroff -f
             fi
+        else
+            echo "Invalid shutdown cmd: $sreflag"
         fi
     done
-
-    if [ $sfound -eq 0 ] ; then
-        echo "Invalid shutdown cmd: $sreflag"
-    fi
 }
 
 umountAll() {
@@ -94,46 +88,46 @@ umountAll() {
 
 _termAll() {
 
-    # Terminate all pocesses higher than $GOV without suiside / petriside
-    # termAll(SIG, PAR, GOV)
-    # SIG = signal; PAR = parent; GOV = governor process;
+    # Terminate all pocesses except $GOV without suiside / petriside
+    # termAll(SIG, GOV)
+    # SIG = signal; GOV = governor process;
     #    only higher numbers then governor are killed
 
     if [ $(($VERBOSE)) -gt 1 ] ; then
        echo "termAll() $0 " $@
     fi
-
-    procx=$(ps xa | awk '{print $1 }' | grep -v " *PID.*" | sort -n -r)
+    local AA PROCX
+    PROCX=$(ps xa | awk '{print $1 }' | grep -v " *PID.*" | sort -n -r)
 
     if [ $(($VERBOSE)) -gt 2 ] ; then
-       echo "$procx"
+       echo "procx:" "$PROCX"
     fi
 
-    for aa in $procx ; do
+    for AA in $PROCX ; do
 
-        #echo -n loop: $aa
+        #echo -n loop: $AA
 
-        if [ "$$" -eq "$aa" ] ; then
+        if [ "1" -eq "$AA" ] ; then
+            #echo 1
+            continue;        # do not terminate preinit
+        fi
+        if [ "$2" -eq "$AA" ] ; then
+            #echo gov $2
+            continue;        # do not terminate preinit
+        fi
+        if [ "$$" -eq "$AA" ] ; then
             #echo curr $$
             continue;        # do not terminate this script
         fi
-        if [ "$2" -eq "$aa" ] ; then
-            #echo par $ME
-            continue;        # do not terminate parent script
+
+        if [ $((VERBOSE)) -gt 3 ] ; then
+           echo "Killing ($1) $AA  "
         fi
-        # Kill everything higher PID than GOV
-        if [ "$3" -lt "$aa" ] ; then
-
-            if [ $(($VERBOSE)) -gt 5 ] ; then
-               echo "Killing  ($1) $aa  "
-            fi
-
-            if [ $(($TESTME)) -gt 0 ] ; then
-                echo "Exec would kill on: $1 $aa"
-            else
-                # Send signal in the background
-                kill "$1" "$aa"  >/dev/null 2>&1 &
-            fi
+        if [ $((TESTME)) -gt 0 ] ; then
+            echo "Exec would kill on: $1 $AA"
+        else
+            # Send signal in the background
+            kill "$1" "$AA"  >/dev/null 2>&1 &
         fi
     done
 }
@@ -146,6 +140,9 @@ downClean() {
         echo "downclean() " $@
     fi
 
+    local GOV
+
+    #GOV=$(ps xa | grep  "postinit" | head -1 | awk '{print $1 }')
     GOV=$(ps xa | grep  "preinit" | head -1 | awk '{print $1 }')
     if [ $(($GOV)) -eq 0 ] ; then
         echo "Cannot get GOV process ID $GOV"
@@ -153,11 +150,12 @@ downClean() {
         GOV=$(ps xa | grep  "dbus" | head -1 | awk '{print $1 }')
     fi
 
-    _termAll 15 "$PPID" "$GOV"
     sync
-
+    _termAll 15 "$GOV"
+    sync
+    sleep 1
     # Amp it up
-    _termAll 9 "$PPID" "$GOV"
-    #umountAll
+    _termAll 9  "$GOV"
 }
 
+# EOF

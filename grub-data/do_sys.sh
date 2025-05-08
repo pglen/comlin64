@@ -3,9 +3,9 @@
 echo Updating USB ...
 
 ./mount_grub.sh
-./cp_grub.sh
-./cp_store.sh
-./cp_sys.sh
+sudo ./cp_grub.sh
+sudo ./cp_store.sh
+sudo ./cp_sys.sh
 sync
 ./umount_grub.sh
 

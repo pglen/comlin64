@@ -12,36 +12,36 @@ fi
 # Determine overall flags for operation (for this file)
 getargy 'verbose' && export VERBOSE=$FOUNDVAL
 getargx 'ibreak=all' && export BREAKALL=1
-
 getargx 'ibreak=start2' && tmpshell "$FOUNDVAR $ "
 
 loginfo 1 "COMLIN64 in postinit stage"
 readanchor
 
-# This way udev is functional in chroot
-export SYSTEMD_IGNORE_CHROOT=1
-
 # UP loopback network connection
 ifconfig lo up 127.0.0.1
 
-mkdir -p /sys /proc /dev
+mkdir -p /sys /proc /dev /run /tmp
 
 # Remount after root change
-if [ ! -d /proc/1 ] ; then
-    mount -t proc proc /proc
-fi
+#if [ ! -d /proc/1 ] ; then
+#    mount -t proc proc /proc
+#fi
+#
+## Remount if not present
+#if [ ! -d /sys/kernel ] ; then
+#    mount -t sysfs sysfs /sys
+#fi
+#
+#if [ "$(mount | grep /dev)" == "" ] ; then
+#    mount -t devtmpfs devtmpfs /dev
+#fi
+#
 
-# Remount if not present
-if [ ! -d /sys/kernel ] ; then
-    mount -t sysfs sysfs /sys
-fi
-
-if [ "$(mount | grep /dev)" == "" ] ; then
-    mount -t devtmpfs devtmpfs /dev
-fi
+# Happens in memory  (created a bug)
+#mount -t tmpfs tmpfs $TMP
+#mount -t tmpfs tmpfs $RUN
 
 # May have residuals from prev run
-#rm -rf /dev/snd/*
 rm -rf /run/dbus/*
 
 # Test alternate config
@@ -97,23 +97,8 @@ loginfo 0 -t -e " \033[32;1mOK\033[0m"
 
 rm -rf /var/run/pulse/pid
 
-# Second round for dependents (like: WIFI)
-
-loginfo 0 -n "Finalizing devices  ... "
-
-udevadm trigger -c add -t subsystems
-udevadm settle -t 1
-udevadm trigger -c add -t devices
-udevadm settle -t 1
-
-loadmods
-udevadm settle -t 1
-loaddevs
-udevadm settle -t 1
-
-loginfo 0 -t -e " \033[32;1mOK\033[0m"
-
-mkdir -p /dev/pts ; mount -t devpts devpts /dev/pts
+# Third round in this chroot
+devload "Finalizing devices ... "
 
 getargx 'ibreak=pre-acpi' && tmpshell  "$FOUNDVAR $ "
 loginfo 0 -n "Starting acpid ... "
@@ -165,8 +150,9 @@ export XAUTHORITY=$NEWHOME/.Xauthority
 export ICEAUTHORITY=$NEWHOME/.ICEauthority
 export XAUTHLOCALHOSTNAME=localhost
 
+rm -f $SDCOM                # Fresh start
+
 while : ; do
-    rm -f $SDCOM                # Fresh start
     stty -g >.stty_dump.txt
 
     getargx 'ibreak=pre-gui' && tmpshell  "$FOUNDVAR $ "
@@ -191,18 +177,14 @@ while : ; do
 
     # Shutdown?
     if [ -e $SDCOM ] ; then
-        getargx 'ibreak=pre-cleanup' && tmpshell "Pre cleanup $ "
-
-        # We have to work out the details of this
+        getargx 'ibreak=pre-unmount' && tmpshell "$FOUNDVAR $ "
         downClean
-
-        getargx 'ibreak=pre-unmount' && tmpshell "Pre unmount $ "
+        getargx 'ibreak=pre-unmount' && tmpshell "$FOUNDVAR $ "
         umountAll
-
+        umount /proc /sys /dev/pts /dev
         mount -o remount,ro /
-
-        getargx 'ibreak=post-cleanup' && tmpshell "Post cleanup $ "
-        shutdownx
+        getargx 'ibreak=post-cleanup' && tmpshell "$FOUNDVAR $ "
+        break
     fi
 
     # If it got here, it is a GUI Exit / Logout
@@ -215,9 +197,8 @@ while : ; do
     echo
 
     tmpshell "System Control Prompt $ "
-
 done
 
-# Can not reach this ...
+exit
 
 # EOF

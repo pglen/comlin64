@@ -42,6 +42,20 @@ if [ "$ERR" != "0" ] ; then
     exit 1
 fi
 
+bash -n preinit/postinit ; ERR=$?
+if [ "$ERR" != "0" ] ; then
+    echo "Syntax error in preinit/postinit"
+    exit 1
+fi
+
+bash -n preinit/terminit.sh ; ERR=$?
+if [ "$ERR" != "0" ] ; then
+    echo "Syntax error in preinit/terminit.sh"
+    exit 1
+fi
+
+shellcheck preinit/*.sh
+
 echo done.
 
 # EOF
