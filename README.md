@@ -2,16 +2,14 @@
 
 ## This is the successor of the ComLin32 project for 64 bit PCs.
 
-### Code in motion, nothing much usable.
-
-!! UNTESTED -- USE IT WITH CARE!!
+### In Beta. Fully functional.
 
 Preface
 
     *   The Community Linux project aims to provide a simple Linux distribution
         for the masses.
-    *   It is a fully functional GUI right from the CD/Thumb drive within the first
-        30 seconds of power up. (21 seconds measured 0n dell laptop)
+    *   It is a fully functional GUI right from the Thumb drive within the first
+        30 seconds to power up. (21 seconds measured on a Dell I5 laptop)
     *   It is installation-less, and it looks and feels like a real hard drive
         installation.
      _________________________________________________________________
@@ -26,7 +24,6 @@ Goals
         and / or CD rom. Examples include low cost (student) laptop, home
         automation, video security, industrial controls, cash registers,
         rugged system(s) suitable for law enforcement / military.
-    *   Built in, easy to use optional security by encryption.
      ________________________________________________________________
 
 System requirements:
@@ -39,15 +36,22 @@ Recommended (minimum) system requirements:
 
     While ComLin64 Linux will work on the most basic hardware. For responsive
     operation we recommend at least 2 Gig of RAM (or more),
-    1.6 GHz processor (or faster) and a 16/32 Gig (or larger) USB drive.
+    1.6 GHz processor (or faster) and a 32 Gig (or larger) USB drive.
         (also called Jump Drive, a Thumb Drive or a Flash Drive).
-    Tested: 1 Gig of Ram, 1.2 GHz CPU, 16 Gig Jump drive -- works OK
+    Tested: 2 Gig of Ram, 1.2 GHz CPU, 32 Gig Jump drive -- works OK
 
 The ComLin64 .ISO should boot and be usable immidiately.
 
+ComLin64 System Creation:
+
+    Download the current .gz image and dd it to a 32 gig jump drive.
+    (rufus dd mode if you are on windows) If you want different sizes,
+    ComLin is customizable, but needs minimum system admin skills.
+
 ComLin64 System Creation requirements:
 
-    This is of course if you opted for the source creation.
+    This is of course if you opted for the source creation. The source
+    creation gives you full control over features / sizes / partitions ... etc.
 
     1.) A host Linux system to create the jump drive with. (we used Ubuntu 22.x)
         Alternatively, one can create a new ComLin64 system from a ComLin64
@@ -85,10 +89,13 @@ Detecting the Jump Drive:
 Care and feeding:
 
     The initial setup contains two user accounts: 'root' and 'user'
-    root pass is 'root' (without the quotes)
-    user pass is 'user' (without the quotes)
-    encryption pass is '12345678' (without the quotes)
-    key chain pass is '12345678' (without the quotes)
+    and a guest account.
+    root pass: is 'root' (without the quotes)
+    user pass: is 'user' (without the quotes)
+
+    The pro version has:
+        encryption pass is '12345678' (without the quotes)
+        key chain pass is '12345678' (without the quotes)
 
     Make sure you change these passwords on first successful boot.
     If you can, boot without a network cable attached, and change the
@@ -103,8 +110,9 @@ Runlevel-Less operation
     To boot faster, and exclude unneeded baggage present on a full system,
     ComLin64 Linux operates without the distinction of runlevels. The system
     instead, cycles through a set of shell scripts.
-    To aid troubleshooting, checkpoints are introduced, and one can press
-    the ENTER key to temporarily drop to a shell prompt. Exiting the temporary
+    To aid troubleshooting, checkpoints are introduced. One can enter
+    into the the grub command line and specify a stop options to
+    temporarily drop to a shell prompt. Exiting the temporary
     shell will continue the boot process from the point of interruption.
 
 Installation-Less operation
@@ -114,8 +122,8 @@ Installation-Less operation
     drivers / items supported. ComLin64 Linux detects hardware by reading the
     system buses, and loading the drivers on the fly. Thanks to modern
     hardware, the identification / driver loading is fast. The system boots
-    about the same speed as a regular hard drive boot. ComLin64 works right
-    out of the box without installation.
+    about faster or the same speed as a regular hard drive boot.
+    ComLin64 works right out of the box without installation.
 
 Special added Utilities
 
@@ -141,6 +149,7 @@ Security Measures:
 
 Data Security and Privacy Measures:
 
+    (disabled for beta)
     ComLin64 has an encrypted subsystem, that is controllable from the padlock
     icon on the top panel. Click on the padlock icon, and select the
     encrypted folder you wish to activate. You will be prompted for a
@@ -162,18 +171,18 @@ Description of the ComLin64 Linux boot procedure
     o The real root walks thru a set of scripts to bring up the system.
 
     1. preinit is executed, and starts many services
-    2. Spawn virtual terminal like most linux installation
-    3. spawns the zombie collector
-    4. In startup2.sh the S-* scripts are executed
-    5. The last S-* script starts X, and blocks
+    2. Spawn virtual terminal like most linux installations
+    3. Spawns the zombie collector (obsolete)
+    4. Jumps to postinit
+    5. Startx X, and the login program.
 
 The shutdown process:
 
-    1. When X is done, control is returned to the preinit sript
+    1. When X is done, control is returned to the postinit sript
     2. The K-* scripts are executed
     3. Control is returned to startup.sh (symmetry)
     4. Remaining processes are killed, file-systems unmounted
-    5. Control is transferred to linuxdown.sh
+    5. Control is transferred back to init shell script
      _________________________________________________________________
 
 Current Progress:
@@ -181,6 +190,7 @@ Current Progress:
     Mon 13.Jan.2025  Sound drivers
     Tue 07.Jan.2025  Some correction, pango font display
     Thu 02.Jan.2025  Boots under VBOX into XFCE in under 15 seconds
+    Sat 10.May.2025  Beta
 
 Credits
 
