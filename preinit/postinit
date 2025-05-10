@@ -20,29 +20,15 @@ readanchor
 # UP loopback network connection
 ifconfig lo up 127.0.0.1
 
-mkdir -p /sys /proc /dev /run /tmp
-
-# Remount after root change
-#if [ ! -d /proc/1 ] ; then
-#    mount -t proc proc /proc
-#fi
-#
-## Remount if not present
-#if [ ! -d /sys/kernel ] ; then
-#    mount -t sysfs sysfs /sys
-#fi
-#
-#if [ "$(mount | grep /dev)" == "" ] ; then
-#    mount -t devtmpfs devtmpfs /dev
-#fi
-#
-
-# Happens in memory  (created a bug)
-#mount -t tmpfs tmpfs $TMP
-#mount -t tmpfs tmpfs $RUN
+# Happens in memory  (Thu 08.May.2025 ?? created a bug)
+mount -t tmpfs tmp-tmpfs $TMP
+mount -t tmpfs run-tmpfs $RUN
 
 # May have residuals from prev run
-rm -rf /run/dbus/*
+# NOOP
+
+# Placeholders
+#mkdir /run/dbus/
 
 # Test alternate config
 #export XDG_CONFIG_DIR=/etc/xdg-comlin
@@ -116,10 +102,13 @@ pulseaudio --deaemonize=no --system --realtime  >>"$SULOUT" 2>>"$SULERR"  &
 getargy 'isleep' && sleep "$FOUNDVAL"
 loginfo 0 -t -e " \033[32;1mOK\033[0m"
 
+# The kernel could not load it ... so we preload it
+modprobe ccm
+
 getargx 'ibreak=network' && tmpshell "$FOUNDVAR $ "
 loginfo 0 -n "Starting network ... "
 dhclient >>"$SULOUT" 2>>"$SULERR" &
-NetworkManager
+/usr/sbin/NetworkManager  --no-daemon &
 getargy 'isleep' && sleep "$FOUNDVAL"
 loginfo 0 -t -e " \033[32;1mOK\033[0m"
 

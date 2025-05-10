@@ -47,6 +47,11 @@ logok2() {
     fi
 }
 
+xmount () {
+    mkdir -p $2
+    mount --bind $1 $2
+}
+
 # Get arg from command line. Return 1 for arg found.
 
 getarg() {
@@ -80,7 +85,7 @@ getargs() {
     loginfo2 5 "getargs() $*"
 
     set +x
-    local oo line
+    local oo line ret=0
     export FOUNDCMD=""
     export FOUNDVAL=""
     if [ -z "$CMDLINE" ]; then
@@ -98,9 +103,11 @@ getargs() {
             #echo "Found:" "${o#*=} ";
             FOUNDCMD=${oo%=*}
             FOUNDVAL=${oo#*=}
+            ret=1
             break
        fi
     done
+    return $ret
 }
 
 setdebug() {

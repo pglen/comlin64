@@ -437,19 +437,9 @@ devload() {
 
 post_chroot() {
 
-    #echo "Start chroot to: $NEWROOT"
-    #exec chroot $NEWROOT setsid /sbin/postinit
-
-    mkdir -p "$NEWROOT"/sys "$NEWROOT"/proc "$NEWROOT"/dev
-
-    mount --bind /sys "$NEWROOT"/sys
-    mount --bind /proc "$NEWROOT"/proc
-    mount --rbind /dev "$NEWROOT"/dev
-
     chroot "$NEWROOT" setsid /sbin/postinit
     #echo "Back from postinit"
     getargx 'ibreak=post-down' && tmpshell "$FOUNDVAR $ "
-    #umount "$HDROOT"
 }
 
 # Hack to test from dev system

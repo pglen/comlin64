@@ -17,11 +17,15 @@ from gi.repository import Pango
 
 import cairo
 
-helper = "Use special users 'exit', 'reboot', and 'shutdown' for those actions."
+helper = \
+    "Use special users 'exit', 'reboot', or 'shutdown' for said actions.\n" \
+    " Alt-F4 to shutdown."
 
 CUSER = "/var/tmp/curruser"
 CEXEC = "/var/tmp/currexec"
 CDISP = "/var/tmp/currdisp"
+
+SDCOM="/var/tmp/.shutdowncmd"
 
 def get_disp_pos_size():
 
@@ -61,7 +65,7 @@ class xEntry(Gtk.Entry):
         else:
             self.form.child_focus(Gtk.DirectionType.TAB_FORWARD)
 
-def  microsleep(msec, flag = [0,]):
+def  millisleep(msec, flag = [0,]):
 
     if sys.version_info[0] < 3 or \
         (sys.version_info[0] == 3 and sys.version_info[1] < 3):
@@ -263,7 +267,7 @@ class MainWin(Gtk.Window):
             print("Autoexec for '%s' requested for" % bbb)
 
         self.result.set_text("Autologin for '%s' requested ..." % aaa)
-        microsleep(20)
+        millisleep(20)
         time.sleep(1)
 
         self.save_result(CUSER, aaa)
@@ -319,6 +323,11 @@ class MainWin(Gtk.Window):
         #print("key release", arg1, arg2)
         pass
 
+    def write_sdf(self, val):
+        fp = open(SDCOM, "w")
+        fp.write(str(val))
+        fp.close()
+
     def ok(self, arg1):
         print("OK - user", self.userE.get_text(), self.passE.get_text())
         #self.OnExit(2)
@@ -334,12 +343,15 @@ class MainWin(Gtk.Window):
         uu = self.userE.get_text();  pp = self.passE.get_text()
 
         if uu == "exit":
+            self.write_sdf(3)
             sys.exit(1)
 
         if uu == "reboot":
+            self.write_sdf(3)
             sys.exit(2)
 
         if uu == "shutdown":
+            self.write_sdf(3)
             sys.exit(3)
 
         self.busy = True
@@ -349,12 +361,12 @@ class MainWin(Gtk.Window):
             self.result.set_text("User / Pass fields cannot be empty.")
         else:
             self.result.set_text("Checking ...")
-            microsleep(20)
+            millisleep(20)
 
             ret = pam.authenticate(uu, pp)
             if ret:
                 self.result.set_text("Authenticated.")
-                microsleep(20)
+                millisleep(20)
                 time.sleep(.5)
                 self.busy = False
                 bbb = xconfig.get('autoexec', "")
@@ -365,9 +377,9 @@ class MainWin(Gtk.Window):
 
             else:
                 self.result.set_text("Invalid credentials. Please try again ...")
-                microsleep(20)
+                millisleep(20)
 
-        microsleep(20)
+        millisleep(20)
         time.sleep(2)
         self.busy = False
         self.get_window().set_cursor(self.regular_cursor)
@@ -412,8 +424,11 @@ class MainWin(Gtk.Window):
         #sys.env
 
     def delete(self, widgetx, event):
-        #print("Delete:", widgetx, event)
-        return True
+        if xconfig.get("verbose", 0) > 0:
+            print("Delete event:", widgetx, event)
+        #return True
+        self.write_sdf(3)
+        sys.exit(3)
 
     def leave(self, widgetx, event):
         #print("Leave:", widgetx, event)
@@ -629,6 +644,12 @@ def main():
         for aa in xconfig:
             print(aa + " " * (14 - len(aa)), "=", xconfig[aa])
         sys.exit(0)
+
+    # Remove sdf, if any
+    try:
+        os.unlink(SDCOM)
+    except:
+        pass
 
     #print(os.environ['DISPLAY'])
     mw = MainWin()

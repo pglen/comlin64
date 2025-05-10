@@ -63,7 +63,7 @@ help:
 	@echo
 
 apps:
-	make -s -C apps
+	sudo make -s -C apps
 
 detect:
 	sudo ./scripts/make_detect
@@ -84,6 +84,11 @@ buildsys: apps checkscripts initramfs prepiso prepdown getapps
 
 umountusb:
 	@cd grub-data ; ./umount_grub.sh
+
+createusbc:
+	@cd grub-data ; ./do_new.sh -c
+	make buildsys
+	@cd grub-data ; ./do_sys.sh
 
 createusb:
 	@cd grub-data ; ./do_new.sh

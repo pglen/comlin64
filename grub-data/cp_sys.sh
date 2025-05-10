@@ -21,7 +21,7 @@ if [ ! -f "$TMPSYS"/etc/COMLINUX_VERSION ] ; then
 fi
 
 shopt -s dotglob
-sudo rsync -rau --delete \
+sudo rsync -rau  \
             --info=progress2 \
             $TMPSYS/* "$GRUBDATA"
 

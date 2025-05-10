@@ -41,6 +41,7 @@ and drop to a bash shell.
     rbreak=pre-overlay      <tab count=3>  Break before overlay mont
     rbreak=pre-del <sp><sp> <tab count=3>  Break before cleanup
     rbreak=pre-chroot       <tab count=3>  Break before chroot to INIT FS
+    rbreak=pre-powerdown    <tab count=3>  Break before hardware shut down
 </m>
 <b>Break SHUTDOWN items:</b>
 <m>

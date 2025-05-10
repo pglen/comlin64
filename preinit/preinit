@@ -1,6 +1,5 @@
 #!/bin/bash
-# shellcheck disable=SC1091
-# SC2004,SC2009,SC2068,SC2002,SC2086,SC2010
+# shellcheck disable=SC1091,SC2010
 
 # Set the TESTME variable to non zero if you are in a sim / test environment.
 # Warning: script tests will not work in the real env.
@@ -98,28 +97,39 @@ date > "$SULOUT" ; date > "$SULERR"
 getargy 'verbose' && export VERBOSE=$FOUNDVAL
 getargx 'ibreak=all' && export BREAKALL=1
 
-# Never leave us hanging without a name
+# Do not leave us hanging without a name
 hostname "$(cat /etc/hostname)"  >>"$SULOUT" 2>>"$SULERR"
 
-# Remount (real) devices
-mkdir -p /proc ; mount -t proc proc /proc
-mkdir -p /sys ; mount -t sysfs sysfs /sys
-mkdir -p /dev ; mount -t devtmpfs devtmpfs /dev
-mkdir -p /dev/pts ; mount -t devpts devpts /dev/pts
+# Remount (real) devices obsolete -- done in initrd
+#mkdir -p /proc ; mount -t proc proc /proc
+#mkdir -p /sys ; mount -t sysfs sysfs /sys
+#mkdir -p /dev ; mount -t devtmpfs devtmpfs /dev
+#mkdir -p /dev/pts ; mount -t devpts devpts /dev/pts
 
-getargx 'ibreak=start' && tmpshell "$FOUNDVAR $ "
+[ -e /dev/console ] || ln -s /dev/tty0 /dev/console
 
-# Install items specified by the user's /etc
-loginfo 0 -n "Installing modules ... "
-loadmods
-getargy 'isleep' && sleep "$FOUNDVAL"
-echo -e " \033[32;1mOK\033[0m"
+# Already going in init
+#getargx 'ibreak=pre-udevd' && tmpshell "$FOUNDVAR $ "
+#loginfo 0 -n "Starting systemd-udevd ... "
+#/lib/systemd/systemd-udevd >>"$SULOUT" 2>>"$SULERR" &
+#getargy 'isleep' && sleep "$FOUNDVAL"
+#loginfo 0 -t -e " \033[32;1mOK\033[0m"
 
-getargx 'ibreak=devices' && tmpshell "$FOUNDVAR $ "
+# This was a bad idea ... lot of crap is included
+#sysctl --system
+
+# Kernel may load firmware from it
+#modprobe overlay
 
 # Install devices from PCI bus(es)
+getargx 'ibreak=devices' && tmpshell "$FOUNDVAR $ "
 devload "Detecting devices ... "
+getargy 'isleep' && sleep "$FOUNDVAL"
 
+# Install modules specified by the user's /etc
+getargx 'ibreak=modules' && tmpshell "$FOUNDVAR $ "
+loginfo 0 -n "Installing modules ... "
+loadmods
 getargy 'isleep' && sleep "$FOUNDVAL"
 echo -e " \033[32;1mOK\033[0m"
 
@@ -128,7 +138,7 @@ getargx 'ibreak=pre-vt' && tmpshell "$FOUNDVAR $ "
 loginfo 0 -n "Starting VTs ... "
 startvts
 getargy 'isleep' && sleep "$FOUNDVAL"
-logok 0
+echo -e " \033[32;1mOK\033[0m"
 
 # Second round for dependents (like: WIFI)
 devload "Loading devices ... "
@@ -264,33 +274,48 @@ fi
 getargx 'ibreak=pre-mount' && tmpshell "$FOUNDVAR $ "
 mount "$MOUNT_DISK" "$HDROOT"
 getargy 'isleep' && sleep "$FOUNDVAL"
-getargx 'ibreak=pre-overlay' && tmpshell "$FOUNDVAR $ "
 
-mkdir -p $HDROOT/fs
-mkdir -p $HDROOT/work
+mkdir -p $HDROOT/fs ; mkdir -p $HDROOT/work
 
 # Done here, mount overlay
+getargx 'ibreak=pre-overlay' && tmpshell "$FOUNDVAR $ "
 mount -t overlay  comlin_data  \
-    -olowerdir=/,upperdir=$HDROOT/fs,workdir=$HDROOT/work \
-    $NEWROOT
-
+    -olowerdir=/,upperdir=$HDROOT/fs,workdir=$HDROOT/work,redirect_dir=nofollow \
+     $NEWROOT
 getargy 'isleep' && sleep "$FOUNDVAL"
-getargx 'ibreak=pre-chroot' && tmpshell "$FOUNDVAR $ "
 
 # Clear environment of generated vars
 unset  FOUNDVAL FOUNDVAR FOUNDCMD
 unset  MOUNT_DISK MOUNT_DATA SUL
 unset  CLEARDISK CLEARDATA LIBVERS
 
-getargy 'isleep' && sleep "$FOUNDVAL"
+mkdir -p $NEWROOT/proc
+mount --bind /proc $NEWROOT/proc
+
+mkdir -p $NEWROOT/sys
+mount --bind /sys $NEWROOT/sys
+
+mkdir -p $NEWROOT/dev
+mount --bind /dev $NEWROOT/dev
+
+#mkdir -p $NEWROOT/dev/pts
+#mount --bind /dev/pts $NEWROOT/dev/pts
+
+mkdir -p $NEWROOT/orig
+mount --bind /orig $NEWROOT/orig
+
+mkdir -p $NEWROOT/cdroot
+mount --bind /cdroot $NEWROOT/cdroot
+
+# This one needs explicit creation (--bind did not work)
+udevadm settle -t 5
+mkdir -p $NEWROOT/dev/pts
+mount -t devpts devpts $NEWROOT/dev/pts
 
 cd "$NEWROOT" || echo "Cannot CD to $NEWROOT"
 
+getargx 'ibreak=pre-chroot' && tmpshell "$FOUNDVAR $ "
+
 post_chroot
-
-#umount /
-
-#tmpshell "Unexpected script state $ "
-#exit
 
 # EOF
