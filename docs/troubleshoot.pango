@@ -1,4 +1,4 @@
-<inc name=header.pango></inc>
+<c><inc name=header.pango></inc></c>
 <c><b><xl>Troubleshooting</xl></b></c><xs>
 
 </xs><inc name=menu.pango></inc><xs>
@@ -100,4 +100,6 @@ or Ctrl-D keyboard sequence.
 in many states during boot up, operation and shutdown. Every breakpoint \
 presents a command shell, where one can examine and fix the issue.
 </w>
-<inc name=footer.pango>
+<inc name = footer.pango></inc>
+
+## EOF
