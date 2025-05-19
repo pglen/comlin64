@@ -1,7 +1,7 @@
 <c><inc name=header.pango></inc></c>
-<c><b><xl>Troubleshooting</xl></b></c><xs>
+<c><b><xl>Troubleshooting</xl></b></c>
 
-</xs><inc name=menu.pango></inc><xs>
+<inc name=menu.pango></inc><xs>
 
 </xs><w><j>\
 <sp> <sp> In case there are any difficutlies, Community Linux 64 is \
