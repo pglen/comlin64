@@ -4,17 +4,20 @@
 
 ### In Beta. Fully functional.
 
-Preface
+  If you are reading this file, you have successfully downloaded and
+extracted the comlin archive. Make sure you have extracted as root,
+so the file permissions are preserved.
+
+## Preface
 
     *   The Community Linux project aims to provide a simple Linux distribution
         for the masses.
     *   It is a fully functional GUI right from the Thumb drive within the first
-        30 seconds to power up. (21 seconds measured on a Dell I5 laptop)
+        30 seconds of power up. (21 seconds measured on a Dell I5 laptop)
     *   It is installation-less, and it looks and feels like a real hard drive
         installation.
-     _________________________________________________________________
 
-Goals
+## Goals
 
     *   A simple (graphical) UI to interact with the system. Community Linux
         GUI is targeted to that audience.
@@ -24,15 +27,14 @@ Goals
         and / or CD rom. Examples include low cost (student) laptop, home
         automation, video security, industrial controls, cash registers,
         rugged system(s) suitable for law enforcement / military.
-     ________________________________________________________________
 
-System requirements:
+## System requirements:
 
     ComLin64 Linux will work on most 64 bit PC platforms. With more than
     5000 drivers available, ComLin64  covers almost all possible  platform
     combinations.
 
-Recommended (minimum) system requirements:
+## Recommended (minimum) system requirements:
 
     While ComLin64 Linux will work on the most basic hardware. For responsive
     operation we recommend at least 2 Gig of RAM (or more),
@@ -40,15 +42,13 @@ Recommended (minimum) system requirements:
         (also called Jump Drive, a Thumb Drive or a Flash Drive).
     Tested: 2 Gig of Ram, 1.2 GHz CPU, 32 Gig Jump drive -- works OK
 
-The ComLin64 .ISO should boot and be usable immidiately.
-
-ComLin64 System Creation:
+## ComLin64 System Creation:
 
     Download the current .gz image and dd it to a 32 gig jump drive.
     (rufus dd mode if you are on windows) If you want different sizes,
     ComLin is customizable, but needs minimum system admin skills.
 
-ComLin64 System Creation requirements:
+## ComLin64 System Creation requirements:
 
     This is of course if you opted for the source creation. The source
     creation gives you full control over features / sizes / partitions ... etc.
@@ -56,17 +56,17 @@ ComLin64 System Creation requirements:
     1.) A host Linux system to create the jump drive with. (we used Ubuntu 22.x)
         Alternatively, one can create a new ComLin64 system from a ComLin64
         boot drive.
-    2.) Jump drive with at least 16 GB capacity. (we used a Verbatim 16GB)
+    2.) Jump drive with at least 32 GB capacity. (or larger)
        Smaller jump drive can be used by reducing the freature list, however,
-       the 16GB option will have ALL the features of a real hard drive
+       the 32GB option will have ALL the features of a real hard drive
        installation.
-    3.) The creation scripts and ComLin64 system image.
-        (downloadable from Github)
+    3.) The creation scripts in the and comlin64 subdirectory.
+        (downloadable from Github or sourceforge)
 
      Alternatively, you can order a ready made jump drive from the author.
-    (Email address can be found on the GitHub Project page)
+    (Email address can be found on the GitHub Project page or down below)
 
-Quick Start:
+## Quick Start:
 
     NOTE: Some of the 32 bit creation utilities are left over from the
     previous version, ignore them.
@@ -75,10 +75,10 @@ Quick Start:
     The Makefile contains brief instructions on different
     stages of the process.
     A stock kernel and system is provided for easy system creation.
-    ComLin64ux can also be created from most any running system, but that is
+    ComLin64 can also be created from most any running system, but that is
     task reserved for expert sysadmins. (too many things to configure)
 
-Detecting the Jump Drive:
+## Detecting the Jump Drive:
 
     Execute 'make detect' and follow the prompts to auto detect your drive.
     Make sure you configure the jump drive correctly, as this set of scripts
@@ -86,12 +86,13 @@ Detecting the Jump Drive:
     the file config_drive and compare it against the output of
     'mount' and 'df'.
 
-Care and feeding:
+## Care and feeding:
 
-    The initial setup contains two user accounts: 'root' and 'user'
-    and a guest account.
-    root pass: is 'root' (without the quotes)
-    user pass: is 'user' (without the quotes)
+    The initial setup contains three accounts:
+            'root' and 'user'  and a guest account.
+    root  pass: is 'root' (without the quotes)
+    user  pass: is 'user' (without the quotes)
+    guest pass: is 'guest' (without the quotes)
 
     The pro version has:
         encryption pass is '12345678' (without the quotes)
@@ -105,17 +106,17 @@ Care and feeding:
 	(HTTP, SSH ...) You may enable more firewall ports by editing the
 	firewall configuration.
 
-Runlevel-Less operation
+## Runlevel-Less operation
 
     To boot faster, and exclude unneeded baggage present on a full system,
     ComLin64 Linux operates without the distinction of runlevels. The system
     instead, cycles through a set of shell scripts.
     To aid troubleshooting, checkpoints are introduced. One can enter
-    into the the grub command line and specify a stop options to
-    temporarily drop to a shell prompt. Exiting the temporary
+    into the the grub command line (press 'e' on grub load) and specify
+    options to temporarily drop to a shell prompt. Exiting the temporary
     shell will continue the boot process from the point of interruption.
 
-Installation-Less operation
+## Installation-Less operation
 
     ComLin64 Linux should operate on most every hardware combination supported
     by Linux. As of this writing, there are more then 3000+ different hardware
@@ -125,7 +126,7 @@ Installation-Less operation
     about faster or the same speed as a regular hard drive boot.
     ComLin64 works right out of the box without installation.
 
-Special added Utilities
+## Special added Utilities
 
     Some additional utils where necessary, and some existing utilities had
     insufficient functionality. For example the 'getkey' utility did not work
@@ -135,7 +136,7 @@ Special added Utilities
     list of added utils see the source in ./apps directory.
     (Luke; Use the source)
 
-Security Measures:
+## Security Measures:
 
     The files in the project are protected by an sha1 sum. The sums are stored
     in the file "sha1.sum". The sum file is protected by the file SUMFILE.
@@ -147,7 +148,7 @@ Security Measures:
     second verifyer. (chicken and egg conundrum) Hence the redirection to
     get a sum file (or sum file sum) from different (not tempered) source.
 
-Data Security and Privacy Measures:
+## Data Security and Privacy Measures:
 
     (disabled for beta)
     ComLin64 has an encrypted subsystem, that is controllable from the padlock
@@ -162,7 +163,7 @@ Data Security and Privacy Measures:
      _________________________________________________________________
 
 
-Description of the ComLin64 Linux boot procedure
+## Description of the ComLin64 Linux boot procedure
 
     o The system loads the MBR of the USB drive
     o MBR loads the boot sector of the USB drive, containing GRUB
@@ -172,27 +173,48 @@ Description of the ComLin64 Linux boot procedure
 
     1. preinit is executed, and starts many services
     2. Spawn virtual terminal like most linux installations
-    3. Spawns the zombie collector (obsolete)
-    4. Jumps to postinit
-    5. Startx X, and the login program.
+    3. Jumps to postinit
+    4. Startx X, and the login program.
 
-The shutdown process:
+## The shutdown process:
 
-    1. When X is done, control is returned to the postinit sript
-    2. The K-* scripts are executed
-    3. Control is returned to startup.sh (symmetry)
+    1. When X is done, control is returned to the postinit script
+    3. Control is returned to preinit
     4. Remaining processes are killed, file-systems unmounted
-    5. Control is transferred back to init shell script
-     _________________________________________________________________
+    5. Control is transferred back to init intramfs
 
-Current Progress:
+## Upstream:
 
-    Mon 13.Jan.2025  Sound drivers
-    Tue 07.Jan.2025  Some correction, pango font display
-    Thu 02.Jan.2025  Boots under VBOX into XFCE in under 15 seconds
-    Sat 10.May.2025  Beta
+    Community Linux64 is derived from Ubuntu 22.04 Package
+    installation is fully operational from said repository.
+    The packages are last updated on Sun 11.May.2025
 
-Credits
+## Bugs:
+
+    In a distro with a million moving parts, there are a lot of
+    deviations from expectations. One notable is the use of overlay
+    file system, where the kernel cannot load dependent modules from the
+    overlay. (kernel bug?)
+    The work around is to load the dependent module from the init scripts
+    or from /etc/modules.
+
+## Github:
+
+    The comlin64 directory is also published on github at:
+
+      https://github.com/pglen/comlin64
+
+    _________________________________________________________________
+
+## Current Progress:
+
+    Mon 13.Jan.2025 Sound drivers
+    Tue 07.Jan.2025 Some correction, pango font display
+    Thu 02.Jan.2025 Boots under VBOX into XFCE in under 15 seconds
+    Sat 10.May.2025 Beta
+    Sun 11.May.2025 Uploded to SF
+
+## Credits
 
     Credits go to all of you who contributed to dependent and / or similar
     projects. To all who tested it, encouraged it, and gave feedback.

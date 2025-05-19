@@ -217,6 +217,36 @@ loadmods() {
         done < /etc/modules
 }
 
+loadvirt() {
+
+    if [ $((VERBOSE)) -gt 0 ] ; then
+        echo "loadvirt()  "
+    fi
+    # Hypervisor present?
+    HYPER=$(grep hypervisor /proc/cpuinfo)
+    if [ "$HYPER" == "" ] ; then
+        if [ $((VERBOSE)) -gt 1 ] ; then
+            echo " No hypervisor."
+        fi
+        return
+    fi
+    DEVS=$(lspci -v | grep "Kernel " | awk -F ":" '{ print($2); }' | \
+           grep -v modules | tr "," "\n"  | grep vbox)
+    if [ $((VERBOSE)) -gt 1 ] ; then
+        echo "DEVS:" "$DEVS"
+    fi
+    for aa in $DEVS ; do
+        if [ $((TESTME)) -gt 0 ] ; then
+            echo "Would load: $aa"
+        else
+            if [ $((VERBOSE)) -gt 1 ] ; then
+                echo -n "Device: $aa "
+            fi
+            modprobeif "$aa"  #>>"$SULOUT" 2>>"$SULERR"
+        fi
+    done
+}
+
 loaddevs() {
 
     # Install devices from PCI bus; ignore vbox additions for now
@@ -416,6 +446,31 @@ setsuids() {
     done
 }
 
+bindall() {
+
+    mkdir -p "$1"/proc
+    mount --bind /proc "$1"/proc
+
+    mkdir -p "$1"/sys
+    mount --bind /sys "$1"/sys
+
+    mkdir -p "$1"/dev
+    mount --bind /dev "$1"/dev
+
+    #mkdir -p "$1"/dev/pts
+    #mount --bind /dev/pts "$1"/dev/pts
+
+    mkdir -p "$1"/orig
+    mount --bind /orig "$1"/orig
+
+    mkdir -p "$1"/cdroot
+    mount --bind /cdroot "$1"/cdroot
+
+    # This one needs explicit creation (--bind did not work)
+    udevadm settle -t 5
+    mkdir -p "$1"/dev/pts
+    mount -t devpts devpts "$1"/dev/pts
+}
 # Force trigger and load
 
 devload() {
@@ -427,8 +482,9 @@ devload() {
     udevadm trigger -c add -t devices
     udevadm settle -t 5
 
-    loadmods ;     udevadm settle -t 5
-    loaddevs ;     udevadm settle -t 5
+    loadmods ;  udevadm settle -t 5
+    loaddevs ;  udevadm settle -t 5
+    loadvirt ;  udevadm settle -t 5
 
     loginfo 0 -t -e " \033[32;1mOK\033[0m"
 }

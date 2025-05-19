@@ -27,6 +27,10 @@ CDISP = "/var/tmp/currdisp"
 
 SDCOM="/var/tmp/.shutdowncmd"
 
+exit_code = 0
+font_offset = 30
+drift = 1
+
 def get_disp_pos_size():
 
     warnings.simplefilter("ignore")
@@ -42,6 +46,68 @@ def get_disp_pos_size():
     warnings.simplefilter('default')
 
     return xxx, yyy, www, hhh
+
+class LabelButt(Gtk.EventBox):
+
+    ''' Imitate button '''
+    def __init__(self, front, callb, toolt=""):
+
+        GObject.GObject.__init__(self)
+
+        self.front = front
+        self.callb = callb
+        self.set_can_focus(True)
+        self.label = Gtk.Label.new_with_mnemonic(front)
+        self.label.set_mnemonic_widget(self)
+        #self.curve =  Gdk.Cursor(Gdk.CursorType.CROSSHAIR)
+        self.arrow =  Gdk.Cursor(Gdk.CursorType.ARROW)
+        self.hand =  Gdk.Cursor(Gdk.CursorType.CIRCLE)
+
+        #gdk_window = self.get_root_window()
+        #self.arrow = gdk_window.get_cursor()
+
+        if toolt:
+            self.label.set_tooltip_text(toolt)
+        self.label.set_single_line_mode(True)
+        self.add(self.label)
+
+        self.label.connect("event-after", self.eventx, front)
+        self.connect("mnemonic-activate", self.mnemonic, front)
+
+        if self.callb:
+            self.connect("button-press-event", self.callb, self.front)
+
+        self.set_above_child(True)
+        self.add_mnemonic_label(self.label)
+
+        #self.label.connect("motion-notify-event", self.area_motion)
+        self.connect("motion-notify-event", self.area_motion)
+        self.connect("enter-notify-event", self.area_enter)
+        self.connect("leave-notify-event", self.area_leave)
+
+    def eventx(self, *args):
+        print("eventx", *args)
+        pass
+
+    def mnemonic(self, *arg):
+        if self.callb:
+            #print("Mnemonic", *arg)
+            self.callb(self, self.label, self.front)
+        pass
+
+    def area_motion(self, arg1, arg2):
+        #print("LabelButt Motion")
+        pass
+
+    def area_enter(self, arg1, arg2):
+        #print("LabelButt enter")
+        gdk_window = self.get_window()
+        gdk_window.set_cursor(self.hand)
+
+    def area_leave(self, arg1, arg2):
+        #print("LabelButt leave")
+        gdk_window = self.get_window()
+        gdk_window.set_cursor(self.arrow)
 
 class xEntry(Gtk.Entry):
 
@@ -61,7 +127,9 @@ class xEntry(Gtk.Entry):
     def enterkey(self, arg):
         #print("Enter:", self.get_text())
         if self.action:
-            self.action()
+            ret = self.action()
+            if not ret:
+                self.form.child_focus(Gtk.DirectionType.TAB_FORWARD)
         else:
             self.form.child_focus(Gtk.DirectionType.TAB_FORWARD)
 
@@ -137,7 +205,7 @@ class MainWin(Gtk.Window):
 
         self.set_app_paintable(True)
 
-        self.connect("destroy", self.OnExit)
+        #self.connect("destroy", self.OnExit)
         self.connect("key-press-event", self.key_press_event)
         self.connect("key-release-event", self.key_release_event)
         self.connect('draw', self.expose)
@@ -146,6 +214,7 @@ class MainWin(Gtk.Window):
         self.connect('motion-notify-event', self.motionx)
         self.connect('button-press-event', self.pressx)
         self.connect('button-release-event', self.releasex)
+        self.connect('leave-notify-event', self.leave_notify)
 
         try:
             self.set_icon_from_file("background.png")
@@ -166,7 +235,7 @@ class MainWin(Gtk.Window):
         self.m1   = Gtk.Label(label="     ")
         self.m2   = Gtk.Label(label="     ")
 
-        self.userE  = xEntry(self)
+        self.userE  = xEntry(self, self.precheck_pass)
         self.passE  = xEntry(self, self.check_pass)
 
         self.userL  = Gtk.Label.new_with_mnemonic(" U_ser Name:   ")
@@ -216,7 +285,10 @@ class MainWin(Gtk.Window):
 
         self.helper = Gtk.Label(label=" Hover mouse here for userlist.")
 
-        #self.helper2 = Gtk.Label(label=" Hover mouse here help / info.")
+        self.downlab = LabelButt(  \
+                "   Shut Do_wn  ", \
+                self.labelbuttf,    \
+                "Click to shut down system (or use Alt-W)")
 
         ulist = ""
         fp = open("/etc/passwd", "rt")
@@ -231,6 +303,9 @@ class MainWin(Gtk.Window):
         #self.helper2.set_tooltip_text(helper)
 
         hbox2.pack_start(self.helper, 0, 0, 1)
+        #hbox2.pack_start(self.downbutt, 1, 1, 1)
+        hbox2.pack_start(self.downlab, 1, 1, 1)
+
         #hbox2.pack_start(self.helper2, 0, 0, 1)
 
         spx = Gtk.Label(label=" ")
@@ -254,9 +329,33 @@ class MainWin(Gtk.Window):
         self.add(vbox)
         self.show_all()
 
+        GLib.timeout_add(4000, self.animate)
+
         aaa = xconfig.get('autologin', "")
         if aaa:
             GLib.timeout_add(40, self.autologin)
+
+    def leave_notify(self, win, event):
+        #print("leave", event)
+        pass
+
+    def animate(self):
+        #print("anim",)
+        global font_offset, drift
+        font_offset +=  drift
+        if font_offset >  40:
+            drift = -1
+        if font_offset <  30:
+            drift = 1
+
+        self.queue_draw()
+        return True
+
+    def labelbuttf(self, win, txt, but):
+        if xconfig.get("verbose", 0) > 0:
+            print("Eventbox callb for shutting down.")
+        self.write_sdf(3)
+        self.OnExit(3)
 
     def autologin(self):
         aaa = xconfig.get('autologin', "")
@@ -329,30 +428,40 @@ class MainWin(Gtk.Window):
         fp.close()
 
     def ok(self, arg1):
-        print("OK - user", self.userE.get_text(), self.passE.get_text())
+        #print("OK - user", self.userE.get_text(), self.passE.get_text())
         #self.OnExit(2)
+        pass
 
     def cancel(self, arg1):
         #print("Cancel pressed", arg1)
-        self.OnExit(1)
+        #self.OnExit(1)
+        pass
 
-    def  OnExit(self, arg, arg2 = None):
+    def  OnExit(self, excode, arg2 = None):
+        global exit_code
+        exit_code = excode
         Gtk.main_quit()
 
-    def check_pass(self):
-        uu = self.userE.get_text();  pp = self.passE.get_text()
+    def precheck_pass(self):
+
+        uu = self.userE.get_text();
 
         if uu == "exit":
             self.write_sdf(3)
-            sys.exit(1)
+            self.OnExit(1)
 
         if uu == "reboot":
             self.write_sdf(3)
-            sys.exit(2)
+            self.OnExit(2)
 
         if uu == "shutdown":
             self.write_sdf(3)
-            sys.exit(3)
+            self.OnExit(3)
+
+    def check_pass(self):
+
+        self.precheck_pass()
+        uu = self.userE.get_text();  pp = self.passE.get_text()
 
         self.busy = True
         self.get_window().set_cursor(self.wait_cursor)
@@ -373,7 +482,7 @@ class MainWin(Gtk.Window):
                 self.save_result(CEXEC, bbb)
                 self.save_result(CUSER, uu)
                 self.save_result(CDISP, os.environ['DISPLAY'])
-                sys.exit(0)
+                self.OnExit(0)
 
             else:
                 self.result.set_text("Invalid credentials. Please try again ...")
@@ -394,11 +503,15 @@ class MainWin(Gtk.Window):
         ww, hh = self.get_size()
 
         if self.surface:
-            cr.set_source_surface(self.surface)
-            cr.paint()
+            #cr.set_source_surface(self.surface)
+            #cr.paint()
+            pass
 
-        #cr.set_source_rgba(.8, .8, .8, 1)
-        cr.set_source_rgba(.4, .4, .4, 1)
+        cr.set_source_rgba(.8, .8, .8, 1.)
+        cr.rectangle(0, 0, ww, hh)
+        cr.fill()
+
+        cr.set_source_rgba(.4, .4, .4, 1.)
         cr.set_line_width(4)
         cr.move_to(0, 0);  cr.line_to(ww, 0)
         cr.move_to(ww, 0); cr.line_to(ww, hh)
@@ -406,9 +519,28 @@ class MainWin(Gtk.Window):
         cr.move_to(0, hh); cr.line_to(0, 0)
         cr.stroke()
 
-        #cr.rectangle(0, 0, 0.9, 0.8)
-        #cr.rectangle(4, 4, ww-8, hh-8)
-        #cr.fill()
+        # Paint text
+        head = "Community Linux 64"
+
+        cr.select_font_face("Arial", \
+                cairo.FONT_SLANT_NORMAL, cairo.FONT_WEIGHT_BOLD)
+        cr.set_font_size(64)
+
+        cr.set_source_rgba(.4, .4, .4, 1.)
+        cr.move_to(23, 103);
+        cr.show_text(head)
+
+        cr.set_source_rgba(.9, .9, .9, 1.)
+        cr.move_to(20, 100);
+        cr.show_text(head)
+
+        txt = "Login"
+        cr.set_source_rgba(.0, .0, .2, 1.)
+        cr.select_font_face("Arial", \
+                cairo.FONT_SLANT_NORMAL, cairo.FONT_WEIGHT_BOLD)
+        cr.set_font_size(98)
+        cr.move_to(font_offset, 250);
+        cr.show_text(txt)
 
         #return True
 
@@ -428,12 +560,7 @@ class MainWin(Gtk.Window):
             print("Delete event:", widgetx, event)
         #return True
         self.write_sdf(3)
-        sys.exit(3)
-
-    def leave(self, widgetx, event):
-        #print("Leave:", widgetx, event)
-        #return True
-        pass
+        self.OnExit(3)
 
     def done_map(self, widgetx, event):
 
@@ -461,7 +588,7 @@ class MainWin(Gtk.Window):
 
 def unbool(strx):
 
-    ''' Un bool '''
+    ''' Un bool - convert string to boolean value '''
 
     res = strx
     cmp = strx.lower()
@@ -627,7 +754,7 @@ def main():
 
     if args.version:
         print("Version: %s" % Version)
-        sys.exit(0)
+        self.OnExit(0)
 
     xconfig = {}
     readconf(xconfig)
@@ -643,7 +770,7 @@ def main():
     if args.pconf:
         for aa in xconfig:
             print(aa + " " * (14 - len(aa)), "=", xconfig[aa])
-        sys.exit(0)
+        self.OnExit(0)
 
     # Remove sdf, if any
     try:
@@ -656,7 +783,10 @@ def main():
     Gtk.main()
 
 if __name__ == '__main__':
+
     main()
-    sys.exit(0)
+    if xconfig.get("pgdebug", 0) > 2:
+        print("exiting", exit_code)
+    sys.exit(exit_code)
 
 # EOF

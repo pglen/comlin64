@@ -45,8 +45,10 @@ ALLFILES="\
 #echo $ALLFILES
 
 for AA in $ALLFILES ; do
-    #echo $ROOTFS$AA
+    #echo "$ROOTFS""$AA"
     sudo chmod u+s "$ROOTFS""$AA"
 done
 
+echo OK
 
+# EOF

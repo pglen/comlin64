@@ -38,7 +38,7 @@ and drop to a bash shell.
     rbreak=cmdline          <tab count=3>  Break at the beginning of script
     rbreak=systemd          <tab count=3>  Break before systemd-udevd
     rbreak=pre-mount        <tab count=3>  Break pre-mount
-    rbreak=pre-overlay      <tab count=3>  Break before overlay mont
+    rbreak=pre-overlay      <tab count=3>  Break before overlay mount
     rbreak=pre-del <sp><sp> <tab count=3>  Break before cleanup
     rbreak=pre-chroot       <tab count=3>  Break before chroot to INIT FS
     rbreak=pre-powerdown    <tab count=3>  Break before hardware shut down

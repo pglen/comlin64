@@ -16,4 +16,13 @@ umountifnot /mnt/guest/dev
 umountifnot /mnt/guest
 umountifnot /mnt/store
 
+umountifnot /mnt/store
+
+# Just to make sure
+
+umountifnot "$CONFIG_DRIVE"1
+umountifnot "$CONFIG_DRIVE"2
+umountifnot "$CONFIG_DRIVE"3
+umountifnot "$CONFIG_DRIVE"4
+
 # EOF

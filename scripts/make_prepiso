@@ -1,5 +1,5 @@
 #!/bin/bash
-# shellcheck disable=SC2004,SC2009,SC2068,SC2002,SC2086,SC1091
+# shellcheck disable=SC1091   # SC2004,SC2009,SC2068,SC2002,SC2086,
 ##########################################################################
 ##                                                                      ##
 ## Make the install ISO                                                 ##
@@ -24,37 +24,37 @@ fi
 
 # See if conditions are met
 
-if [ ! -f $KEYGET ] ; then
+if [ ! -f "$KEYGET" ] ; then
     #echo "Must have apps / scripts built first (missing keyget)"
     echo "Execute 'make apps' first."
     exit 1
 fi
 
-if [ ! -f $KERNELDIR/$KERNELBIN ] ; then
+if [ ! -f "$KERNELDIR/$KERNELBIN" ] ; then
     echo "Execute 'make getkern' first."
     exit 1
 fi
 
-if [ ! -f $KERNELDIR/initramfs ] ; then
+if [ ! -f "$KERNELDIR/initramfs" ] ; then
     echo "Execute 'make initramfs' first."
     exit 1
 fi
 
 # Pre - Clean some config (to be refilled from target)
-#rm -f $ROOTFS/usr/share/X11/xorg.conf.d/*
-#rm -f $ROOTFS/root/.config/*
+#rm -f "$ROOTFS"/usr/share/X11/xorg.conf.d/*
+#rm -f "$ROOTFS"/root/.config/*
 
 #IFS=$' \t\n'        # Restore original IFS
 
 echo "  Copying (updating) filesystem ... "
-#cp -au $CURRUSB/* $ROOTFS
+#cp -au $CURRUSB/* "$ROOTFS"
 
 #EXC=$(basename $CURRUSB)
 
 # Clear target stuff
 HOMEDIRS="root home/user home/guest"
 #for aaa in $HOMEDIRS ; do
-#    rm -rf $ROOTFS/$aaa
+#    rm -rf "$ROOTFS"/$aaa
 #done
 
 restglob=$(shopt -p dotglob)
@@ -66,78 +66,77 @@ sudo rsync -au  \
             --exclude=/sys/* \
             --exclude=/tmp/* \
             --exclude=/dev/* \
-            $CURRUSB/. $ROOTFS
+            "$CURRUSB/." "$ROOTFS"
 
 # Do users verbatim
-echo "  Copying user data ... "
-sudo cp -au \
-            $CURRUSB/home/* $ROOTFS/home
+echo -n "  Copying user data ... "
+sudo cp -au "$CURRUSB"/home/* "$ROOTFS/home"
+echo OK
 
-$restglob
-
-#echo -n "Copying modules ... "
-#cp -au $MODULEDIR/* $ROOTFS/lib/modules
+#echo -n "  Copying modules ... "
+#cp -au $MODULEDIR/* "$ROOTFS"/lib/modules
 #echo OK
 
 echo -n "  Copying boot items ... "
-cp -au $BOOTDIR/* $ROOTFS/boot
+cp -au "$BOOTDIR"/* "$ROOTFS/boot"
 echo OK
 
 echo -n "  Copying kernel items ... "
-cp -au $KERNELDIR/* $ROOTFS/boot
+cp -au "$KERNELDIR"/* "$ROOTFS/boot"
 echo OK
 
 echo -n "  Copying sbin inits ... "
-cp -au $INITDIR/* $ROOTFS/sbin
-chown root.root $ROOTFS/sbin/*
+cp -au "$INITDIR"/* "$ROOTFS/sbin"
+chown root.root "$ROOTFS"/sbin/*
 echo OK
 
 echo -n "  Copying shell utilities ... "
-cp -au $SHLIB $ROOTFS/lib
-chown root.root $ROOTFS/lib/*
+cp -au "$SHLIB" "$ROOTFS/lib"
+chown root.root "$ROOTFS"/lib/*
 echo OK
 
 echo -n "  Copying dev files ... "
-mkdir -p $ROOTFS/dev
-cp -au $DEVDIR/* $ROOTFS/dev
+mkdir -p "$ROOTFS"/dev
+cp -au "$DEVDIR"/* "$ROOTFS/dev"
 echo OK
 
+$restglob
+
 #echo -n "  Copying user files ... "
-#mkdir -p $ROOTFS/home/user
-#mkdir -p $ROOTFS/home/guest
-#mkdir -p $ROOTFS/root
-#cp -a $USERDIR/. $ROOTFS/home/user
-#cp -a $GUESTDIR/. $ROOTFS/home/guest
-#cp -a $ROOTUSERDIR/. $ROOTFS/root
+#mkdir -p "$ROOTFS/home/user"
+#mkdir -p "$ROOTFS/home/guest"
+#mkdir -p "$ROOTFS/root"
+#cp -a $USERDIR/. "$ROOTFS/home/user"
+#cp -a $GUESTDIR/. "$ROOTFS/home/guest"
+#cp -a $ROOTUSERDIR/. "$ROOTFS/root"
 #echo OK
 
-ETCDIRx=$CURRUSB/etc
-
+#ETCDIRx=$CURRUSB/etc
 #echo -n "  Changing user file permissions ... "
 #UIDX=$(grep user:x $ETCDIRx/passwd  | awk -F ":" '{print $3}')
 #GIDX=$(grep user:x $ETCDIRx/passwd  | awk -F ":" '{print $4}')
-#chown -R $UIDX.$GIDX $ROOTFS/home/user/.
+#chown -R $UIDX.$GIDX "$ROOTFS"/home/user/.
 #
 #UIDG=$(grep guest:x $ETCDIRx/passwd  | awk -F ":" '{print $3}')
 #GIDG=$(grep guest:x $ETCDIRx/passwd  | awk -F ":" '{print $4}')
-#chown -R $UIDG.$GIDG $ROOTFS/home/guest/.
+#chown -R $UIDG.$GIDG "$ROOTFS"/home/guest/.
 #
 #UIDR=$(grep root:x $ETCDIRx/passwd  | awk -F ":" '{print $3}')
 #GIDR=$(grep root:x $ETCDIRx/passwd  | awk -F ":" '{print $4}')
-#chown -R $UIDR.$GIDR $ROOTFS/root/.
+#chown -R $UIDR.$GIDR "$ROOTFS"/root/.
 #
 #unset UIDX GIDX UIDG GIDG UIDR GIDR
 #echo OK
 
-./scripts/setuids.sh
+#. ./scripts/setuids.sh
 
 #echo -n "  Copying etc files ... "
 ## The pre created pass and group
-#cp -a $ETCDIR/* $ROOTFS/etc
-#chown -R root.root $ROOTFS/etc/*
+#cp -a $ETCDIR/* "$ROOTFS"/etc
+#chown -R root.root "$ROOTFS"/etc/*
 ## XFCE related
-#cp -a X11/* $ROOTFS/etc/X11
-#cp -a backgrounds/ $ROOTFS/usr/share/
+#cp -a X11/* "$ROOTFS"/etc/X11
+#cp -a backgrounds/ "$ROOTFS"/usr/share/
 #echo OK
 
 # Remove incidentals (created during testing)
@@ -166,30 +165,29 @@ for aaa in $HOMEDIRS ; do
 done
 
 echo -n "  Patching tmp and var/tmp permissions ... "
-rm -rf $ROOTFS/tmp
-mkdir -p $ROOTFS/tmp
-chmod a+rwxt $ROOTFS/tmp
+sudo rm -rf "$ROOTFS"/tmp
+mkdir -p "$ROOTFS"/tmp
+chmod a+rwxt "$ROOTFS"/tmp
 
-rm -rf $ROOTFS/var/tmp
-mkdir -p $ROOTFS/var/tmp
-chmod a+rwxt $ROOTFS/var/tmp
+rm -rf "$ROOTFS"/var/tmp
+mkdir -p "$ROOTFS"/var/tmp
+chmod a+rwxt "$ROOTFS"/var/tmp
 
-rm  -rf $ROOTFS/var/run/* >/dev/null 2>&1
-rm  -f  $ROOTFS/var/lib/alsa/* >/dev/null 2>&1
+# This line prompted re sudo
+rm  -rf "$ROOTFS/var/run/*" >/dev/null 2>&1
+rm  -f  "$ROOTFS/var/lib/alsa/*" >/dev/null 2>&1
 
 echo OK
 
 # Pivot (or equivalent) needs this
-mkdir -p $ROOTFS/var/oldroot
+mkdir -p "$ROOTFS"/var/oldroot
 
 # Our ID file
-cp $COMLINVERFILE $ROOTFS/etc/COMLINUX_VERSION
+cp "$COMLINVERFILE" "$ROOTFS"/etc/COMLINUX_VERSION
 
 # Patch sound devices (done dynamically on init, just clear it)
-rm -rf $ROOTFS/dev/snd/*
-mkdir -p $ROOTFS/dev/snd
-
-# Grub boot items
+rm -rf "$ROOTFS"/dev/snd/*
+mkdir -p "$ROOTFS"/dev/snd
 
 echo "Done prepping SYS."
 

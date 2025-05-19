@@ -39,7 +39,7 @@ TESTME=1
 
 # Pass individual test numbers per argument to see results
 
-VERBOSE=2
+VERBOSE=3
 
 for itemx in $ALL ; do
     echo Item: $itemx
@@ -60,6 +60,7 @@ for itemx in $ALL ; do
             echo "Found the $BREAKALL"
             getargx 'any and all' && echo "Found the 'ALL' VAR: $FOUNDVAR $ "
             ;;
+        d) loadvirt ;;
 
         ?) echo "Please specify test case" ;;
     esac

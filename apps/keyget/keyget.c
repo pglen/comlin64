@@ -41,12 +41,12 @@ char*   message4 = "Press Y or N: ";
 char*   version = "Version 1.0.0\n";
 char *help   = \
     "Usage: keyget [-t timeout] [-m message] [-y default] [-f] [-n] [msgargs]\n" \
-    "           -t   sec     - timeout in secs, 0 for no timeout, default: 5 \n"
-    "           -m   message - use this as console message\n"
-    "           -y   defval  - yes / no mode, default: 0=no 1=yes\n"
-    "           -f           - force yes or no (captivate)\n"
-    "           -n           - disable default message output\n"
-    "           -V           - print version number\n"
+    "           -t   sec     - Timeout in secs, 0 for no timeout, default: 5 \n"
+    "           -m   message - Use this as console message.\n"
+    "           -y   defval  - Start in yes / no mode, default: 0=no 1=yes\n"
+    "           -f           - Force yes or no (captivate)\n"
+    "           -n           - Disable default message output.\n"
+    "           -V           - Print version number.\n"
     "Arguments following options are appended to the console message.\n";
 
 // -----------------------------------------------------------------------
@@ -99,7 +99,7 @@ int main(int argc, char *argv[])
 {
     int ret = 0; char ch;
 
-    printf("test\n");
+    //printf("test2\n");
 
     // Parse options
     while ((ch = getopt(argc, argv, "Vt:m:nh?y:f")) != -1)

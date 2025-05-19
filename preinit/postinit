@@ -21,8 +21,8 @@ readanchor
 ifconfig lo up 127.0.0.1
 
 # Happens in memory  (Thu 08.May.2025 ?? created a bug)
-mount -t tmpfs tmp-tmpfs $TMP
-mount -t tmpfs run-tmpfs $RUN
+mount -t tmpfs tmp-tmpfs "$TMP"
+mount -t tmpfs run-tmpfs "$RUN"
 
 # May have residuals from prev run
 # NOOP

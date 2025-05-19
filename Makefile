@@ -16,7 +16,7 @@
 #  IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 #  WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-.PHONY: apps clean initramfs
+.PHONY: apps clean initramfs setuids
 
 # Unfortunately, most scripts need to access system stuff, so sudo
 # is needed.
@@ -74,31 +74,36 @@ initramfs: apps
 checkscripts:
 	@sudo ./scripts/make_check_scripts
 
-doiso: buildsys
+craftiso: buildsys
 	@sudo ./scripts/make_iso
 	@make playsound
 
 # This is the 64 bit make all
-buildsys: apps checkscripts initramfs prepiso prepdown getapps
+
+buildsys: apps getapps checkscripts initramfs prepdown setuids prepiso
 	@make playsound2
 
 umountusb:
 	@cd grub-data ; ./umount_grub.sh
 
+# Null USB before op
 createusbc:
 	@cd grub-data ; ./do_new.sh -c
 	make buildsys
 	@cd grub-data ; ./do_sys.sh
 
-createusb:
+createusb:  buildsys
 	@cd grub-data ; ./do_new.sh
-	make buildsys
 	@cd grub-data ; ./do_sys.sh
 
-updateusb:  buildsys
-	@#sudo ./scripts/make_prepiso
+grubsys:
 	@cd grub-data ; ./do_sys.sh
+
+updateusb: buildsys grubsys
 	@make playsound
+
+setuids:
+	@sudo ./scripts/setuids.sh
 
 newusb:
 	@cd grub-data ; ./do_new.sh
@@ -110,7 +115,7 @@ newcleanusb:
 ifeq (${SILENT},0)
 
 playsound:
-	@play ${SOUND} >/dev/null 2>&1 &
+	@play ${SOUND} >/dev/null 2>&1  &
 # Somewhat more friedly (quiet) sound
 playsound2:
 	@play  ${SOUND2} >/dev/null 2>&1 &
@@ -118,6 +123,7 @@ playsound2:
 # Somewhat more harsh for error
 playsound3:
 	@play  ${SOUND3} >/dev/null 2>&1 &
+
 else
 
 playsound:

@@ -159,7 +159,8 @@ getargy 'nodisk' && export NODISK=$FOUNDVAL
 if [ "$NODISK" != "" ] ; then
     echo  "Starting without writable DATA media. " #Enter key to continue. "
     #read -r
-    sleep 2
+    #sleep 2
+    bindall /
     # User wants no data mount
     setsid /sbin/postinit
     exit
@@ -289,28 +290,30 @@ unset  FOUNDVAL FOUNDVAR FOUNDCMD
 unset  MOUNT_DISK MOUNT_DATA SUL
 unset  CLEARDISK CLEARDATA LIBVERS
 
-mkdir -p $NEWROOT/proc
-mount --bind /proc $NEWROOT/proc
+bindall $NEWROOT
 
-mkdir -p $NEWROOT/sys
-mount --bind /sys $NEWROOT/sys
-
-mkdir -p $NEWROOT/dev
-mount --bind /dev $NEWROOT/dev
-
+#mkdir -p $NEWROOT/proc
+#mount --bind /proc $NEWROOT/proc
+#
+#mkdir -p $NEWROOT/sys
+#mount --bind /sys $NEWROOT/sys
+#
+#mkdir -p $NEWROOT/dev
+#mount --bind /dev $NEWROOT/dev
+#
+##mkdir -p $NEWROOT/dev/pts
+##mount --bind /dev/pts $NEWROOT/dev/pts
+#
+#mkdir -p $NEWROOT/orig
+#mount --bind /orig $NEWROOT/orig
+#
+#mkdir -p $NEWROOT/cdroot
+#mount --bind /cdroot $NEWROOT/cdroot
+#
+## This one needs explicit creation (--bind did not work)
+#udevadm settle -t 5
 #mkdir -p $NEWROOT/dev/pts
-#mount --bind /dev/pts $NEWROOT/dev/pts
-
-mkdir -p $NEWROOT/orig
-mount --bind /orig $NEWROOT/orig
-
-mkdir -p $NEWROOT/cdroot
-mount --bind /cdroot $NEWROOT/cdroot
-
-# This one needs explicit creation (--bind did not work)
-udevadm settle -t 5
-mkdir -p $NEWROOT/dev/pts
-mount -t devpts devpts $NEWROOT/dev/pts
+#mount -t devpts devpts $NEWROOT/dev/pts
 
 cd "$NEWROOT" || echo "Cannot CD to $NEWROOT"
 
