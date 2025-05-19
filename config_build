@@ -130,6 +130,8 @@ mkdir -p $COMLINMOUNT
 # Where are the system shell utils
 SHLIB="shlib"
 
+DOCSDIR=./docs
+
 # Where is the tmp system located
 ROOTFS="../_system"
 mkdir -p $ROOTFS

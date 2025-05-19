@@ -80,7 +80,7 @@ craftiso: buildsys
 
 # This is the 64 bit make all
 
-buildsys: apps getapps checkscripts initramfs prepdown setuids prepiso
+buildsys: apps getapps prepdocs checkscripts initramfs prepdown prepiso
 	@make playsound2
 
 umountusb:
@@ -172,6 +172,9 @@ prepiso:  getapps
 
 prepdown:
 	@sudo ./scripts/make_shutdown
+
+prepdocs:
+	@sudo ./scripts/make_getdocs
 
 # ------------------------------------------------------------------------
 # Backup / Packing / Management

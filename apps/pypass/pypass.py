@@ -19,7 +19,7 @@ import cairo
 
 helper = \
     "Use special users 'exit', 'reboot', or 'shutdown' for said actions.\n" \
-    " Alt-F4 to shutdown."
+    " Alt-F4 / Alt-X / Alt-W to shutdown."
 
 CUSER = "/var/tmp/curruser"
 CEXEC = "/var/tmp/currexec"
@@ -47,6 +47,77 @@ def get_disp_pos_size():
 
     return xxx, yyy, www, hhh
 
+def yes_no(message, title = "Question", parent=None, default="Yes"):
+
+    ''' Prompt the user. '''
+
+    dialog = Gtk.MessageDialog(title=title)
+
+    dialog.set_position(Gtk.WindowPosition.CENTER)
+
+    img = Gtk.Image.new_from_stock(Gtk.STOCK_DIALOG_QUESTION, Gtk.IconSize.DIALOG)
+    warnings.simplefilter("ignore")
+    dialog.set_image(img)
+    warnings.simplefilter("default")
+    dialog.set_markup(message)
+
+    if default == "Yes":
+        dialog.set_default_response(Gtk.ResponseType.YES)
+        dialog.add_button("_Yes", Gtk.ResponseType.YES)
+        dialog.add_button("_No", Gtk.ResponseType.NO)
+    else:
+        dialog.set_default_response(Gtk.ResponseType.NO)
+        dialog.add_button("_No", Gtk.ResponseType.NO)
+        dialog.add_button("_Yes", Gtk.ResponseType.YES)
+
+    if parent:
+        dialog.set_transient_for(parent)
+
+    def _yn_key(win, event, cancel):
+        #print("_y_n key", event.keyval)
+        if event.keyval == Gdk.KEY_y or \
+            event.keyval == Gdk.KEY_Y:
+            win.response(Gtk.ResponseType.YES)
+        if event.keyval == Gdk.KEY_n or \
+            event.keyval == Gdk.KEY_N:
+            win.response(Gtk.ResponseType.NO)
+        #if cancel:
+        #    if event.keyval == Gdk.KEY_c or \
+        #        event.keyval == Gdk.KEY_C:
+        #        win.response(Gtk.ResponseType.CANCEL)
+
+    dialog.connect("key-press-event", _yn_key, 0)
+    # Fri 03.May.2024 destroyed return value
+    #dialog.connect("response", lambda d, r: d.destroy())
+    dialog.show_all()
+    response = dialog.run()
+    dialog.destroy()
+    #print("response", response, resp2str(response))
+
+    # Convert all other responses to default
+    if response == Gtk.ResponseType.REJECT or \
+          response == Gtk.ResponseType.CLOSE  or \
+             response == Gtk.ResponseType.DELETE_EVENT:
+        response = Gtk.ResponseType.NO
+
+        # Cancel means no
+        #if default == "Yes":
+        #    response = Gtk.ResponseType.YES
+        #else:
+        #    response = Gtk.ResponseType.NO
+
+    return response
+
+def message_dialog(strx, header = "Message Dialog" ):
+
+    dialog = Gtk.MessageDialog()
+    dialog.set_title(header);
+    dialog.set_markup(strx);
+    dialog.add_button("_OK",  Gtk.ResponseType.OK)
+    res = dialog.run()
+    dialog.destroy()
+    return res
+
 class LabelButt(Gtk.EventBox):
 
     ''' Imitate button '''
@@ -56,7 +127,7 @@ class LabelButt(Gtk.EventBox):
 
         self.front = front
         self.callb = callb
-        self.set_can_focus(True)
+        #self.set_can_focus(True)
         self.label = Gtk.Label.new_with_mnemonic(front)
         self.label.set_mnemonic_widget(self)
         #self.curve =  Gdk.Cursor(Gdk.CursorType.CROSSHAIR)
@@ -286,9 +357,14 @@ class MainWin(Gtk.Window):
         self.helper = Gtk.Label(label=" Hover mouse here for userlist.")
 
         self.downlab = LabelButt(  \
-                "   Shut Do_wn  ", \
+                " Shut Do_wn ", \
                 self.labelbuttf,    \
                 "Click to shut down system (or use Alt-W)")
+
+        self.downlab2 = LabelButt(  \
+                " E_xit ", \
+                self.labelbuttf,    \
+                "Click to exit system (or use Alt-X)")
 
         ulist = ""
         fp = open("/etc/passwd", "rt")
@@ -300,13 +376,14 @@ class MainWin(Gtk.Window):
                     #print(bb[0], bb[2])
                     ulist += bb[0] + ", "
         self.helper.set_tooltip_text(ulist)
-        #self.helper2.set_tooltip_text(helper)
 
         hbox2.pack_start(self.helper, 0, 0, 1)
-        #hbox2.pack_start(self.downbutt, 1, 1, 1)
-        hbox2.pack_start(self.downlab, 1, 1, 1)
 
-        #hbox2.pack_start(self.helper2, 0, 0, 1)
+        hbox2.pack_start(Gtk.Label(label=" "), 1, 1, 0)
+        hbox2.pack_start(self.downlab, 0, 0, 0)
+        hbox2.pack_start(Gtk.Label(label="/"), 0, 0, 0)
+        hbox2.pack_start(self.downlab2, 0, 0, 0)
+        hbox2.pack_start(Gtk.Label(label=" "), 1, 1, 0)
 
         spx = Gtk.Label(label=" ")
         hbox2.pack_start(spx, 1, 1, 1)
@@ -354,7 +431,8 @@ class MainWin(Gtk.Window):
     def labelbuttf(self, win, txt, but):
         if xconfig.get("verbose", 0) > 0:
             print("Eventbox callb for shutting down.")
-        self.write_sdf(3)
+
+        #message_dialog("Shutting Down", "Comlin64")
         self.OnExit(3)
 
     def autologin(self):
@@ -438,8 +516,25 @@ class MainWin(Gtk.Window):
         pass
 
     def  OnExit(self, excode, arg2 = None):
+
         global exit_code
         exit_code = excode
+
+        if excode == 3:
+            ret = yes_no("Are you sure you want to shutdown?", "ComLin64", None, "No")
+            #print("dialog ret:", ret)
+        elif excode == 2:
+            ret = yes_no("Are you sure you want to reboot?", "ComLin64", None, "No")
+        elif excode == 1:
+            ret = yes_no("Are you sure you want to exit?", "ComLin64", None, "No")
+        else:
+            ret = Gtk.ResponseType.YES
+
+        if ret != Gtk.ResponseType.YES:
+           return
+
+        self.write_sdf(excode)
+
         Gtk.main_quit()
 
     def precheck_pass(self):
@@ -467,9 +562,10 @@ class MainWin(Gtk.Window):
         self.get_window().set_cursor(self.wait_cursor)
 
         if not uu or not pp:
-            self.result.set_text("User / Pass fields cannot be empty.")
+            self.result.set_markup(\
+            "User / Pass fields <span fgcolor=\"#ff0000\">cannot be empty.</span>")
         else:
-            self.result.set_text("Checking ...")
+            self.result.set_markup("<span fgcolor=\"#0000ff\">Checking ...</span>")
             millisleep(20)
 
             ret = pam.authenticate(uu, pp)
@@ -485,7 +581,8 @@ class MainWin(Gtk.Window):
                 self.OnExit(0)
 
             else:
-                self.result.set_text("Invalid credentials. Please try again ...")
+                self.result.set_markup(\
+                "<span fgcolor=\"#ff0000\">Invalid credentials. </span>Please try again ...")
                 millisleep(20)
 
         millisleep(20)

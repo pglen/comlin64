@@ -1,0 +1,37 @@
+#!/bin/bash
+
+. ./config_build nocheck
+. "$SCRIPTS"/misc/lib/lib_fail
+
+#echo "-------------------------------------"
+#echo " Get docs into new image "
+#echo "-------------------------------------"
+
+cpchown() {
+
+    if [ ! -d $2 ] ; then
+        mkdir -p $2
+    fi
+    cp -a $1 $2
+    FFF=$2/$(basename $1)
+    sudo chown root.root $FFF
+    sudo chmod go-w  $FFF
+    sudo chmod a-x  $FFF
+}
+
+TARG=$LITEUSB/root/Utils/docs
+
+if [ ! -d $TARG ] ; then
+    echo TARG dir must exist
+    exit 1
+fi
+
+echo -n "Copying DOCS to $TARG ... "
+
+for aa in $DOCSDIR/* ; do
+    cpchown $aa $TARG
+done
+
+echo OK
+
+# EOF

@@ -56,7 +56,10 @@ mkdir -p $TARG2/panglib
 chown root.root $TARG2/panglib
 
 cpchown ../../../pgpygtk/pangview/pangview.py $TARG2
-cp -a ../../../pgpygtk/pangview/panglib/* $TARG2/panglib
+
+for aa in ../../../pgpygtk/pangview/panglib/* ; do
+    cpchown $aa $TARG2/panglib
+done
 
 echo OK
 
