@@ -17,7 +17,7 @@
 #include "linux_reboot.h"
 
 char *help   = \
-    "Usage: linux_[poweroff | reboot] [-h] [-t] [-f] [w seconds] [-m message]\n" \
+    "%s [-h] [-t] [-f] [w seconds] [-m message]\n" \
     "          -f          - force\n" \
     "          -m msg      - send message\n" \
     "          -w sec      - wait seconds before action\n" \
@@ -27,6 +27,7 @@ char *help   = \
 
 int force = false, testx = false, verbose = false, waitx = 0;
 char *message = NULL;
+char tmp[256];
 
 #ifdef COMPILE_POWEROFF
     char *opstr = "shutdown";
@@ -43,6 +44,15 @@ static int my_reboot(int cmd) {
 	return reboot(cmd);
 }
 
+static int send_message(char *msg, int waitx)
+
+{
+    snprintf(tmp, sizeof(tmp),
+                "wall \"%s\nSystem shutting down in %d seconds.\"",
+                            msg, waitx);
+    system(tmp);
+}
+
 // -----------------------------------------------------------------------
 
 int main(int argc, char *argv[])
@@ -54,31 +64,45 @@ int main(int argc, char *argv[])
     while ((ch = getopt(argc, argv, "vtfhm:w:")) != -1)
       switch (ch) {
             case 'f':
-                force = true;
-                break;
+                force = true;                 break;
             case 't':
-                testx = true;
-                break;
+                testx = true;                 break;
             case 'v':
-                verbose = true;
-                break;
+                verbose = true;               break;
             case 'm':
-                message = strdup(optarg);
-                break;
+                message = strdup(optarg);     break;
             case 'w':
-                waitx = atoi(optarg);
-                break;
+                waitx = atoi(optarg);         break;
             case 'h':
-                printf("%s", help);
+                printf("Usage: linux_%s %s",  opstr, help);
                 exit(0);
                 break;
            }
 
-    if(verbose)
+    // Run only if the reboot / shutdown file exist of in forced mode.
+    // This prevents accidental reboots by the user
+    if ( (stat(reboot_file, &st) < 0) && !force)
         {
-        printf("Waiting: %d seconds\n", waitx);
-        printf("Sending message: '%s'\n", message);
+        #ifdef COMPILE_POWEROFF
+        printf( \
+        "Poweroff condition is not met. (file %s must exist or use -f option)\n",
+                    reboot_file);
+
+        #else
+        printf( \
+        "Reboot condition is not met. (file %s must exist or use -f option)\n",
+                    reboot_file);
+        #endif
+        exit(1);
         }
+
+    if(message)
+        {
+        if(verbose)
+            printf("Sending message '%s'\n", message);
+        send_message(message, waitx);
+        }
+
     if(waitx)
         {
         if(verbose)
@@ -86,15 +110,7 @@ int main(int argc, char *argv[])
 
         sleep(waitx);
         }
-    // Run only if the reboot / shutdown file exist of in forced mode.
-    // This prevents accidental reboots by the user
-    if ( (stat(reboot_file, &st) < 0) && !force)
-        {
-        printf( \
-        "Reboot condition is not met. (file %s must exist or use -f option)\n",
-                    reboot_file);
-        exit(1);
-        }
+
     if(!testx)
         {
         sync();

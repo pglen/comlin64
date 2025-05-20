@@ -49,7 +49,7 @@ loginfo() {
     done
 
     if [ $TT -eq 0 ] ; then
-        echo -n "$(ptime) "
+        echo -n "$(uptime 1) "
     fi
 
     echo "$@"
@@ -407,6 +407,26 @@ ptime() {
     MSECS=$((TTT3 % 1000))
     printf "%d.%-3d " $SECS $MSECS
     }
+
+uptime() {
+
+    local TTT
+    TTT=$(cat /proc/uptime | awk '{print $1}')
+
+    #echo $TTT
+    HH=$(echo "$TTT  / 3600 " | bc)
+    MM=$(echo "($TTT / 60) % 60" | bc)
+    SS=$(echo " ($TTT  % 60) " | bc)
+    NN=$(echo "($TTT % 1) * 100" | bc)
+
+    if [ "1" == "$1" ] ; then
+        printf "%02.0f.%02.0f " "$SS" "$NN"
+    elif [ "2" == "$1" ] ; then
+        printf "%02.0f:%02.0f.%02.0f " "$MM" "$SS" "$NN"
+    else
+        printf "%02.0f:%02.0f:%02.0f.%02.0f " "$HH" "$MM" "$SS" "$NN"
+    fi
+}
 
 ALLFILES="\
 /usr/bin/chfn \

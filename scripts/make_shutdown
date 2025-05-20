@@ -11,15 +11,16 @@
 . config_build nocheck
 . "$SCRIPTS"/misc/lib/lib_fail
 
-echo -n "Patching shutdown files ... "
+# Tue 20.May.2025 fixed it in the -- lite -- dir
 
-# Patch shutdown
+#echo -n "Patching shutdown files ... "
 
 #FILES="shutdown reboot flushall"
 #for aa in $FILES ; do
 #    #echo "rm: $aa"
 #    rm  -f $ROOTFS/sbin/$aa
 #done
+
 #for bb in $FILES ; do
 #    #echo "cp: $bb"
 #    cp -a shutdown/$bb.sh $ROOTFS/sbin/$bb
@@ -28,13 +29,13 @@ echo -n "Patching shutdown files ... "
 #    chmod u+s $ROOTFS/sbin/$bb
 #done
 
-# Triganals are symlinks -- nuke them
-rm -f $ROOTFS/sbin/shutdown
-rm -f $ROOTFS/sbin/reboot
+# Trig anals are symlinks -- nuke them
+#rm -f $ROOTFS/sbin/shutdown
+#rm -f $ROOTFS/sbin/reboot
 
-cp -a apps/empty/empty $ROOTFS/sbin/
-cp -a shutdown/. $ROOTFS/sbin/
+#cp -a apps/empty/empty $ROOTFS/sbin/
+#cp -a shutdown/. $ROOTFS/sbin/
 
-echo " OK"
+#echo " OK"
 
 # EOF

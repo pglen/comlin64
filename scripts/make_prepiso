@@ -53,9 +53,9 @@ echo "  Copying (updating) filesystem ... "
 
 # Clear target stuff
 HOMEDIRS="root home/user home/guest"
-#for aaa in $HOMEDIRS ; do
-#    rm -rf "$ROOTFS"/$aaa
-#done
+for AAA in $HOMEDIRS ; do
+    rm -f "$CURRUSB"/"$AAA"/.bash_history
+done
 
 restglob=$(shopt -p dotglob)
 shopt -s dotglob
@@ -69,9 +69,9 @@ sudo rsync -au  \
             "$CURRUSB/." "$ROOTFS"
 
 # Do users verbatim
-echo -n "  Copying user data ... "
-sudo cp -au "$CURRUSB"/home/* "$ROOTFS/home"
-echo OK
+#echo -n "  Copying user data ... "
+#sudo cp -au "$CURRUSB"/home/* "$ROOTFS/home"
+#echo OK
 
 #echo -n "  Copying modules ... "
 #cp -au $MODULEDIR/* "$ROOTFS"/lib/modules
@@ -102,6 +102,7 @@ echo OK
 
 $restglob
 
+# Tue 20.May.2025 disabled
 #echo -n "  Copying user files ... "
 #mkdir -p "$ROOTFS/home/user"
 #mkdir -p "$ROOTFS/home/guest"

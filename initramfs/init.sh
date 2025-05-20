@@ -1,10 +1,11 @@
 #!/bin/bash
-# shellcheck disable=SC1090,SC2048,SC2086,SC2068
+# shellcheck disable=SC1090,SC2048,SC2086,SC2068,SC2002
 
 # Custom Comlin INIT library.
 #
 # Thu 16.Jan.2025   Added some function descriptions.
 # Mon 07.Apr.2025   Moved to local init dir, added loginfo2
+# Tue 20.May.2025   Added uptime
 
 loginfo2() {
 
@@ -32,7 +33,7 @@ loginfo2() {
     done
 
     if [ $TT -eq 0 ] ; then
-        echo -n "$(ptime) "
+        echo -n "$(uptime 1) "
     fi
 
     echo "$@"
@@ -324,5 +325,27 @@ ptime() {
     MSECS=$((TTT3 % 1000))
     printf "%d.%-3d " $SECS $MSECS
     }
+
+uptime() {
+
+    local TTT
+    TTT=$(cat /proc/uptime | awk '{print $1}')
+
+    #echo $TTT
+    HH=$(echo "$TTT  / 3600 " | bc)
+    MM=$(echo "($TTT / 60) % 60" | bc)
+    SS=$(echo " ($TTT  % 60) " | bc)
+    NN=$(echo "($TTT % 1) * 100" | bc)
+
+    if [ "1" == "$1" ] ; then
+        #echo $HH:$MM:$SS $NN
+        printf "%02.0f.%02.0f " $SS $NN
+    elif [ "2" == "$1" ] ; then
+        printf "%02.0f:%02.0f.%02.0f " $MM $SS $NN
+    else
+        printf "%02.0f:%02.0f:%02.0f.%02.0f " $HH $MM $SS $NN
+        #echo $MM:$SS $NN
+    fi
+}
 
 # EOF

@@ -9,6 +9,7 @@
 # This also signals that we are active
 echo
 echo -e "Booting Community Linux 64 Version 1.0.0 ... \033[32;1mOK\033[0m"
+echo
 
 # Developers: See if we are in simulation by looking at GUI X progs
 #INSIM=$(pgrep Xorg)
@@ -31,11 +32,6 @@ export TERM=linux
 export USER=root
 export HOME=/root
 
-# Time starts now
-tanchor
-
-loginfo2 0 -e "Loaded kernel ... \033[32;1mOK\033[0m"
-
 export PATH=/sbin:/bin:/usr/sbin:/usr/bin
 
 CDROOT="/cdroot"
@@ -47,6 +43,10 @@ mkdir -p /proc /sys /dev /dev/pts /run
 
 mount -t proc proc /proc
 mount -t sysfs sysfs /sys
+
+# Time starts now (we get kernel uptime)
+uptime 1
+echo -e " Loaded kernel ... \033[32;1mOK\033[0m"
 
 # kernel command line equivalent: firmware_class.path=/cdroot/lib/firmware
 echo "/cdroot/lib/firmware" > /sys/module/firmware_class/parameters/path

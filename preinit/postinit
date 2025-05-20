@@ -14,48 +14,62 @@ getargy 'verbose' && export VERBOSE=$FOUNDVAL
 getargx 'ibreak=all' && export BREAKALL=1
 getargx 'ibreak=start2' && tmpshell "$FOUNDVAR $ "
 
+# Let the kernel know we have new root
+mount -o remount,rw /
+
 loginfo 1 "COMLIN64 in postinit stage"
-readanchor
+
+# inform user
+loginfo 0  -n "For more startup logs see: '/var/log/startuplogs/'"
+loginfo 0 -t -e " \033[32;1mOK\033[0m"
 
 # UP loopback network connection
 ifconfig lo up 127.0.0.1
 
 # Happens in memory  (Thu 08.May.2025 ?? created a bug)
-mount -t tmpfs tmp-tmpfs "$TMP"
-mount -t tmpfs run-tmpfs "$RUN"
+#mount -t tmpfs tmp-tmpfs "$TMP"
+#mount -t tmpfs run-tmpfs "$RUN"
 
-# May have residuals from prev run
-# NOOP
 
 # Placeholders
-#mkdir /run/dbus/
+mkdir -p /run/dbus
+mkdir -p /run/udev
+mkdir -p /run/sshd
+#mkdir -p /dev/shm
+
+# May have residuals from prev run
+rm -r /run/udev/*
+rm -r /run/dbus/*
 
 # Test alternate config
 #export XDG_CONFIG_DIR=/etc/xdg-comlin
 
 # Create this dynamically
 export XDG_RUNTIME_DIR=/run/user/$UID
-mkdir -p $XDG_RUNTIME_DIR
-chmod -R a+rw $XDG_RUNTIME_DIR
+mkdir -p "$XDG_RUNTIME_DIR"
+rm -rf "$XDG_RUNTIME_DIR"/*
+
+#chmod -R a+rw $XDG_RUNTIME_DIR
 
 loginfo 1 "Using XDG runtime dir: $XDG_RUNTIME_DIR"
 
 getargx 'ibreak=pre-dbus' && tmpshell "$FOUNDVAR $ "
 
-loginfo 0 -n "Starting DBUS ... "
-mkdir -p /run/dbus
-dbus-daemon --system >>"$SULOUT" 2>>"$SULERR" &
-getargy 'isleep' && sleep "$FOUNDVAL"
-loginfo 0 -t -e " \033[32;1mOK\033[0m"
-
-# Start logging
+# Start syslog logging
 loginfo 0 -n "Starting rsyslogd ... "
 rm -f /run/rsyslogd.pid
 rsyslogd >> "$SULOUT" 2>> "$SULERR" &
 getargy 'isleep' && sleep "$FOUNDVAL"
 loginfo 0 -t -e " \033[32;1mOK\033[0m"
 
-dbus-daemon --session >/dev/null 2>&1 &
+loginfo 0 -n "Starting DBUS ... "
+dbus-daemon --system >>"$SULOUT" 2>>"$SULERR" &
+getargy 'isleep' && sleep "$FOUNDVAL"
+loginfo 0 -t -e " \033[32;1mOK\033[0m"
+
+loginfo 0 -n "Starting DBUS session ... "
+dbus-daemon --session >>"$SULOUT" 2>>"$SULERR" &
+loginfo 0 -t -e " \033[32;1mOK\033[0m"
 
 getargx 'ibreak=polkit' && tmpshell "$FOUNDVAR $ "
 loginfo 0 -n "Starting polkit ... "
@@ -93,14 +107,13 @@ loginfo 0 -n "Starting acpid ... "
 getargy 'isleep' && sleep "$FOUNDVAL"
 loginfo 0 -t -e " \033[32;1mOK\033[0m"
 
-loginfo 0 -n "Pulseaudio daemon ... "
-mkdir -p /dev/shm
-pulseaudio --deaemonize=no --system --realtime  >>"$SULOUT" 2>>"$SULERR"  &
+#loginfo 0 -n "Pulseaudio daemon ... "
+#pulseaudio --daemonize=no --system --realtime  >>"$SULOUT" 2>>"$SULERR"  &
 #pulseaudio --system  >>"$SULOUT" 2>>"$SULERR"  &
-#pactl set-sink-mute 0 0  >>$SULOUT 2>>$SULERR
-#pactl set-sink-volume 0 0.5  >>$SULOUT 2>>$SULERR
-getargy 'isleep' && sleep "$FOUNDVAL"
-loginfo 0 -t -e " \033[32;1mOK\033[0m"
+##pactl set-sink-mute 0 0  >>$SULOUT 2>>$SULERR
+##pactl set-sink-volume 0 0.5  >>$SULOUT 2>>$SULERR
+#getargy 'isleep' && sleep "$FOUNDVAL"
+#loginfo 0 -t -e " \033[32;1mOK\033[0m"
 
 # The kernel could not load it ... so we preload it
 modprobe ccm
@@ -112,9 +125,22 @@ dhclient >>"$SULOUT" 2>>"$SULERR" &
 getargy 'isleep' && sleep "$FOUNDVAL"
 loginfo 0 -t -e " \033[32;1mOK\033[0m"
 
+getargx 'ibreak=pre-ufw' && tmpshell  "$FOUNDVAR $ "
+loginfo 0 -n "Starting ufw firewall ... "
+/usr/sbin/ufw >>"$SULOUT" 2>>"$SULERR" &
+getargy 'isleep' && sleep "$FOUNDVAL"
+loginfo 0 -t -e " \033[32;1mOK\033[0m"
+
 getargx 'ibreak=pre-sshd' && tmpshell  "$FOUNDVAR $ "
 loginfo 0 -n "Starting sshd ... "
 /usr/sbin/sshd >>"$SULOUT" 2>>"$SULERR" &
+getargy 'isleep' && sleep "$FOUNDVAL"
+loginfo 0 -t -e " \033[32;1mOK\033[0m"
+
+getargx 'ibreak=pre-apache2' && tmpshell  "$FOUNDVAR $ "
+loginfo 0 -n "Starting apache ... "
+source /etc/apache2/envvars
+/usr/sbin/apache2 >>"$SULOUT" 2>>"$SULERR" &
 getargy 'isleep' && sleep "$FOUNDVAL"
 loginfo 0 -t -e " \033[32;1mOK\033[0m"
 
@@ -122,7 +148,7 @@ loginfo 0 -t -e " \033[32;1mOK\033[0m"
 #/usr/sbin/thermald
 
 # Our power key watcher
-/usr/bin/powacpi &
+/usr/bin/powacpi >>"$SULOUT" 2>>"$SULERR" &
 
 SDCOM="/var/tmp/.shutdowncmd"
 
@@ -149,7 +175,8 @@ while : ; do
     getargy 'isleep' && sleep "$FOUNDVAL"
 
     # Start initial GUI for login program 'pylogin'
-    xinit -- -keeptty vt5  >.xorg_out 2>.xorg_err
+    xinit -- -keeptty vt5  >>"$SULOUT" 2>>"$SULERR"
+    #>.xorg_out 2>.xorg_err
     getargy 'isleep' && sleep "$FOUNDVAL"
 
     cd $NEWHOME || echo "Cannot change to $NEWHOME"

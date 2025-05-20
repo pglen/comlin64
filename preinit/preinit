@@ -25,8 +25,7 @@ else
     .  /sbin/terminit.sh
 fi
 
-# Counting time starts here
-tanchor
+mount  -o remount,rw /
 
 # If we are in ISO (read only) mode, change permissions
 
@@ -49,16 +48,6 @@ if [ "$PPP" == "" ] ; then
     setsuids
 fi
 
-#if [ ! -w /root/.profile ] ; then
-#    true
-#fi
-#if [ ! -w /home/user/.profile ] ; then
-#    true
-#fi
-#if [ ! -w /home/guest/.profile ] ; then
-#    true
-#fi
-
 # Variables:
 #    verbose=lev        Verbosity level
 #    isleep=sec         Sleep after commands for visual observation
@@ -66,8 +55,6 @@ fi
 # There are several break items, see source below (ibreak)
 
 # History:  Tue 14.Jan.2025     Sound works, created /dev entries by hand
-#           Sun 19.Jan.2025     Added TESTME subsystem + shellcheck
-#           Tue 21.Jan.2025     Cleanup (quote errors in bash are difficult)
 #           Sat 15.Feb.2025     Restructure /proc ... etc to --bind
 #           Sat 15.Feb.2025     Writable media
 #           Thu 01.May.2025     The read only chmod corrected
@@ -80,7 +67,7 @@ loginfo 1 "Preinit stage ..."
 #loginfo 0 -n "Booting Community Linux, Lib version: $LIBVERS "
 #echo -e " \033[32;1mOK\033[0m"
 
-# Patch some basic environmental vars
+# Patch some basic environment vars
 export TERM=linux
 export HOME=/root
 export USER=root
@@ -99,27 +86,12 @@ getargx 'ibreak=all' && export BREAKALL=1
 
 # Do not leave us hanging without a name
 hostname "$(cat /etc/hostname)"  >>"$SULOUT" 2>>"$SULERR"
-
-# Remount (real) devices obsolete -- done in initrd
-#mkdir -p /proc ; mount -t proc proc /proc
-#mkdir -p /sys ; mount -t sysfs sysfs /sys
-#mkdir -p /dev ; mount -t devtmpfs devtmpfs /dev
-#mkdir -p /dev/pts ; mount -t devpts devpts /dev/pts
+domainname "$(cat /etc/domainname)"  >>"$SULOUT" 2>>"$SULERR"
 
 [ -e /dev/console ] || ln -s /dev/tty0 /dev/console
 
-# Already going in init
-#getargx 'ibreak=pre-udevd' && tmpshell "$FOUNDVAR $ "
-#loginfo 0 -n "Starting systemd-udevd ... "
-#/lib/systemd/systemd-udevd >>"$SULOUT" 2>>"$SULERR" &
-#getargy 'isleep' && sleep "$FOUNDVAL"
-#loginfo 0 -t -e " \033[32;1mOK\033[0m"
-
-# This was a bad idea ... lot of crap is included
+# This was a bad idea ... too much crap is included
 #sysctl --system
-
-# Kernel may load firmware from it
-#modprobe overlay
 
 # Install devices from PCI bus(es)
 getargx 'ibreak=devices' && tmpshell "$FOUNDVAR $ "
@@ -151,8 +123,7 @@ getargx 'ibreak=pre-hd' && tmpshell "$FOUNDVAR $ "
 NEWROOT=/newroot; mkdir -p $NEWROOT
 HDROOT="/hdroot"; mkdir -p $HDROOT
 
-MOUNT_DISK=""
-FSCK=""
+MOUNT_DISK="" ; FSCK=""
 
 getargy 'nodisk' && export NODISK=$FOUNDVAL
 
@@ -257,24 +228,33 @@ if [ "$MOUNT_DISK" == "" ] ; then
             exit
         fi
     else
-        loginfo 1 "Started without writable media."
+        loginfo 0 "Started without writable media."
         setsid /sbin/postinit
         exit
     fi
 fi
 
-ptime ; echo -e "Data storage at \"$MOUNT_DISK\" \033[32;1mOK\033[0m"
+loginfo 0 -n "Data storage at \'$MOUNT_DISK\' ... "
+echo -e "\033[32;1mOK\033[0m"
+
+loginfo 0 -n "Starting file system checks ... "
+
 if [ "$FSCK" != "" ] ;  then
-    echo "Starting file system check on $MOUNT_DISK"
-    fsck -f "$MOUNT_DISK"
-    sleep 2
+    # Forced check
+    fsck -f -y "$MOUNT_DISK"
 else
-    fsck -T -y "$MOUNT_DISK"
+    # Silent check
+    fsck -T -y "$MOUNT_DISK" >>"$SULOUT" 2>>"$SULERR"
 fi
 
-getargx 'ibreak=pre-mount' && tmpshell "$FOUNDVAR $ "
-mount "$MOUNT_DISK" "$HDROOT"
 getargy 'isleep' && sleep "$FOUNDVAL"
+echo -e " \033[32;1mOK\033[0m"
+
+getargx 'ibreak=pre-mount' && tmpshell "$FOUNDVAR $ "
+mount  "$MOUNT_DISK" "$HDROOT"
+getargy 'isleep' && sleep "$FOUNDVAL"
+
+mount  -o remount,rw "$HDROOT"
 
 mkdir -p $HDROOT/fs ; mkdir -p $HDROOT/work
 
@@ -291,29 +271,6 @@ unset  MOUNT_DISK MOUNT_DATA SUL
 unset  CLEARDISK CLEARDATA LIBVERS
 
 bindall $NEWROOT
-
-#mkdir -p $NEWROOT/proc
-#mount --bind /proc $NEWROOT/proc
-#
-#mkdir -p $NEWROOT/sys
-#mount --bind /sys $NEWROOT/sys
-#
-#mkdir -p $NEWROOT/dev
-#mount --bind /dev $NEWROOT/dev
-#
-##mkdir -p $NEWROOT/dev/pts
-##mount --bind /dev/pts $NEWROOT/dev/pts
-#
-#mkdir -p $NEWROOT/orig
-#mount --bind /orig $NEWROOT/orig
-#
-#mkdir -p $NEWROOT/cdroot
-#mount --bind /cdroot $NEWROOT/cdroot
-#
-## This one needs explicit creation (--bind did not work)
-#udevadm settle -t 5
-#mkdir -p $NEWROOT/dev/pts
-#mount -t devpts devpts $NEWROOT/dev/pts
 
 cd "$NEWROOT" || echo "Cannot CD to $NEWROOT"
 
