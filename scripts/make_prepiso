@@ -59,6 +59,7 @@ sudo rsync -au  \
             --exclude=/sys/* \
             --exclude=/tmp/* \
             --exclude=/dev/* \
+            --exclude=/var/lib/apt/lists/* \
             "$CURRUSB/." "$ROOTFS"
 
 # Do users verbatim

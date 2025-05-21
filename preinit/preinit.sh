@@ -7,6 +7,10 @@ export LIBVERS="1.0.0"
 
 COMLIN_DATAFILE=.comlin_data
 
+# Log files for startup
+export SUL="/var/log/startuplogs"
+export SULERR=$SUL/log_err; SULOUT=$SUL/log_out
+
 # This way udev is functional in chroot
 export SYSTEMD_IGNORE_CHROOT=1
 
@@ -508,10 +512,27 @@ devload() {
 # Change root and execute postinit
 
 post_chroot() {
-
     chroot "$NEWROOT" setsid /sbin/postinit
     #echo "Back from postinit"
     getargx 'ibreak=post-down' && tmpshell "$FOUNDVAR $ "
+}
+
+# Execute items with pre / post display
+
+exec_items() {
+
+    local AAA
+    getargx "ibreak=$1" && tmpshell "$FOUNDVAR $ "
+    loginfo 0 -n "Starting $2 ... "
+    shift; shift
+    for AAA in "$@" ; do
+        if [ $((VERBOSE)) -gt 0 ] ; then
+            echo "Exec: $AAA"
+        fi
+        $AAA  >>$SULOUT 2>>$SULERR &
+    done
+    getargy 'isleep' && sleep "$FOUNDVAL"
+    loginfo 0 -t -e " \033[32;1mOK\033[0m"
 }
 
 # Hack to test from dev system

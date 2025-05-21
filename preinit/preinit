@@ -71,18 +71,18 @@ loginfo 1 "Preinit stage ..."
 export TERM=linux
 export HOME=/root
 export USER=root
+export TMP=/tmp
+export TEMP=/tmp
+export RUN=/run
 
 cd $HOME || echo "Warn:" cannot cd to $HOME >&2
 
 mkdir -p /var/tmp
-
-# Log files for startup
-SUL="/var/log/startuplogs"
 mkdir -p "$SUL"
-SULERR=$SUL/log_err_pre; SULOUT=$SUL/log_out_pre
 
 # Create for log append, add current date value to the beginning
-date > "$SULOUT" ; date > "$SULERR"
+DDD=$(date)
+echo "$DDD" > "$SULOUT" ; echo "$DDD" > "$SULERR"
 
 getargy 'verbose' && export VERBOSE=$FOUNDVAL
 getargx 'ibreak=all' && export BREAKALL=1
