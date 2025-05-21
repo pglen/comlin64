@@ -12,7 +12,7 @@ cpchown() {
     if [ ! -d $2 ] ; then
         mkdir -p $2
     fi
-    cp -a $1 $2
+    cp -au $1 $2
     FFF=$2/$(basename $1)
     sudo chown root.root $FFF
     sudo chmod go-w  $FFF

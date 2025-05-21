@@ -76,7 +76,10 @@ cd $HOME || echo "Warn:" cannot cd to $HOME >&2
 
 mkdir -p /var/tmp
 
+# Log files for startup
+SUL="/var/log/startuplogs"
 mkdir -p "$SUL"
+SULERR=$SUL/log_err_pre; SULOUT=$SUL/log_out_pre
 
 # Create for log append, add current date value to the beginning
 date > "$SULOUT" ; date > "$SULERR"
@@ -234,7 +237,7 @@ if [ "$MOUNT_DISK" == "" ] ; then
     fi
 fi
 
-loginfo 0 -n "Data storage at \'$MOUNT_DISK\' ... "
+loginfo 0 -n "Data storage at '$MOUNT_DISK' ... "
 echo -e "\033[32;1mOK\033[0m"
 
 loginfo 0 -n "Starting file system checks ... "
@@ -253,8 +256,6 @@ echo -e " \033[32;1mOK\033[0m"
 getargx 'ibreak=pre-mount' && tmpshell "$FOUNDVAR $ "
 mount  "$MOUNT_DISK" "$HDROOT"
 getargy 'isleep' && sleep "$FOUNDVAL"
-
-mount  -o remount,rw "$HDROOT"
 
 mkdir -p $HDROOT/fs ; mkdir -p $HDROOT/work
 

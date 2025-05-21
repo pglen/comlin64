@@ -9,6 +9,24 @@ else
     .  /sbin/terminit.sh
 fi
 
+export TERM=linux
+export USER=root
+export TMP=/tmp
+export TEMP=$TMP
+export RUN=/run
+export HOME=/root
+
+# Log files for startup
+SUL="/var/log/startuplogs"
+mkdir -p "$SUL"
+SULERR=$SUL/log_err_post; SULOUT=$SUL/log_out_post
+SULERRX=$SUL/log_err_post_x; SULOUTX=$SUL/log_out_post_x
+
+# Create for log append, add current date value to the beginning
+DDD=$(date)
+echo $DDD >"$SULOUT" ; echo $DDD >"$SULERR"
+echo $DDD >"$SULOUTX" ; echo $DDD >"$SULERRX"
+
 # Determine overall flags for operation (for this file)
 getargy 'verbose' && export VERBOSE=$FOUNDVAL
 getargx 'ibreak=all' && export BREAKALL=1
@@ -30,11 +48,11 @@ ifconfig lo up 127.0.0.1
 #mount -t tmpfs tmp-tmpfs "$TMP"
 #mount -t tmpfs run-tmpfs "$RUN"
 
-
 # Placeholders
 mkdir -p /run/dbus
 mkdir -p /run/udev
 mkdir -p /run/sshd
+mkdir -p /var/log/apache2
 #mkdir -p /dev/shm
 
 # May have residuals from prev run
@@ -46,10 +64,8 @@ rm -r /run/dbus/*
 
 # Create this dynamically
 export XDG_RUNTIME_DIR=/run/user/$UID
+rm -rf "$XDG_RUNTIME_DIR"
 mkdir -p "$XDG_RUNTIME_DIR"
-rm -rf "$XDG_RUNTIME_DIR"/*
-
-#chmod -R a+rw $XDG_RUNTIME_DIR
 
 loginfo 1 "Using XDG runtime dir: $XDG_RUNTIME_DIR"
 
@@ -167,6 +183,9 @@ export XAUTHLOCALHOSTNAME=localhost
 
 rm -f $SDCOM                # Fresh start
 
+# Set it again ?
+export HOME=/root
+
 while : ; do
     stty -g >.stty_dump.txt
 
@@ -175,7 +194,7 @@ while : ; do
     getargy 'isleep' && sleep "$FOUNDVAL"
 
     # Start initial GUI for login program 'pylogin'
-    xinit -- -keeptty vt5  >>"$SULOUT" 2>>"$SULERR"
+    xinit -- -keeptty vt5  >>"$SULOUTX" 2>>"$SULERRX"
     #>.xorg_out 2>.xorg_err
     getargy 'isleep' && sleep "$FOUNDVAL"
 

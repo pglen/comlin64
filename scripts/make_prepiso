@@ -47,15 +47,8 @@ fi
 #IFS=$' \t\n'        # Restore original IFS
 
 echo "  Copying (updating) filesystem ... "
-#cp -au $CURRUSB/* "$ROOTFS"
-
 #EXC=$(basename $CURRUSB)
 
-# Clear target stuff
-HOMEDIRS="root home/user home/guest"
-for AAA in $HOMEDIRS ; do
-    rm -f "$CURRUSB"/"$AAA"/.bash_history
-done
 
 restglob=$(shopt -p dotglob)
 shopt -s dotglob
@@ -140,6 +133,9 @@ $restglob
 #cp -a backgrounds/ "$ROOTFS"/usr/share/
 #echo OK
 
+# Clear target stuff
+HOMEDIRS="root home/user home/guest"
+
 # Remove incidentals (created during testing)
 for aaa in $HOMEDIRS ; do
     #echo "Cleaning: $aaa"
@@ -164,6 +160,10 @@ for aaa in $HOMEDIRS ; do
     #rm -rf "$ROOTFS/$aaa/.config"
     rm -rf "$ROOTFS/$aaa/.cache"
 done
+
+echo -n "  Remove test system logs ... "
+sudo rm -rf "$ROOTFS"/var/log/*
+echo OK
 
 echo -n "  Patching tmp and var/tmp permissions ... "
 sudo rm -rf "$ROOTFS"/tmp

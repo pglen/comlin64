@@ -7,10 +7,6 @@ export LIBVERS="1.0.0"
 
 COMLIN_DATAFILE=.comlin_data
 
-# Log files for startup
-export SUL="/var/log/startuplogs"
-SULERR=$SUL/log_err; SULOUT=$SUL/log_out
-
 # This way udev is functional in chroot
 export SYSTEMD_IGNORE_CHROOT=1
 
