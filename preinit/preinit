@@ -25,8 +25,6 @@ else
     .  /sbin/terminit.sh
 fi
 
-mount  -o remount,rw /
-
 # If we are in ISO (read only) mode, change permissions
 
 PPP=$(ls -ld /root/ | grep rw)
@@ -47,6 +45,9 @@ if [ "$PPP" == "" ] ; then
 
     setsuids
 fi
+
+# Tell the kernel
+mount  -o remount,rw /
 
 # Variables:
 #    verbose=lev        Verbosity level

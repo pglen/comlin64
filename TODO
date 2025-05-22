@@ -1,0 +1,20 @@
+                            TODO
+
+This is an internal list to keep track of items do do. No external
+relevance is meant by this list. Completed items are marked with '*'
+
+enum    Scope / File        Description
+-----   ------------        ------------
+
+*1      pypass.py           Auto Login cycle   problem
+2       iniramfs            Address ramfs size minimization
+3       vbox hostname       Nam resolution in vbox
+
+    Resolutions             Notes
+    -----------             -----
+
+1   Not an issue            ramfs only occupies actual data size
+                            and the files are shadowed by overlayfs
+
+
+# EOF

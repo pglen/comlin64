@@ -30,13 +30,6 @@ ifconfig lo up 127.0.0.1
 #mount -t tmpfs tmp-tmpfs "$TMP"
 #mount -t tmpfs run-tmpfs "$RUN"
 
-# Placeholders
-mkdir -p /run/dbus
-mkdir -p /run/udev
-mkdir -p /run/sshd
-mkdir -p /var/log/apache2
-#mkdir -p /dev/shm
-
 # May have residuals from prev run
 rm -r /run/udev/*
 rm -r /run/dbus/*
@@ -48,6 +41,14 @@ rm -rf /var/run/pulse/pid
 # Xorg needs these clean
 rm -f /tmp/.X*lock
 rm -rf /tmp/.X11-unix
+
+# Placeholders
+mkdir -p /run/dbus
+mkdir -p /run/udev
+mkdir -p /run/sshd
+mkdir -p /var/log/apache2
+mkdir -p /var/run/apache2
+mkdir -p /dev/shm
 
 # Test alternate config
 #export XDG_CONFIG_DIR=/etc/xdg-comlin
@@ -71,29 +72,18 @@ devload "Finalizing devices ... "
 
 exec_items "pre-acpi" "acpid" "/usr/sbin/acpid"
 
-#loginfo 0 -n "Pulseaudio daemon ... "
-#pulseaudio --daemonize=no --system --realtime  >>"$SULOUT" 2>>"$SULERR"  &
-#pulseaudio --system  >>"$SULOUT" 2>>"$SULERR"  &
-##pactl set-sink-mute 0 0  >>$SULOUT 2>>$SULERR
-##pactl set-sink-volume 0 0.5  >>$SULOUT 2>>$SULERR
-#getargy 'isleep' && sleep "$FOUNDVAL"
-#loginfo 0 -t -e " \033[32;1mOK\033[0m"
-
 # The kernel could not load it ... so we preload it
 modprobe ccm
 
 exec_items "network" "network / dhclient" \
     "/sbin/dhclient" "/usr/sbin/NetworkManager"
-
 exec_items "ibreak=pre-bind" "named / bind" "/usr/sbin/named"
-
 exec_items "ibreak=pre-ufw" "ufw / firewall" \
             "modprobe nt_tables" "/usr/sbin/ufw enable"
-
 exec_items "ibreak=pre-sshd" "sshd" "/usr/sbin/sshd"
-
+exec_items "ibreak=pre-mail" "postfix / mail" "/usr/sbin/postfix start"
+. /etc/apache2/envvars
 exec_items  "pre-apache2" "apache / httpd" \
-            "source /etc/apache2/envvars" \
             "/usr/sbin/apache2"
 
 # Set it again after apache ruined it
