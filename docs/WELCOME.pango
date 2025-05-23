@@ -1,45 +1,69 @@
-<c><xxl>Welcome to <b>Community Linux 64.</b></xxl></c>
+<c><xxl>Welcome to <b>
+Community Linux 64.</b></xxl></c>
 <j><w>
-  <i><l>Community Linux</l></i> is a <e>Personal Class</e> and <e>Installation-less</e> \
-64 bit Linux Distribution. It boots from a <b>USB</b> drive. \
-It has all the features of hard a drive installation, boasting near identical \
-performance. <i>Community Linux</i> is derived from sources freely available, \
+  <i>Community Linux</i>  is a <e>Personal Class</e> and \
+<e>Installation-less</e> 64 bit Linux Distribution. It boots \
+from a <b>USB</b> drive. It has all the features of hard a drive \
+ installation, boasting near \
+identical performance. <i>Community Linux</i> is derived from \
+sources freely available, \
 as provided by the Linux community. Where applicable, ComLin conforms  \
-to <#008800>existing</#> Linux standards.</w></j>
+to <#000088>existing</#> Linux standards.</w></j>
 <j><w>
-  <i><l>Community Linux</l></i> is simple. Just insert the jump drive into a \
-<b>USB</b> slot, and within 21 seconds a fully functional XFCE Graphical User \
-Interface appears. (measured on an i7 Dell laptop)
-</w></j>
-<b><l>Quick start:</l></b>
-<j><w> Configure user authentication, autostart, autologin.
-  </w></j>
+  <i>Community Linux</i> is simple. Just insert the jump drive into a \
+<b>USB</b> slot, and within 30 seconds a fully functional XFCE Graphical User \
+Interface appears. (measured 21 seconds on an i5 Dell 7470 laptop)
+</w></j> \
+
 <b><l>Securing the system:</l></b>
-<j><w> \
-  Community Linux has three built in users: 'root' 'user' 'guest'. The passwords \
-  are, respectively: root user guest. \
-  Changing the passwords can be done conveniently via the passwd command, \
-  from the command line, or any other standard passs word configuration \
-  utility. To creat a new user use the 'useradd' command.
+
+<w>\
+ <sp> Configure user authentication, autostart and autologin. \
+Community Linux has three built in users: </w>
+<in>
+        root <tab> user  <tab> guest
+
+    The passwords are, respectively (without the quotes):
+
+        'root'  <tab> 'user'  <tab> 'guest'
+</in> \
+<w>
+ <sp> <sp> Changing the passwords can be done conveniently via the \
+ standard 'passwd' command from the command line, or any other \
+password configuration utility. To create a new user use the \
+'useradd' command, using the 'homedir' option. (-m)
   </w></j>
 <b><l>Customize:</l></b>
+
 <j><w> \
-   Community Linux can be configured to auto login and run an application on \
+   <sp> Community Linux can be customized to auto login and run an application on \
    boot. The file /etc/pypass/pypass.conf contains entries to do so. \
    This feature is useful if the system is deployed -- for example -- as a kiosk \
    or as a point of sale (POS).
    </w></j>
 <b><l>Update:</l></b>
+
 <j><w> \
-Comlin 64 Linux is derived from Ubuntu 22.04 LTS. The 'apt' family of utilities \
-work as expected. Please exercise caution on upgrade.
+<sp> Comlin 64 Linux is derived from Ubuntu 22.04 LTS. The 'apt' family of utilities \
+work as expected. Please exercise caution on upgrade. Remember to run \
+to run 'apt update' first.
 </w></j>
 <b><l>Configure:</l></b>
-<j><w>Download ComLin 64 source distribution, extract it. Then chroot to the extracted \
-archive's comlin64-lite-000 directory.  (helpers in the 'var' subdirectory)
-Start xfce4-session with Xephir (on display :100). Hack away. When done, \
-from the archive's root execute 'make buildiso' to create your version of COMLIN 64.
-</w></j>
-// END
+<j><w>
+<sp> Community Linux 64 can be fully customized in place, provided  \
+that there is storage space activated / mounted. This is automatically \
+activated if there is free space on the media.
+
+ <sp> To customize the default system, one may download Community Linux 64 \
+source distribution. After download, extract it, chroot to the extracted \
+archive's comlin64-lite-000 directory.  (helpers in the 'root/Utils' \
+subdirectory) The chrooted system can be fully customized, including \
+WYSWYG by starting an  xfce4-session with Xephir (on display :100). \
+Hack away. When done, from the archive's root execute \
+'make buildiso' or make updateusb to create your version of \
+Community Linux 64.
+</w></j>\
+
+<inc file=footer.pango>  </inc>
 
 ## EOF
