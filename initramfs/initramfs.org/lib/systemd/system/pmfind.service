@@ -1,0 +1,18 @@
+[Unit]
+Description=Discover remote PCP services for analysis
+Documentation=man:pmfind(1)
+After=network-online.target pmcd.service
+After=pmie_check.timer pmlogger_check.timer
+BindsTo=pmfind.timer
+
+[Service]
+Type=exec
+Restart=no
+TimeoutSec=60
+Environment="PMFIND_CHECK_PARAMS=-C -q"
+EnvironmentFile=-/etc/default/pmfind
+ExecStart=/usr/lib/pcp/bin/pmfind_check $PMFIND_CHECK_PARAMS
+WorkingDirectory=/var/lib/pcp
+
+[Install]
+WantedBy=multi-user.target

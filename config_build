@@ -98,7 +98,8 @@ fi
 KERNELDIR="kernel"
 #NEWKERNEL=../kernel/linux-6.12.6/arch/x86/boot/bzImage
 #NEWKERNEL=/media/peterglen/LinHD/kernel/linux-6.12.6/arch/x86/boot/bzImage
-KERNELBIN=vmlinuz-6.8.0-50-generic
+#KERNELBIN=vmlinuz-6.8.0-50-generic
+KERNELBIN=vmlinuz-6.14.8
 NEWKERNEL=/boot/$KERNELBIN
 
 # The original location of the new kernel
@@ -159,8 +160,12 @@ mkdir -p $BACKUPDIR
 
 # Initramfs related
 INITDIR=preinit
-INITRAMFSDIR=initramfs
-INITRAMFSRES=$KERNELDIR/initramfs
+
+INITRAMFSDIR_ONE=initramfs/initramfs-6.8.0-59
+INITRAMFSDIR_TWO=initramfs/initramfs-6.14.8
+
+INITRAMFSRES_ONE=$KERNELDIR/initramfs-6.8.0
+INITRAMFSRES_TWO=$KERNELDIR/initramfs-6.14.8
 
 # Make sure they are not on /mmt or / or /boot
 # Args: $1 is a name to grep in mount string

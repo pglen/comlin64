@@ -1,0 +1,15 @@
+[Unit]
+Description=Check and migrate non-primary pmlogger farm instances
+Documentation=man:pmlogctl(1)
+ConditionPathExists=!/etc/cron.d/pcp-pmlogger
+
+[Service]
+Type=exec
+Restart=no
+TimeoutStartSec=4h
+TimeoutStopSec=120
+ExecStart=/usr/bin/pmlogctl -m check
+WorkingDirectory=/var/lib/pcp
+# root so pmlogctl can migrate pmlogger processes to the pmlogger_farm service
+Group=root
+User=root

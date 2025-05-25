@@ -1,0 +1,23 @@
+[Unit]
+Description=pmie farm service
+Documentation=man:pmie_check(1)
+Before=pmie_farm_check.timer
+BindsTo=pmie_farm_check.timer
+PartOf=pmie.service
+
+[Service]
+Type=exec
+Restart=always
+# long (but not infinite) start timeout - for pmie farms
+TimeoutStartSec=4h
+TimeoutStopSec=120
+# the pmie_farm service manages all pmie instances except the primary
+Environment="PMIE_CHECK_PARAMS=--skip-primary"
+EnvironmentFile=-/etc/default/pmie_timers
+ExecStart=/usr/lib/pcp/bin/pmie_farm $PMIE_CHECK_PARAMS
+WorkingDirectory=/var/lib/pcp
+Group=pcp
+User=pcp
+
+[Install]
+RequiredBy=pmie.service

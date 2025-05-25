@@ -1,0 +1,40 @@
+#!/bin/bash
+# shellcheck disable=SC1091
+
+. ./config_build nocheck
+. "$SCRIPTS"/misc/lib/lib_fail
+
+echo
+echo "------------------------------------- "
+echo " Getting initramfs files from system  "
+echo "--------------------------------------"
+echo
+
+REALROOT=/
+OUTDIR=./test_init
+MLIST=scripts/initram_modules.txt
+
+FROM=6.8.0-59-generic
+REPLACE=6.14.8
+
+mkdir -p $OUTDIR
+
+# Copy initramfs files from runtime
+
+while read -r AA  ; do
+    FF=""
+    AA=$(echo -e $AA"\n"| sed s/^\.//)
+    FFF=$(echo $AA | grep $FROM)  # ; echo $FFF
+    if [ "$FFF" != "" ] ; then
+        BB=$(echo $AA | sed s/$FROM/$REPLACE/)
+        DD=$(dirname $AA)
+        if [ ! -d  $OUTDIR$DD ] ; then
+            #echo mkdir: $OUTDIR$DD
+            mkdir -p $OUTDIR$DD
+        fi
+        #echo cp $BB $OUTDIR$BB
+        cp -a $BB $OUTDIR$BB
+    fi
+done < $MLIST
+
+# EOF

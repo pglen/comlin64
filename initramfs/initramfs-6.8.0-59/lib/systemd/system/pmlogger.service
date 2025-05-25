@@ -1,0 +1,23 @@
+[Unit]
+Description=Performance Metrics Archive Logger
+Documentation=man:pmlogger(1)
+After=network-online.target pmcd.service
+Before=pmlogger_farm.service pmlogger_check.timer pmlogger_daily.timer
+BindsTo=pmlogger_farm.service pmlogger_check.timer pmlogger_daily.timer
+Wants=pmcd.service
+
+[Service]
+Type=notify
+NotifyAccess=all
+# The pmlogger service manages the primary pmlogger (only)
+Environment="PMLOGGER_CHECK_PARAMS=--only-primary"
+EnvironmentFile=-/etc/default/pmlogger
+TimeoutStartSec=120
+TimeoutStopSec=120
+Restart=always
+ExecStart=/etc/init.d/pmlogger start-systemd
+ExecStop=/etc/init.d/pmlogger stop-systemd
+PIDFile=/run/pcp/pmlogger.pid
+
+[Install]
+WantedBy=multi-user.target

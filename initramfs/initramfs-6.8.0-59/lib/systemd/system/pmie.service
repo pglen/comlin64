@@ -1,0 +1,20 @@
+[Unit]
+Description=Performance Metrics Inference Engine
+Documentation=man:pmie(1)
+After=network-online.target pmcd.service
+Before=pmie_farm.service pmie_check.timer pmie_daily.timer
+BindsTo=pmie_farm.service pmie_check.timer pmie_daily.timer
+Wants=pmcd.service
+
+[Service]
+Type=notify
+Restart=always
+NotifyAccess=all
+TimeoutSec=120
+
+ExecStart=/etc/init.d/pmie start-systemd
+ExecStop=/etc/init.d/pmie stop-systemd
+PIDFile=/run/pcp/pmie.pid
+
+[Install]
+WantedBy=multi-user.target

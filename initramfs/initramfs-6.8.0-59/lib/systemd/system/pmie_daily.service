@@ -1,0 +1,15 @@
+[Unit]
+Description=Process PMIE logs
+Documentation=man:pmie_daily(1)
+ConditionPathExists=!/etc/cron.d/pcp-pmie
+
+[Service]
+Type=exec
+Restart=no
+TimeoutStartSec=1h
+Environment="PMIE_DAILY_PARAMS=-X xz -x 3"
+EnvironmentFile=-/etc/default/pmie_timers
+ExecStart=/usr/lib/pcp/bin/pmie_daily $PMIE_DAILY_PARAMS
+WorkingDirectory=/var/lib/pcp
+Group=pcp
+User=pcp

@@ -1,0 +1,6 @@
+[Unit]
+Description=Xfce Session Manager
+PartOf=graphical-session.target
+
+[Service]
+ExecStart=/usr/bin/startxfce4

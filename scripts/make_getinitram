@@ -1,0 +1,77 @@
+#!/bin/bash
+# shellcheck disable=SC1091
+
+. ./config_build nocheck
+. "$SCRIPTS"/misc/lib/lib_fail
+
+echo
+echo "------------------------------------- "
+echo " Getting initramfs files from system  "
+echo "--------------------------------------"
+echo
+
+IGNORE="proc sys dev etc/udev/links"
+
+REALROOT=/
+OUTDIR=./test_init
+ILIST=scripts/initlist.txt
+FROM=6.8.0-59-generic
+REPLACE=6.14.8
+
+mkdir -p $OUTDIR
+
+# Copy initramfs files from runtime
+
+while read -r AA  ; do
+    FF=""
+    AA=$(echo -e $AA"\n"| sed s/^\.//)
+    #echo $AA
+    #continue
+
+    PPP=$(echo $AA | grep __pycache__)
+    if [ "" != "$PPP" ] ; then
+        #echo ignore $AA
+        continue
+    fi
+
+    for II in $IGNORE ; do
+        #echo ignore \'$AA\" \'^$II/\'
+        AAA=$(echo $AA | grep ^/$II/)
+        if [ "" != "$AAA" ] ; then
+            #echo ignoreing: $AA
+            FF=$AA
+        fi
+    done
+    if [ "$FF" != "" ] ; then
+        #echo ignore: $AA
+        continue
+    fi
+    #continue
+
+    FFF=$(echo $AA | grep $FROM)  # ; echo $FFF
+    if [ "$FFF" != "" ] ; then
+        BB=$(echo $AA | sed s/$FROM/$REPLACE/)
+        if [ "$BB" != "" ] ; then
+            if [ -d $REALROOT/$BB ] ; then
+                #echo "module make directory:" $BB
+                mkdir -p $OUTDIR$BB
+            else
+                #echo "copy:" $BB $OUTDIR$BB
+                cp -a $BB $OUTDIR$BB
+            fi
+        fi
+    else
+        if [ -d "$REALROOT/$AA" ] ; then
+            #echo "directory:" $AA
+            mkdir -p $OUTDIR$AA
+        else
+            #echo "copy:" $AA $OUTDIR$AA
+            cp -a $AA $OUTDIR$AA
+        fi
+    fi
+done < $ILIST
+
+cp -a initramfs.org/init    $OUTDIR
+cp -a initramfs.org/init.sh $OUTDIR
+
+# EOF

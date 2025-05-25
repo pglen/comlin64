@@ -1,0 +1,329 @@
+#!/bin/bash
+# shellcheck disable=SC1091
+
+# Custom INIT for Community Linux INITRAMFS
+# Sun 06.Apr.2025  Diff on make initramfs
+# Mon 07.Apr.2025  Found pesky kernel messages
+# Sat 03.May.2025  Made it symmetric
+
+# This also signals that we are active
+echo
+echo -e "Booting Community Linux 64 Version 1.0.0 ... \033[32;1mOK\033[0m"
+echo
+
+# Developers: See if we are in simulation by looking at GUI X progs
+#INSIM=$(pgrep Xorg)
+#echo "insim" $INSIM
+#if [  "$INSIM" != "" ] ; then
+#   echo Warn: in simulation $INSIM
+#   Optional test / simulate vars
+#   VERBOSE=3 ; TESTME=1
+#else
+#    echo real exec
+#fi
+
+# Do not clutter screen, silence async messages on terminal
+/usr/bin/setterm --msg off
+
+# Load our lib
+. init.sh
+
+export TERM=linux
+export USER=root
+export HOME=/root
+
+export PATH=/sbin:/bin:/usr/sbin:/usr/bin
+
+CDROOT="/cdroot"
+SYSROOT="/sysroot"
+TMPROOT="/tmproot"
+
+# Mount some basic things
+mkdir -p /proc /sys /dev /dev/pts /run
+
+mount -t proc proc /proc
+mount -t sysfs sysfs /sys
+
+# Time starts now (we get kernel uptime)
+uptime 1
+echo -e " Loaded kernel ... \033[32;1mOK\033[0m"
+
+# kernel command line equivalent: firmware_class.path=/cdroot/lib/firmware
+echo "/cdroot/lib/firmware" > /sys/module/firmware_class/parameters/path
+
+# So kernel can load firmware(s) (obsolete)
+#echo "0" >/proc/sys/fs/protected_regular
+#echo "0" >/proc/sys/fs/protected_symlinks
+#echo "0" >/proc/sys/fs/protected_hardlinks
+
+getargs 'rsleep' && export RSLEEP="$FOUNDVAL"
+getargs 'verbose' && export VERBOSE="$FOUNDVAL"
+
+loginfo2 1 "After mounted proc"
+
+#dmesg -n 1
+
+# Devices go here
+#mount -o silent -t devtmpfs devtmpfs /dev  >/dev/null 2>&1
+mount -t devtmpfs devtmpfs /dev  >/dev/null 2>&1
+udevadm settle -t 5
+
+loginfo2 1 "After mounted /dev"
+
+#mount -o silent -t devpts -o nosuid,noexec,nodev devpts /dev/pts >/dev/null 2>&1
+mount -t devpts devpts /dev/pts >/dev/null 2>&1
+udevadm settle -t 5
+
+loginfo2 1 "After mounted /dev/pts"
+
+# USB keyboard not available
+getarg 'rbreak=systemd' && temporary_shell -n systemd "Break before systemd"
+
+# Start udev and execute trigger for a rescan
+WASSYSD=$(pgrep systemd-udevd)
+if [ -n "$WASSYSD" ] ; then
+    #/lib/systemd/systemd-udevd --daemon
+    /lib/systemd/systemd-udevd &
+fi
+udevadm settle  -t 5
+udevadm trigger -c add -t subsystems
+udevadm settle  -t 5
+udevadm trigger -c add -t devices
+udevadm settle  -t 5
+
+# This should silence kernel messages to console
+rm -f /run/rsyslog.pid
+rsyslogd
+
+loginfo2 1 "After syslogd"
+
+getarg 'rbreak=cmdline' && temporary_shell -n cmdline "Break at the beginning of script"
+
+ctrl_c() {
+    echo "Stopping temporarily, type exit to continue"
+    temporary_shell \"CTRL-C caught!\"
+}
+
+trap "temporary_shell Signal caught!" 0
+trap  ctrl_c 2
+
+[ -e /dev/console ] || ln -s /dev/tty0 /dev/console
+
+# Just to make sure
+ln -s /proc/self/fd /dev/fd >/dev/null 2>&1
+
+loginfo2 0 -n "Loading modules ... "
+# Load modules needed
+loadmods2 "$*"
+echo -e "\033[32;1mOK\033[0m"
+
+if [ $((RSLEEP)) -ne 0 ] ; then
+    sleep "$RSLEEP"
+fi
+
+# Pre-mount happens before we try to mount the root filesystem
+getarg 'rbreak=pre-mount' && temporary_shell -n pre-mount "Break pre-mount"
+
+loginfo2 0 -n "Mounting media ... "
+
+# Mount scripts actually try to mount the root filesystem,
+ii=0
+while :; do
+    # If no root, search for it, else accept command line
+    if [ -z "$root" ] ; then
+        MOUNT_DEVICE=""
+        findCD $CDROOT
+    else
+        MOUNT_DEVICE=$root
+    fi
+
+    # No ROOT FS found, tell the user
+    if [ -z "$MOUNT_DEVICE" ] ; then
+        echo "Cannot find a marked and valid COMLIN system image - dropping to shell."
+        echo "Exiting this shell re-scans drives for valid system image.", $ii
+        temporary_shell  "No USB/CD drive found."
+    else
+        #DELAYONE Done here
+        break
+    fi
+    ii=$((ii+1))
+    # Give up after many tries (and test mode)
+    if [ $ii -gt 5 ] ; then
+        temporary_shell "Can't mount root filesystem"
+        break
+    fi
+done
+
+echo -e "\033[32;1mOK\033[0m"
+if [ $((RSLEEP)) -ne 0 ] ; then
+    sleep "$RSLEEP"
+fi
+
+loginfo2 1 "Mounted $MOUNT_DEVICE filesystem on $CDROOT"
+
+MOUNTLINE=$(mount | grep "$CDROOT")
+loginfo2 1 "Mountline $MOUNTLINE"
+
+# By the time we get here, the root filesystem should be mounted.
+# Try to find init.
+
+for ii in "$(getarg init=)"/sbin/preinit /sbin/init /init /etc/init /bin/sh; do
+    loginfo2 1 "Init search $CDROOT$ii"
+    [ -f "$CDROOT$ii" ] && [ -x "$CDROOT$ii" ] && { INIT="$ii"; break; }
+done
+
+loginfo2 1 "POST init search: $INIT"
+
+[ "$INIT" ] || {
+    echo "Cannot find CD init!"
+    #echo "Please check to make sure you passed a valid root filesystem!"
+    temporary_shell -n check_init "ramfs CD No Init "
+}
+
+loginfo2 1 "Mounting SYSROOT"
+mkdir -p $SYSROOT
+mount -t tmpfs tmpfs -o noswap $SYSROOT  #>/dev/null 2>&1
+
+touch /etc/fstab
+
+loginfo2 1 "Mounting tmproot"
+
+mkdir -p $TMPROOT
+mount -t tmpfs tmpfs -o noswap $TMPROOT  #>/dev/null 2>&1
+
+mkdir -p $TMPROOT/work
+mkdir -p $TMPROOT/fs
+
+getarg 'rbreak=pre-overlay' && temporary_shell -n overlay "Break before overlay"
+
+if [  "$INSIM" != "" ] ; then
+    exit
+fi
+
+loginfo2 0 -n "Executing overlay ... "
+
+mount -t overlay  comlin_overlay  \
+        -olowerdir=$CDROOT,upperdir=$TMPROOT/fs,workdir=$TMPROOT/work,redirect_dir=nofollow \
+        $SYSROOT
+
+# Time anchor to init
+#cp $SFILE $SYSROOT
+
+# Bind to chroot ($SYSROOT) devices
+xmount /proc $SYSROOT/proc
+xmount /sys $SYSROOT/sys
+xmount /dev $SYSROOT/dev
+xmount /dev/pts $SYSROOT/dev/pts
+
+# Preserve some of the old linkage
+xmount $CDROOT $SYSROOT/$CDROOT
+xmount / $SYSROOT/orig
+
+echo -e "\033[32;1mOK\033[0m"
+if [ $((RSLEEP)) -ne 0 ] ; then
+    sleep "$RSLEEP"
+fi
+
+# This (pivot_root) was a disaster. Would not let go of the resources.
+# Maybe it does not need to, as it is not much.
+#pivot_root . $OLDROOT
+
+# Copy it so pre-init can see it
+echo "$CMDLINE" >$SYSROOT/var/cmdline
+
+# Copy mount line as well
+echo "$MOUNTLINE" >$SYSROOT/var/mountline
+
+getarg 'rbreak=pre-del' && temporary_shell -n del_initram "Break before init_ram"
+
+# Del unneeded files ... should release appx 80 megs (not much)
+# We deal with it later ...
+
+#if [  "$INSIM" != "" ] ; then
+#    rm -rf lib/modules
+#    rm -rf lib/firmware
+#    rm -rf lib/systemd
+#    rm -rf sbin
+#    rm -rf usr/sbin
+#fi
+
+# We deal with it later ...
+#if [  "$INSIM" != "" ] ; then
+#    rm -rf usr/bin
+#    rm -rf bin
+#fi
+
+cd $SYSROOT || echo Failed to change root directory
+
+FOUNDINIT="/sbin/preinit"
+getargs 'preinit' && FOUNDINIT="$FOUNDVAL"
+if [ ! -f "$FOUNDINIT" ] ; then
+    FOUNDINIT="/sbin/preinit"
+fi
+
+#dmesg -n 4
+
+getarg 'rbreak=pre-chroot' && temporary_shell \
+            -n switch_root "Break before switch_root"
+
+loginfo2 0 -n "Jumping to preinit ... "
+if [ $((RSLEEP)) -ne 0 ] ; then
+    sleep "$RSLEEP"
+fi
+echo -e "\033[32;1mOK\033[0m"
+
+# TESTING (oddly enough it worked)
+#chroot . /bin/systemd
+# Tried exec in chroot ...
+#exec ./usr/sbin/chroot . "$FOUNDINIT"
+
+# Thu 08.May.2025 no exec -- made it symmetric for shutdown
+/usr/sbin/chroot . "$FOUNDINIT"
+
+# Back from pre-init chroot
+
+getarg 'rbreak=pre-down' && temporary_shell -n cmdline "Break at pre exit"
+
+echo -n "Unmounting file systems ... "
+
+# We silence these as not all exists (like tmp can be disabled)
+cd /
+umount $CDROOT                  >/dev/null 2>&1
+umount $SYSROOT/hdroot          >/dev/null 2>&1
+umount $SYSROOT/orig            >/dev/null 2>&1
+umount $SYSROOT/cdroot          >/dev/null 2>&1
+umount $SYSROOT/newroot/tmp     >/dev/null 2>&1
+umount $SYSROOT/newroot/run     >/dev/null 2>&1
+umount $SYSROOT/newroot/orig    >/dev/null 2>&1
+umount $SYSROOT/newroot         >/dev/null 2>&1
+umount $SYSROOT/tmp             >/dev/null 2>&1
+umount $SYSROOT/dev/pts         >/dev/null 2>&1
+umount $SYSROOT/dev             >/dev/null 2>&1
+umount $SYSROOT/proc            >/dev/null 2>&1
+umount $SYSROOT/sys             >/dev/null 2>&1
+umount $SYSROOT                 >/dev/null 2>&1
+umount $TMPROOT                 >/dev/null 2>&1
+
+# Behind the overlay mount, there was a tmpfs
+sleep 0.2
+umount $SYSROOT                 >/dev/null 2>&1
+
+echo -e "\033[32;1mOK\033[0m"
+
+getarg 'rbreak=pre-powerdown' && temporary_shell -n "Pre-powerdown" "Break at pre exit"
+
+# We unmount this after the prompt, so we can look around
+umount /proc                  >/dev/null 2>&1
+umount /sys                   >/dev/null 2>&1
+umount /dev/pts               >/dev/null 2>&1
+umount /dev                   >/dev/null 2>&1
+
+mount -o remount,ro /
+
+echo -n "Shutting Down ... "
+sleep 1
+echo -e "\033[32;1mOK\033[0m"
+
+linux_poweroff -f
+
+# EOF
