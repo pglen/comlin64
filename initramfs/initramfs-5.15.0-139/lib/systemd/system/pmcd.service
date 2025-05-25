@@ -1,0 +1,16 @@
+[Unit]
+Description=Performance Metrics Collector Daemon
+Documentation=man:pmcd(1)
+After=network-online.target avahi-daemon.service
+Before=zabbix-agent.service
+ 
+[Service]
+Type=notify
+NotifyAccess=all
+Restart=always
+ExecStart=/etc/init.d/pmcd start-systemd
+ExecStop=/etc/init.d/pmcd stop-systemd
+PIDFile=/run/pcp/pmcd.pid
+ 
+[Install]
+WantedBy=multi-user.target

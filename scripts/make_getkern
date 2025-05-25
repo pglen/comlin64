@@ -5,26 +5,51 @@
 
 echo
 echo "-------------------------------------"
-echo " Getting new kernel from SRC dir "
+echo " Getting kernels from runtime "
 echo "--------------------------------------"
 echo
 
 # Copy kernel files from runtime
 # Enable this if you do not have sources and disable the source part below.
 
-#echo -n "Getting kernel maps ... "
-#cp /boot/System.map*  $KERNELDIR
-#echo OK
-#echo -n "Getting kernel  ... "
+echo -n "Getting kernels  ... "
 
-if [ ! -f  $NEWKERNEL ] ; then
-    echo "No kernel in $NEWKERNEL"
-    exit 1
-fi
-echo -n "Getting NEW kernel  ... "
-cp $NEWKERNEL $KERNELDIR || fail
+# List of kernels to get
+
+KERNELBINs=(6.8.0-59-generic 6.14.8 \
+                5.15.0-139-generic)
+
+NUM=$((${#KERNELBINs[*]}-1))
+
+for AA in $(seq 0 $NUM) ; do
+    BB=/boot/vmlinuz-${KERNELBINs[$AA]}
+    #echo "kernel:" $BB
+
+    if [ ! -f  $BB ] ; then
+        echo "No file $BB"
+    fi
+    cp $BB $KERNELDIR
+
+    CC=/boot/System.map-${KERNELBINs[$AA]}
+    #echo "sys map:" $CC
+    if [ ! -f  $CC ] ; then
+        echo "No file $CC"
+    fi
+    cp -a $CC $KERNELDIR
+
+    DD=/boot/config-${KERNELBINs[$AA]}
+    #echo "config:" $DD
+    if [ ! -f  $DD ] ; then
+        echo "No file $DD"
+    fi
+    cp -a $DD $KERNELDIR
+
+done
+
+#echo $(id -run).$(id -rgn)
+
+sudo chown -R $USER.$(id -gn) $KERNELDIR
+
 echo OK
-
-sudo chown -R $USER $KERNELDIR
 
 # EOF

@@ -1,0 +1,16 @@
+[Unit]
+Description=Check PMIE instances are running
+Documentation=man:pmie_check(1)
+ConditionPathExists=!/etc/cron.d/pcp-pmie
+
+[Service]
+Type=exec
+Restart=no
+KillMode=process
+TimeoutStartSec=25m
+Environment="PMIE_CHECK_PARAMS=--skip-primary"
+EnvironmentFile=-/etc/default/pmie_timers
+ExecStart=/usr/lib/pcp/bin/pmie_check $PMIE_CHECK_PARAMS
+WorkingDirectory=/var/lib/pcp
+Group=pcp
+User=pcp

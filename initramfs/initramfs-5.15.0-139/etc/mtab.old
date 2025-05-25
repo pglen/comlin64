@@ -1,0 +1,10 @@
+proc /proc proc rw,noexec,nosuid,nodev 0 0
+sysfs /sys sysfs rw,noexec,nosuid,nodev 0 0
+devtmpfs /dev devtmpfs rw,nosuid,mode=0755 0 0
+devpts /dev/pts devpts rw,gid=5,mode=620 0 0
+tmpfs /dev/shm tmpfs rw,nosuid,nodev,mode=1777 0 0
+proc /proc proc rw,noexec,nosuid,nodev 0 0
+sysfs /sys sysfs rw,noexec,nosuid,nodev 0 0
+devtmpfs /dev devtmpfs rw,nosuid,mode=0755 0 0
+devpts /dev/pts devpts rw,gid=5,mode=620 0 0
+tmpfs /dev/shm tmpfs rw,nosuid,nodev,mode=1777 0 0

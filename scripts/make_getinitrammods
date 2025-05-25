@@ -15,26 +15,47 @@ OUTDIR=./test_init
 MLIST=scripts/initram_modules.txt
 
 FROM=6.8.0-59-generic
-REPLACE=6.14.8
+OUTDIR=test_init
 
-mkdir -p $OUTDIR
+# Calc array size
+NUM=$((${#INITRAMFSDIRs[@]}-1))
 
-# Copy initramfs files from runtime
+for AA in $(seq 0 $NUM)  ; do
 
-while read -r AA  ; do
-    FF=""
-    AA=$(echo -e $AA"\n"| sed s/^\.//)
-    FFF=$(echo $AA | grep $FROM)  # ; echo $FFF
-    if [ "$FFF" != "" ] ; then
-        BB=$(echo $AA | sed s/$FROM/$REPLACE/)
-        DD=$(dirname $AA)
-        if [ ! -d  $OUTDIR$DD ] ; then
-            #echo mkdir: $OUTDIR$DD
-            mkdir -p $OUTDIR$DD
+    DDD=${INITRAMFSDIRs[$AA]}
+    SSS=${INITRAMFSSUBs[$AA]}
+    echo Processing: $DDD
+    #echo Subst: $SSS
+
+    mkdir -p $DDD
+
+    # Copy original files
+    cp -au initramfs/initramfs.org/* $DDD
+
+    # Copy module files from runtime
+    while read -r AA  ; do
+        FF=""
+        AA=$(echo -e $AA"\n"| sed s/^\.//)
+        FFF=$(echo $AA | grep $FROM)  # ; echo $FFF
+        if [ "$FFF" == "" ] ; then
+            continue
         fi
-        #echo cp $BB $OUTDIR$BB
-        cp -a $BB $OUTDIR$BB
-    fi
-done < $MLIST
+
+        BB=$(echo $AA | sed s/$FROM/$SSS/)
+        if [ -d $BB ] ; then
+            # Do not copy dirs
+            #echo skipping dir: $BB
+            continue
+        fi
+        DD=$(dirname $BB)
+        if [ ! -d  $OUTDIR$DD ] ; then
+            #echo mkdir -p $OUTDIR$DD
+            mkdir -p $OUTDIR$DD
+            true
+        fi
+        #echo cp -a $BB $DDD
+        cp -a $BB $DDD
+    done < $MLIST
+done
 
 # EOF

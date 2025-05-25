@@ -17,8 +17,6 @@
 .  config_build nocheck
 . "$SCRIPTS"/misc/lib/lib_fail
 
-echo -n "Making initramfs ... "
-
 if [ ! -f $KEYGET ] ; then
     echo "Please exceute 'make apps' first."
     exit 1;
@@ -44,58 +42,62 @@ fi
 # Syntax check
 exit_if_fail "bash -n" $INITRAMFSDIR/init
 exit_if_fail "bash -n" $INITRAMFSDIR/init.sh
-#exit_if_fail "bash -n" $INITRAMFSDIR/lib/shlib/comlin.sh
 
 exit_if_fail shellcheck $INITRAMFSDIR/init
 exit_if_fail shellcheck $INITRAMFSDIR/init.sh
-#exit_if_fail shellcheck $INITRAMFSDIR/lib/shlib/comlin.sh
 
-# Gather some COMLIN apps into initramfs
+# Calc array size
+NUM=$((${#INITRAMFSDIRs[@]}-1))
 
-cp -au  $APPDIR/keyget/keyget $INITRAMFSDIR/bin
-cp -au  $APPDIR/reboot/linux_reboot $INITRAMFSDIR/bin
-cp -au  $APPDIR/reboot/linux_poweroff $INITRAMFSDIR/bin
+for AA in $(seq 0 $NUM)  ; do
+    DDD=${INITRAMFSDIRs[$AA]}
+    RRR=${INITRAMFSRESs[$AA]}
+    echo -n "Processing: $DDD ... "
 
-# TEST if  diff is OK
-# rm ../_work/tmp/initramfs/init
+    # Gather some COMLIN apps into initramfs
+    cp -au  "$APPDIR"/keyget/keyget "$DDD"/bin
+    cp -au  "$APPDIR"/reboot/linux_reboot "$DDD"/bin
+    cp -au  "$APPDIR"/reboot/linux_poweroff "$DDD"/bin
 
-mkdir -p "$TMPDIR"/"$INITRAMFSDIR"
+    # Add the common init items
+    cp -au "$INITRAMFSDIR"/init "$DDD"
+    cp -au "$INITRAMFSDIR"/init.sh "$DDD"
 
-DDD=$(diff -rq  --no-dereference -x "udev" -x "dev" $INITRAMFSDIR \
-                        "$TMPDIR"/"$INITRAMFSDIR")
-ERRX=$?
-#echo DDD: $DDD ERRX: $ERRX
-#exit
+    # Create a work space for root copy
+    RTMP="$TMPDIR"/"$DDD"
+    mkdir -p "$RTMP"
 
-if [ $ERRX -eq 0 ] ; then
-    echo Up-to-date.
-    exit
-fi
+    # TEST if  diff is OK
+    #rm -f $RTMP/init
 
-# Clean test entities
-rm -f $INITRAMFSDIR/run/rsyslog.pid
+    # Changed? Sun 25.May.2025 disabled by PG
+    DDIFF=$(diff -rq  --no-dereference -x "udev" -x "dev" "$DDD" \
+                            "$RTMP")
+    ERRX=$?
+    #echo DDIFF: $DDIFF
+    #echo ERRX: $ERRX
 
-# Create a root owned copy
-RTMP=$TMPDIR/initramfs
-mkdir -p $RTMP
-#rm -rf $RTMP/*
+    if [ $ERRX -eq 0 ] ; then
+        echo Up-to-date.
+        continue
+    fi
 
-cp -a $INITRAMFSDIR/* $RTMP
+    # Start with clean temp
+    rm -rf "$RTMP"/*
 
-# TESTING, see if it boots with systemd:
-#cp $RTMP/bin/systemd $RTMP/init
+    # Clean test entities
+    rm -f "$DDD"/run/rsyslog.pid
+    cp -au "$DDD"/* "$RTMP"
 
-chown -R root.root $RTMP
-chown syslog.adm $RTMP/var/log/*
+    chown -R root.root "$RTMP"
+    chown syslog.adm "$RTMP"/var/log/*
 
-# Make initramfs from custom booter. The initrd is phased out
-# so we are making a custom one for auto bootdrive search
+    #echo -n "Assembling cpio archive ... "
+    (cd "$RTMP"; find . | cpio -o -H newc | gzip) > "$RRR"
 
-#echo -n "Assembling cpio archive ... "
-(cd $RTMP; find . | cpio -o -H newc | gzip) > $INITRAMFSRES
+    # Clean  Sun 25.May.2025 disabled for up to date check
+    #rm -rf $RTMP/*
 
-# Clean
-#rm -rf $RTMP/*
-#echo "Geneated:" $INITRAMFSRES
+done
 
 # EOF

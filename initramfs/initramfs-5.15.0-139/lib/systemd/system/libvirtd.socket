@@ -1,0 +1,16 @@
+[Unit]
+Description=Libvirt local socket
+Before=libvirtd.service
+
+
+[Socket]
+# The directory must match the /etc/libvirt/libvirtd.conf unix_sock_dir setting
+# when using systemd version < 227
+ListenStream=/run/libvirt/libvirt-sock
+Service=libvirtd.service
+SocketMode=0660
+SocketUser=root
+SocketGroup=libvirt
+
+[Install]
+WantedBy=sockets.target

@@ -64,13 +64,11 @@ loginfo2 1 "After mounted proc"
 #dmesg -n 1
 
 # Devices go here
-#mount -o silent -t devtmpfs devtmpfs /dev  >/dev/null 2>&1
 mount -t devtmpfs devtmpfs /dev  >/dev/null 2>&1
 udevadm settle -t 5
 
 loginfo2 1 "After mounted /dev"
 
-#mount -o silent -t devpts -o nosuid,noexec,nodev devpts /dev/pts >/dev/null 2>&1
 mount -t devpts devpts /dev/pts >/dev/null 2>&1
 udevadm settle -t 5
 
