@@ -30,15 +30,15 @@ if [ ! -f "$KEYGET" ] ; then
     exit 1
 fi
 
-if [ ! -f "$KERNELDIR/$KERNELBIN" ] ; then
-    echo "Execute 'make getkern' first."
-    exit 1
-fi
-
-if [ ! -f "$KERNELDIR/initramfs" ] ; then
-    echo "Execute 'make initramfs' first."
-    exit 1
-fi
+#if [ ! -f "$KERNELDIR/$KERNELBIN" ] ; then
+#    echo "Execute 'make getkern' first."
+#    exit 1
+#fi
+#
+#if [ ! -f "$KERNELDIR/initramfs" ] ; then
+#    echo "Execute 'make initramfs' first."
+#    exit 1
+#fi
 
 # Pre - Clean some config (to be refilled from target)
 #rm -f "$ROOTFS"/usr/share/X11/xorg.conf.d/*

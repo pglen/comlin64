@@ -40,7 +40,6 @@ for AA in $(seq 0 $NUM)  ; do
         if [ "$FFF" == "" ] ; then
             continue
         fi
-
         BB=$(echo $AA | sed s/$FROM/$SSS/)
         if [ -d $BB ] ; then
             # Do not copy dirs
@@ -48,13 +47,16 @@ for AA in $(seq 0 $NUM)  ; do
             continue
         fi
         DD=$(dirname $BB)
-        if [ ! -d  $OUTDIR$DD ] ; then
-            #echo mkdir -p $OUTDIR$DD
-            mkdir -p $OUTDIR$DD
+        if [ ! -d  $DDD$DD ] ; then
+            #echo mkdir -p $DDD$DD
+            mkdir -p $DDD$DD
             true
         fi
-        #echo cp -a $BB $DDD
-        cp -a $BB $DDD
+        # Silence missing modules (from older kernel)
+        if [ -f $BB ] ; then
+            #echo cp -a $BB $DDD
+            cp -a $BB $DDD$DD
+        fi
     done < $MLIST
 done
 

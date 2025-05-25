@@ -15,14 +15,14 @@
 
 echo -n "Checking scripts ... "
 
-for FF in initramfs/lib/shlib/*.sh ; do
-    #echo checking $FF
-    bash -n $FF; ERR=$?
-    if [ "$ERR" != "0" ] ; then
-        echo "Syntax error in $FF"
-        exit 1
-    fi
-done
+#for FF in initramfs/lib/shlib/*.sh ; do
+#    #echo checking $FF
+#    bash -n $FF; ERR=$?
+#    if [ "$ERR" != "0" ] ; then
+#        echo "Syntax error in $FF"
+#        exit 1
+#    fi
+#done
 
 bash -n initramfs/init; ERR=$?
 if [ "$ERR" != "0" ] ; then

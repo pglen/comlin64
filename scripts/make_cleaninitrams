@@ -1,0 +1,31 @@
+#!/bin/bash
+# shellcheck disable=SC1091
+
+. ./config_build nocheck
+. "$SCRIPTS"/misc/lib/lib_fail
+
+echo
+echo "------------------------------------- "
+echo " Cleaning initramfs files from system  "
+echo "--------------------------------------"
+echo
+
+REALROOT=/
+OUTDIR=./test_init
+MLIST=scripts/initram_modules.txt
+
+FROM=6.8.0-59-generic
+OUTDIR=test_init
+
+# Calc array size
+NUM=$((${#INITRAMFSDIRs[@]}-1))
+
+for AA in $(seq 0 $NUM)  ; do
+
+    DDD=${INITRAMFSDIRs[$AA]}
+    SSS=${INITRAMFSSUBs[$AA]}
+    echo Cleaning: $DDD
+    rm -rf $DDD/*
+done
+
+# EOF
