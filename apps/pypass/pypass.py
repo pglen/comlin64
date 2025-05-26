@@ -1,11 +1,10 @@
 #!/usr/bin/env python3
+# pylint:disable=C0103,C0321,W0301,C0116
 
-import time
-import signal, os, sys
-import logging, warnings
-import re
+''' Python password utility for comlin '''
+
+import os, sys, warnings, time, argparse
 import pam
-import argparse
 
 import gi
 gi.require_version("Gtk", "3.0")
@@ -13,14 +12,13 @@ from gi.repository import Gtk
 from gi.repository import Gdk
 from gi.repository import GLib
 from gi.repository import GObject
-from gi.repository import Pango
-
 import cairo
 
 helper = \
     "Use special users 'exit', 'reboot', or 'shutdown' for said actions.\n" \
     " Alt-F4 / Alt-X / Alt-W to shutdown."
 
+# These files are carried by pypass.py
 CUSER = "/var/tmp/curruser"
 CEXEC = "/var/tmp/currexec"
 CDISP = "/var/tmp/currdisp"
@@ -30,6 +28,9 @@ SDCOM="/var/tmp/.shutdowncmd"
 exit_code = 0
 font_offset = 30
 drift = 1
+
+args = None
+xconfig = {}
 
 def get_disp_pos_size():
 
@@ -55,8 +56,8 @@ def yes_no(message, title = "Question", parent=None, default="Yes"):
 
     dialog.set_position(Gtk.WindowPosition.CENTER)
 
-    img = Gtk.Image.new_from_stock(Gtk.STOCK_DIALOG_QUESTION, Gtk.IconSize.DIALOG)
     warnings.simplefilter("ignore")
+    img = Gtk.Image.new_from_stock(Gtk.STOCK_DIALOG_QUESTION, Gtk.IconSize.DIALOG)
     dialog.set_image(img)
     warnings.simplefilter("default")
     dialog.set_markup(message)
@@ -133,6 +134,7 @@ class LabelButt(Gtk.EventBox):
         #self.curve =  Gdk.Cursor(Gdk.CursorType.CROSSHAIR)
         self.arrow =  Gdk.Cursor(Gdk.CursorType.ARROW)
         self.hand =  Gdk.Cursor(Gdk.CursorType.CIRCLE)
+        self.posxy = None
 
         #gdk_window = self.get_root_window()
         #self.arrow = gdk_window.get_cursor()
@@ -156,26 +158,28 @@ class LabelButt(Gtk.EventBox):
         self.connect("enter-notify-event", self.area_enter)
         self.connect("leave-notify-event", self.area_leave)
 
-    def eventx(self, *args):
-        print("eventx", *args)
+    def eventx(self, *xargs):
+        #print("eventx", *xargs)
         pass
 
     def mnemonic(self, *arg):
         if self.callb:
             #print("Mnemonic", *arg)
             self.callb(self, self.label, self.front)
-        pass
+        #pass
 
     def area_motion(self, arg1, arg2):
         #print("LabelButt Motion")
         pass
 
     def area_enter(self, arg1, arg2):
+        _ = arg1, arg2
         #print("LabelButt enter")
         gdk_window = self.get_window()
         gdk_window.set_cursor(self.hand)
 
     def area_leave(self, arg1, arg2):
+        _ = arg1, arg2
         #print("LabelButt leave")
         gdk_window = self.get_window()
         gdk_window.set_cursor(self.arrow)
@@ -188,12 +192,11 @@ class xEntry(Gtk.Entry):
         self.action = action
         self.connect("activate", self.enterkey)
         self.connect("focus-out-event", self.focus_out)
-        pass
+        #pass
 
     def focus_out(self, arg, foc):
         #print("Focus out", arg, foc)
         self.select_region(0,0)
-        pass
 
     def enterkey(self, arg):
         #print("Enter:", self.get_text())
@@ -204,13 +207,16 @@ class xEntry(Gtk.Entry):
         else:
             self.form.child_focus(Gtk.DirectionType.TAB_FORWARD)
 
-def  millisleep(msec, flag = [0,]):
+# Determine the correct function for time.clock()
 
-    if sys.version_info[0] < 3 or \
-        (sys.version_info[0] == 3 and sys.version_info[1] < 3):
-        timefunc = time.clock
-    else:
-        timefunc = time.process_time
+if sys.version_info[0] < 3 or \
+        (sys.version_info[0] == 3 \
+            and sys.version_info[1] < 3):
+    timefunc = time.clock
+else:
+    timefunc = time.process_time
+
+def  millisleep(msec, flag = [0,]):
 
     got_clock = timefunc() + float(msec) / 1000
     #print( got_clock)
@@ -234,13 +240,15 @@ class MainWin(Gtk.Window):
         self.dx = 0
         self.dy = 0
         self.fired = False
+        self.butpos = 0
+        self.posxy = None
 
         Gtk.Window.__init__(self, type=Gtk.WindowType.TOPLEVEL)
         #Gtk.register_stock_icons()
 
-        self.save_result(CUSER, "")
-        self.save_result(CEXEC, "")
-        self.save_result(CDISP, "")
+        #self.save_result(CUSER, "")
+        #self.save_result(CEXEC, "")
+        #self.save_result(CDISP, "")
 
         #self.set_title("Please enter your user name and password:")
 
@@ -268,7 +276,7 @@ class MainWin(Gtk.Window):
         #ic.set_from_stock(Gtk.STOCK_DIALOG_INFO, Gtk.ICON_SIZE_BUTTON)
         #window.set_icon(ic.get_pixbuf())
 
-        xx, yy, www, hhh = get_disp_pos_size()
+        #xx, yy, www, hhh = get_disp_pos_size()
         self.movex = False
 
         #self.set_default_size(4*www/8, 3*hhh/8)
@@ -406,11 +414,8 @@ class MainWin(Gtk.Window):
         self.add(vbox)
         self.show_all()
 
-        GLib.timeout_add(4000, self.animate)
-
-        aaa = xconfig.get('autologin', "")
-        if aaa:
-            GLib.timeout_add(40, self.autologin)
+        # Check for autologin logic
+        GLib.timeout_add(40, self.autologin)
 
     def leave_notify(self, win, event):
         #print("leave", event)
@@ -429,6 +434,7 @@ class MainWin(Gtk.Window):
         return True
 
     def labelbuttf(self, win, txt, but):
+        _ = win, txt, but
         if xconfig.get("verbose", 0) > 0:
             print("Eventbox callb for shutting down.")
 
@@ -436,6 +442,7 @@ class MainWin(Gtk.Window):
         self.OnExit(3)
 
     def autologin(self):
+
         aaa = xconfig.get('autologin', "")
         bbb = xconfig.get('autoexec', "")
 
@@ -443,17 +450,45 @@ class MainWin(Gtk.Window):
             print("Autologin for '%s' requested for" % aaa)
             print("Autoexec for '%s' requested for" % bbb)
 
-        self.result.set_text("Autologin for '%s' requested ..." % aaa)
-        millisleep(20)
-        time.sleep(1)
+        if not aaa:
+            return
+
+        cont = ""
+        # if autologin file is not empty, we are in auto loop ... shut down
+        try:
+            fpx = open(CUSER, "rt")
+            cont = fpx.read(); fpx.close()
+            cont = cont.strip()
+
+            if xconfig.get("pgdebug", 0) > 2:
+                print("cont:", "'" + cont + "'")
+
+        except:
+            #print("cuser", sys.exc_info() )
+            pass
+
+        #print("cont:", "'" + cont + "'")
+
+        if cont:
+            if xconfig.get("pgdebug", 0) > 2:
+                print("auto exiting on loop", cont, exit_code)
+
+            self.result.set_text("AutoLogin System Exit for '%s' ... " % aaa)
+
+            millisleep(1000)
+            self.OnExit(3)
+            return
+
+        self.result.set_text("AutoLogin for '%s' requested ... " % aaa)
+        millisleep(1000)
 
         self.save_result(CUSER, aaa)
         self.save_result(CEXEC, bbb)
         self.save_result(CDISP, os.environ['DISPLAY'])
 
-        if xconfig.get("pgdebug", 0) > 2:
-            print("destroy")
-        self.destroy()
+        #if xconfig.get("pgdebug", 0) > 2:
+        #    print("destroy")
+        #self.destroy()
 
         if xconfig.get("pgdebug", 0) > 2:
             print("onexit")
@@ -461,9 +496,11 @@ class MainWin(Gtk.Window):
 
     def releasex(self, arg2, event):
         #print("releasex", event.x, event.y)
+        _ = arg2, event
         self.butpos = self.get_window().get_device_position(event.device)
 
     def pressx(self, arg2, event):
+        _ = arg2, event
         #print("pressx", event.x, event.y)
         self.butpos = self.get_window().get_device_position(event.device)
 
@@ -506,17 +543,20 @@ class MainWin(Gtk.Window):
         fp.close()
 
     def ok(self, arg1):
+        ''' OK '''
         #print("OK - user", self.userE.get_text(), self.passE.get_text())
         #self.OnExit(2)
-        pass
+        #pass
 
     def cancel(self, arg1):
+        ''' cancel '''
         #print("Cancel pressed", arg1)
         #self.OnExit(1)
-        pass
+        #pass
 
     def  OnExit(self, excode, arg2 = None):
 
+        ''' Common Exit function '''
         global exit_code
         exit_code = excode
 
@@ -531,13 +571,15 @@ class MainWin(Gtk.Window):
             ret = Gtk.ResponseType.YES
 
         if ret != Gtk.ResponseType.YES:
-           return
+            return
 
         self.write_sdf(excode)
 
         Gtk.main_quit()
 
     def precheck_pass(self):
+
+        ''' check pass '''
 
         uu = self.userE.get_text();
 
@@ -571,8 +613,7 @@ class MainWin(Gtk.Window):
             ret = pam.authenticate(uu, pp)
             if ret:
                 self.result.set_text("Authenticated.")
-                millisleep(20)
-                time.sleep(.5)
+                millisleep(500)
                 self.busy = False
                 bbb = xconfig.get('autoexec', "")
                 self.save_result(CEXEC, bbb)
@@ -585,8 +626,7 @@ class MainWin(Gtk.Window):
                 "<span fgcolor=\"#ff0000\">Invalid credentials. </span>Please try again ...")
                 millisleep(20)
 
-        millisleep(20)
-        time.sleep(2)
+        millisleep(2000)
         self.busy = False
         self.get_window().set_cursor(self.regular_cursor)
         self.result.set_text("")
@@ -648,11 +688,13 @@ class MainWin(Gtk.Window):
             fp.close()
         except:
             print("Error on saving file:", fname, sys.exc_info())
-            pass
 
         #sys.env
 
     def delete(self, widgetx, event):
+
+        ''' Delete '''
+
         if xconfig.get("verbose", 0) > 0:
             print("Delete event:", widgetx, event)
         #return True
@@ -660,7 +702,8 @@ class MainWin(Gtk.Window):
         self.OnExit(3)
 
     def done_map(self, widgetx, event):
-
+        ''' Called after mapping a window '''
+        _ = widgetx, event
         self.posxy = self.get_window().get_position()
 
         #wnd = self.get_window()
@@ -680,8 +723,6 @@ class MainWin(Gtk.Window):
         self.userE.grab_focus()
         #self.passE.grab_focus()
 
-        pass
-
 
 def unbool(strx):
 
@@ -697,8 +738,8 @@ def unbool(strx):
 
     # Try if number
     try:
-       nnn = int(strx)
-       res = nnn
+        nnn = int(strx)
+        res = nnn
     except:
         pass
 
@@ -780,7 +821,9 @@ def parse(strx):
     return bb
 
 def readconf(xconfig):
-    # Read config
+
+    ''' Read configuration file  '''
+
     fpx = None
     try:
         fpx = open("/etc/pypass/pypass.conf", "rt")
@@ -792,14 +835,18 @@ def readconf(xconfig):
 
     if fpx:
         conf = fpx.read()
+        if args.pgdebug > 6:
+            print("config file:", conf)
+
         for aa in conf.split("\n"):
             if len(aa) == 0:
                 continue
-            #print("org:", aa)
+            if args.pgdebug > 5:
+                print("line:", aa)
             bb = parse(aa)
             if len(bb) == 0:
                 continue
-            if args.pgdebug > 3:
+            if args.pgdebug > 4:
                 print("parsed:", type(bb[1]), bb)
             #continue
             if len(bb) > 1:
@@ -812,6 +859,9 @@ def readconf(xconfig):
             else:
                 pass
 
+        if args.pgdebug > 2:
+            print("read config", xconfig)
+
 Version = "1.0.0"
 pdesc = 'Simple login GUI. '
 pform = "Use TAB or enter to navigate between fields and submit. " \
@@ -819,6 +869,7 @@ pform = "Use TAB or enter to navigate between fields and submit. " \
 
 def main():
 
+    ''' Entry Point '''
     global args, xconfig
     parser = argparse.ArgumentParser( description=pdesc, epilog=pform)
 
@@ -840,7 +891,7 @@ def main():
 
     parser.add_argument("-e", '--exec', dest='exec', type=str,
                         default="",  action='store',
-                        help='Auto exec program.')
+                        help='Update autoexec.sh for GUI start')
 
     parser.add_argument("-d", '--pgdebug', dest='pgdebug', type=int,
                         default=0,  action='store',
@@ -851,9 +902,9 @@ def main():
 
     if args.version:
         print("Version: %s" % Version)
-        self.OnExit(0)
+        #self.OnExit(0)
+        sys.exit(0)
 
-    xconfig = {}
     readconf(xconfig)
     #merge the two:
     for key, val in vars(args).items():
@@ -867,7 +918,8 @@ def main():
     if args.pconf:
         for aa in xconfig:
             print(aa + " " * (14 - len(aa)), "=", xconfig[aa])
-        self.OnExit(0)
+        #self.OnExit(0)
+        sys.exit(0)
 
     # Remove sdf, if any
     try:
@@ -876,14 +928,13 @@ def main():
         pass
 
     #print(os.environ['DISPLAY'])
-    mw = MainWin()
+    MainWin()
     Gtk.main()
-
-if __name__ == '__main__':
-
-    main()
     if xconfig.get("pgdebug", 0) > 2:
         print("exiting", exit_code)
     sys.exit(exit_code)
+
+if __name__ == '__main__':
+    main()
 
 # EOF

@@ -44,9 +44,11 @@ mkdir -p /proc /sys /dev /dev/pts /run
 mount -t proc proc /proc
 mount -t sysfs sysfs /sys
 
+VER=$(dmesg | grep "Linux version" | awk '{print $5}')
+
 # Time starts now (we get kernel uptime)
 uptime 1
-echo -e " Loaded kernel ... \033[32;1mOK\033[0m"
+echo -e " Loaded kernel $VER ... \033[32;1mOK\033[0m"
 
 # kernel command line equivalent: firmware_class.path=/cdroot/lib/firmware
 echo "/cdroot/lib/firmware" > /sys/module/firmware_class/parameters/path
@@ -288,11 +290,11 @@ echo -n "Unmounting file systems ... "
 cd /
 umount $CDROOT                  >/dev/null 2>&1
 umount $SYSROOT/hdroot          >/dev/null 2>&1
-umount $SYSROOT/orig            >/dev/null 2>&1
+umount $SYSROOT/orig           >/dev/null 2>&1
 umount $SYSROOT/cdroot          >/dev/null 2>&1
 umount $SYSROOT/newroot/tmp     >/dev/null 2>&1
 umount $SYSROOT/newroot/run     >/dev/null 2>&1
-umount $SYSROOT/newroot/orig    >/dev/null 2>&1
+umount $SYSROOT/newroot/orig   >/dev/null 2>&1
 umount $SYSROOT/newroot         >/dev/null 2>&1
 umount $SYSROOT/tmp             >/dev/null 2>&1
 umount $SYSROOT/dev/pts         >/dev/null 2>&1

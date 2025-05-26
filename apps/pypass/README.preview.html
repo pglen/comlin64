@@ -1,0 +1,55 @@
+<h1>README</h1>
+
+<p>This a replacement login utility.</p>
+
+<h2>Configuration</h2>
+
+<p>File: /etc/pypass.conf</p>
+
+<p>SYNTAX: key = value
+Comments after hash. Strings delimited by " or '</p>
+
+<p>Boolean values:</p>
+
+<pre><code>Yes|yes|YES|True|true|TRUE is 1
+No|no|NO|False|false|FALSE is 0
+
+defuser = user          Fill in default user into text box
+autologin = user        Auto login as that user
+autoexec = program      Run program on startup
+
+verbose = 0             Show running info (0=none -v=info)
+pgdebug = 3             Debug level (0=none 1...10)
+</code></pre>
+
+<h2>Features:</h2>
+
+<p>o Simple operation
+   o Hot key options</p>
+
+<h2>Security</h2>
+
+<p>The 'Login' display animates slowly, to show that this
+dialog is authentic.</p>
+
+<h2>Usage information</h2>
+
+<p>usage: pypass.py [-h] [-V] [-p] [-v] [-a AUTOLOGIN] [-e EXEC] [-d PGDEBUG]</p>
+
+<p>Simple login GUI.</p>
+
+<p>options:
+  -h, --help            show this help message and exit
+  -V, --version         Show version number
+  -p, --pconf           Print Configuration
+  -v, --verbose         Verbose. Repeat -v for more information
+  -a AUTOLOGIN, --auto AUTOLOGIN
+                        Auto log in user
+  -e EXEC, --exec EXEC  Auto exec program.
+  -d PGDEBUG, --pgdebug PGDEBUG
+                        Show debug information</p>
+
+<p>Use TAB or enter to navigate between fields and submit. Use special user
+'shutdown' for powering down system</p>
+
+<p>// EOF</p>

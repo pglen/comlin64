@@ -41,7 +41,7 @@ cpchown $APPDIR/power/ctrl_alt_del.py $TARG
 
 cpchown $APPDIR/MessageBox-X11/progress $TARG
 
-cpchown $APPDIR/pypass/passcheck $TARG
+#cpchown $APPDIR/pypass/passcheck $TARG
 cpchown $APPDIR/pypass/pypass.py $TARG
 cpchown $APPDIR/pypass/pypass.conf $ROOTFS/etc/pypass
 

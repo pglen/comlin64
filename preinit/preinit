@@ -32,7 +32,7 @@ if [ "$PPP" == "" ] ; then
     loginfo 0 "Changing permissions."
 
     chmod -R u+w /root/.
-    chmod -R u+w /home/user/.
+        chmod -R u+w /home/user/.
     chown -R user.users /home/user/.
     chmod -R u+w /home/guest/.
     chown -R guest.users /home/guest/.
@@ -136,6 +136,7 @@ if [ "$NODISK" != "" ] ; then
     #read -r
     #sleep 2
     bindall /
+    export NOWRITEABLE=1
     # User wants no data mount
     setsid /sbin/postinit
     exit
@@ -147,7 +148,7 @@ fi
 getargy 'delete-data'  && export CLEARDATA=$FOUNDVAL
 getargy 'delete-disk'  && export CLEARDISK=$FOUNDVAL
 
-getargy 'fsck'   && export FSCK=$FOUNDVAL
+getargy 'fsck' && export FSCK=$FOUNDVAL
 
 # Find and mount available writable media
 getargx 'ibreak=findhd' && tmpshell "$FOUNDVAR $ "
@@ -212,6 +213,7 @@ if [ "$MOUNT_DISK" == "" ] ; then
                 | awk '{print $1;}' | head -1 | tr -d ":")
         if [ "$OUTF" == "" ] ; then
             echo "Could not create partition. Starting in nosave mode."
+            export NOWRITEABLE=1
             sleep 2
             setsid /sbin/postinit
             exit
@@ -228,11 +230,13 @@ if [ "$MOUNT_DISK" == "" ] ; then
         if [ "$MOUNT_DISK" == "" ] ; then
             echo "Failed auto creating space for data. Starting in nosave mode."
             sleep 2
+            export NOWRITEABLE=1
             setsid /sbin/postinit
             exit
         fi
     else
         loginfo 0 "Started without writable media."
+        export NOWRITEABLE=1
         setsid /sbin/postinit
         exit
     fi

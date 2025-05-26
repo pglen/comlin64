@@ -213,6 +213,7 @@ so the file permissions are preserved.
     Thu 02.Jan.2025 Boots under VBOX into XFCE in under 15 seconds
     Sat 10.May.2025 Beta
     Sun 11.May.2025 Uploded to SF
+    Mon 26.May.2025 Updated kernel to 6.14.8 (for real time feature)
 
 ## Credits
 

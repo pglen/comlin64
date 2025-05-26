@@ -20,8 +20,8 @@ mount -o remount,rw /
 loginfo 1 "COMLIN64 in postinit stage"
 
 # inform user
-loginfo 0  -n "For more startup logs see: '/var/log/startuplogs/'"
-loginfo 0 -t -e " \033[32;1mOK\033[0m"
+loginfo 1  -n "For more startup logs see: '/var/log/startuplogs/'"
+loginfo 1 -t -e " \033[32;1mOK\033[0m"
 
 # UP loopback network connection
 ifconfig lo up 127.0.0.1
@@ -96,6 +96,9 @@ export HOME=/root
 /usr/bin/powacpi >>"$SULOUT" 2>>"$SULERR" &
 
 SDCOM="/var/tmp/.shutdowncmd"
+CUSER="/var/tmp/curruser"
+CEXEC="/var/tmp/currexec"
+CDISP="/var/tmp/currdisp"
 
 # Bye Bye old root
 NEWHOME="/root"
@@ -106,7 +109,18 @@ export XAUTHORITY=$NEWHOME/.Xauthority
 export ICEAUTHORITY=$NEWHOME/.ICEauthority
 export XAUTHLOCALHOSTNAME=localhost
 
-rm -f $SDCOM                # Fresh start
+# Fresh start for shutdown
+rm -f $SDCOM
+rm -f $CEXEC
+rm -f $CUSER
+
+# Adjust backings so the user cannot write to it
+# Remount backings as 'ro',
+chmod -R a-w /cdroot
+mount -o remount,ro /cdroot
+
+# Change mode to -w in /orig
+chmod -R a-w /orig
 
 while : ; do
     stty -g >.stty_dump.txt
