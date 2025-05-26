@@ -2,8 +2,6 @@
 
 # Test key pair signature
 
-. keyparms.sh
-
 if [ "$1" == "" ] ; then
     echo Use: check.sh filename
     exit 0
@@ -16,6 +14,9 @@ if [ ! -f $1 ] ; then
     exit 1
 fi
 
+SD=$(realpath $0) ; DN=$(dirname $SD)
+. $DN/keyparms.sh
+
 RFILE=$(realpath $1)
 encode_fname $RFILE
 
@@ -25,6 +26,8 @@ if [ ! -f $SIGFILE ] ; then
 fi
 
 echo -n "$RFILE: --  "
-openssl dgst -sha256 -verify $PUBKEY -signature $SIGFILE $RFILE
+cat $SIGFILE | xxd -r -p > tmp
+openssl dgst -sha256 -verify $PUBKEY -signature tmp $RFILE
+rm tmp
 
 # EOF

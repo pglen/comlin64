@@ -4,12 +4,6 @@
 
 #echo signinig with $0
 
-SD=$(realpath $0) ; DN=$(dirname $SD)
-HERE=$(pwd)
-cd $DN
-. keyparms.sh
-cd $HERE
-
 if [ "$1" == "" ] ; then
     echo Use: sign filename
     exit 0
@@ -22,6 +16,9 @@ if [ ! -f $1 ] ; then
     exit 1
 fi
 
+SD=$(realpath $0) ; DN=$(dirname $SD)
+. $DN/keyparms.sh
+
 mkdir -p $SIGDIR || echo cannot create $SIGDIR
 
 RFILE=$(realpath $1)
@@ -32,6 +29,6 @@ if [  -f $SIGFILE ] ; then
     exit 2
 fi
 
-openssl dgst -sha256 -sign $PRIKEY -out $SIGFILE $1
+openssl dgst -sha256 -sign $PRIKEY  $1 | xxd -p > $SIGFILE
 
 # EOF
