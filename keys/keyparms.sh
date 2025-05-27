@@ -41,16 +41,16 @@ decode_fname() {
 # Deliver key / offset for escaped filename
 
 lookup () {
-    local AA BB CC DD EE FF
+    local AA BB CC
     WAS=0 ;  KEYX=""
 
-    if [ ! -f $SSS ] ; then
+    if [ ! -f "$SSS" ] ; then
         if [ $((DEBUG)) -gt 0 ] ;  then
-            echo "Cannot find signature file $SSS"
+            echo Cannot find signature file: "$SSS"
         fi
         return 0
     fi
-    if [ $((DEBUG)) -gt 1 ] ;  then echo reading: $SSS; fi
+    if [ $((DEBUG)) -gt 1 ] ;  then echo reading: "$SSS" ; fi
 
     while : ; do
         read -r AA
@@ -62,11 +62,11 @@ lookup () {
         fi
         if [ "$AA" != "BOR" ] && [ "$AA" != "DOR" ] ; then
             if [ $((DEBUG)) -gt 1 ] ;  then
-                echo Invalid entry $AA skipping at offset $OFFSET
+                echo Invalid entry "$AA" skipping at offset "$OFFSET"
             fi
             while : ;  do
                 read -r ZZ ; OFFSET+=${#ZZ}
-                if [ $((DEBUG)) -gt 1 ] ;  then echo "skip" $ZZ; fi
+                if [ $((DEBUG)) -gt 1 ] ;  then echo skip: "$ZZ" ; fi
                 if [ "$ZZ" == "" ] ; then
                     break
                 fi
@@ -76,24 +76,24 @@ lookup () {
             done
         fi
         read -r BB
-        if [ $((DEBUG)) -gt 2 ] ;  then echo $AA $BB ;  fi
+        if [ $((DEBUG)) -gt 2 ] ;  then echo "$AA" "$BB" ;  fi
 
         # Read the four key lines
         KEYX=""
-        for RR in $(seq 0 3); do
+        for _RR in $(seq 0 3); do
             read -r CC ; KEYX+=$CC
         done
         if [ "$BB" == "$1" ] && [ "$AA" != "DOR" ] ; then
             WAS=1
-            if [ $((DEBUG)) -gt 1 ] ;  then echo $AA $BB; fi
-            if [ $((DEBUG)) -gt 2 ] ;  then echo OFFSET $OFFSET; fi
+            if [ $((DEBUG)) -gt 1 ] ;  then echo "$AA" "$BB" ; fi
+            if [ $((DEBUG)) -gt 2 ] ;  then echo OFFSET "$OFFSET" ; fi
             # Verify
             if [ $((DEBUG)) -gt 3 ] ;  then
-                VVV=$(dd if=$SSS skip=$OFFSET bs=1 count=4 2>/dev/null)
-                echo Verify: $VVV
+                VVV=$(dd if="$SSS" skip="$OFFSET" bs=1 count=4 2>/dev/null)
+                echo Verify: "$VVV"
             fi
             if [ $((DEBUG)) -gt 4 ] ;  then
-                echo KEYX $KEYX
+                echo KEYX "$KEYX"
             fi
 
             break
@@ -103,8 +103,8 @@ lookup () {
         OFFSET+=${#BB}
         OFFSET+=${#KEYX}
         OFFSET+=6
-    done  < $SSS
-    return $WAS
+    done  < "$SSS"
+    return "$WAS"
 }
 
 # Secure delete file
@@ -112,12 +112,12 @@ lookup () {
 secdel() {
 
     if [ ! -f "$1" ] ; then
-        echo "No File: $1" ; return 1
+        echo No File: "$1" ; return 1
     fi
-    SSS=$(stat -c %s "$1")
-    dd if=/dev/random bs=1 count=$SSS 2>/dev/null | xxd -p -c 32 > $1
+    FSIZE=$(stat -c %s "$1")
+    dd if=/dev/random bs=1 count="$FSIZE" 2>/dev/null | xxd -p -c 32 > "$1"
     #cat $1
-    rm -f $1
+    rm -f "$1"
 }
 
 # EOF
