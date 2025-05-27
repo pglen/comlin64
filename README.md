@@ -1,4 +1,4 @@
-#   ComLin64 Community Linux Boot-able USB
+#  ComLin64 Community Linux Boot-able USB
 
 ## This is the successor of the ComLin32 project for 64 bit PCs.
 

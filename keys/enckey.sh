@@ -1,18 +1,22 @@
 #!/bin/bash
 
-# Encrypt key pair signature
+# Encrypt key
 
-. keyparms.sh
+SD=$(realpath $0) ; DN=$(dirname $SD)
+. $DN/keyparms.sh
 
-TMPNAME=$(basename $PRIKEY .pem)_enc.pem
-#echo -in $PRIKEY -out $TMPNAME
-openssl pkcs8 -topk8 -scrypt -in $PRIKEY -out $TMPNAME
+# TEST
+#PRIKEY=testkey
+
+TMPNAME=$(basename $DN/$PRIKEY .pem)_enc.pem
+#echo -in $DN/$PRIKEY -out $TMPNAME
+openssl pkcs8 -topk8 -scrypt -in $DN/$PRIKEY -out $TMPNAME
 
 if [ "$?" != "0" ] ; then
     echo No key operation carried out
 else
-    rm $PRIKEY
-    mv $TMPNAME $PRIKEY
+    secdel $DN/$PRIKEY
+    mv $TMPNAME $DN/$PRIKEY
 fi
 
 # EOF

@@ -11,6 +11,7 @@ enum    Scope / File        Description
 1*      pypass.py           Auto Login cycle  problem
 2*      iniramfs            Address ramfs size minimization
 3*      vbox hostname       Name resolution in vbox
+4 
 
 Resolution details:
 
